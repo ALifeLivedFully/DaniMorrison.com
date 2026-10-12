@@ -1,19 +1,25 @@
 {{- /*
-  The search form: a Google sitesearch scoped to this site, so a static site
-  gets a working search without shipping an index.
+  The search form: a client-side search over the JSON index Hugo renders for
+  this language (`layouts/home.searchindex.json`), filtered in the browser
+  by `js/search.js`. No service, no request to a third party, and it works
+  on a site that is entirely static.
 
       {{< search >}}
 
   The `/search` page is where the banner's search icon points when
   `enable_search` in `data/settings.yaml` is on.
 
-  Revised from the original theme's `search-google` shortcode: https, a
-  labelled control instead of a bare input, the site scoped from `baseURL`
-  rather than written out, and a real submit button.
+  The index URL comes from the home page's output formats rather than being
+  written out, so it follows `baseURL`, the language and whatever the
+  output format is ever renamed to.
 */ -}}
-<form method="get" action="https://www.google.com/search" target="_blank" rel="noopener">
+{{- $index := "" -}}
+{{- with site.Home.OutputFormats.Get "searchindex" -}}
+    {{- $index = .RelPermalink -}}
+{{- end -}}
+<form class="sitesearch" data-search data-index="{{ $index }}" data-none="{{ i18n "No results" }}" role="search">
     <label for="sitesearch">{{ i18n "Search this website" }}</label>
-    <input type="hidden" name="sitesearch" value="{{ site.BaseURL }}">
-    <input type="search" id="sitesearch" name="q" maxlength="255" placeholder="{{ i18n "Search via Google" }}">
-    <p><button class="button" type="submit">{{ i18n "Search" }}</button></p>
+    <input type="search" id="sitesearch" name="q" maxlength="255" autocomplete="off"
+           placeholder="{{ i18n "Search…" }}" aria-controls="searchresults">
+    <ul class="results" id="searchresults" data-results aria-live="polite"></ul>
 </form>

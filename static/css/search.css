@@ -1,0 +1,49 @@
+/* ==========================================================================
+   The search results — data/settings.yaml `enable_search`
+
+   The form is laid out by the core's `form` grid, and the field by the
+   core's field styles; all this file owns is the list `js/search.js`
+   fills in: a stack of links, each carrying the page's title over the line
+   the query hit, so the visitor can see why it matched before clicking.
+   ========================================================================== */
+
+form.sitesearch .results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+/* Empty is the state before the first keystroke, and the core's flow spacing
+   would otherwise leave a gap where nothing is. */
+form.sitesearch .results:empty { display: none; }
+form.sitesearch .results li { margin: 0.5rem 0 0; }
+form.sitesearch .results li.none {
+    color: var(--textMedium);
+    font-style: italic;
+}
+form.sitesearch .results a {
+    display: block;
+    padding: 0.85rem 1.15rem;
+    border: 0.1rem solid var(--borderLight);
+    border-radius: var(--radius-s);
+    text-decoration: none;
+    transition: border-color 0.15s ease-in-out;
+}
+form.sitesearch .results a:hover { border-color: var(--accent); }
+form.sitesearch .results .title {
+    display: block;
+    color: var(--textDark);
+    font-weight: 700;
+}
+form.sitesearch .results .excerpt {
+    display: block;
+    margin-block-start: 0.15rem;
+    font-size: 0.95rem;
+    color: var(--textMedium);
+}
+/* The hit, not the page: the accent as text, because the ground it would be
+   painted on is the one the excerpt is already standing on. */
+form.sitesearch .results mark {
+    background: none;
+    color: var(--accentDarker);
+    font-weight: 700;
+}

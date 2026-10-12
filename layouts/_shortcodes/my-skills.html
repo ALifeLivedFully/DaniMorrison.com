@@ -1,0 +1,8 @@
+{{ range site.Data.person.skills }}
+  <h3>{{ .category }}</h3>
+  <ul>
+    {{ range .items }}
+      <li>{{ . }}</li>
+    {{ end }}
+  </ul>
+{{ end }}

@@ -2,27 +2,27 @@
 title: Home
 ---
 
-# Build your next Hugo website with stackable content bricks
+# Maker
 
-Hugobricks is a free website theme for Hugo. It makes building Hugo websites child's play due to its stackable (LEGO-like) content bricks. How about this 'intro brick' with a clear call-to-action? Stack it on top of some image bricks and a pricing table and build a complete website in seconds!
+📍 Based in Minnesota (USA)  
+🌐 Available to work globally  
 
-[Get started for free](/get-started/){:.button}
+[Resume/CV](/resume/){:.button.smaller}
+[Portfolio](/portfolio/){:.button.smaller}
 
-![](/uploads/illustrations/cuate/assets.svg)
+![](/uploads/photos/hike/hike1.jpg){:.background}
 
 ---
 
-## What's included in Hugobricks?
+## Testing auto-site feature
 
-Hugobricks is a comprehensive starter theme that includes everything you need to get started with your Hugo project. As all the Wordpress theme builders say: this is the last theme you will ever need. Included are:
+Name: {{< my-name >}}  
+Role: {{< my-role >}}  
+Email: {{< my-email >}}  
 
-- 10+ pre-built pages
-- 99+ Google Pagespeed score
-- Built with Hugo and CSS variables for easy styling
-- Fully responsive on all devices
-- SEO-optimized for better search engine rankings
+Skills:{{< my-skills >}}
 
-![](/uploads/illustrations/cuate/responsive.svg){:.float}
+![](/Business-card.svg){:.float}
 
 ---
 
@@ -59,3 +59,4 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum nesciunt
 {{< pricing >}}
 
 ---.cta
+

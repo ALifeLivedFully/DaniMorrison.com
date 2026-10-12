@@ -1,0 +1,36 @@
+{{- /*
+  Renders the pages of one section as a grid of teaser cards under a filter
+  that narrows them by tag.
+
+  Shared by the `services`, `projects` and `jobs` shortcodes: a service, a
+  project and a job all read the same way on a listing — a picture, a title,
+  an opening line and a way in — so they are the same card, the same
+  `<ul class="posts">` and the same brick (`posts`), which is how the original
+  theme lays out `/our-services/` too. No date: none of them is news.
+
+  The filter is the blog's, worked by the same `site.js`, but its tags are the
+  site's rather than this listing's — the original theme offers every tag on
+  the site wherever the filter appears, and these pages keep that. A tag no
+  entry carries is offered and disabled rather than hidden.
+
+  @context {dict} . Section (string), TagLabel (i18n key)
+*/ -}}
+{{- with sort (where site.RegularPages "Section" .Section) "Title" -}}
+
+{{- $tags := slice -}}
+{{- range site.RegularPages -}}
+    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+{{- end -}}
+{{- with sort (uniq $tags) -}}
+<form class="filter">
+    <label class="sr-only" for="tagfilter">{{ i18n $.TagLabel }}</label>
+    <select id="tagfilter" data-numbers="{{ hugo.Data.settings.filter_has_numbers }}" data-label-stop="{{ i18n "Stop filtering on" }}">
+        <option value="">{{ i18n "Filter tags" }}</option>
+        {{- range $name := . -}}<option value="{{ $name }}">{{ $name }}</option>{{- end -}}
+    </select>
+    <ul class="tags" aria-live="polite"></ul>
+</form>
+{{- end -}}
+
+{{- partial "teaser_list.html" (dict "Pages" . "Dates" false) -}}
+{{- end -}}

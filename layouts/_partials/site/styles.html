@@ -49,6 +49,22 @@
         {{- $css = $css | append . -}}
     {{- end -}}
 {{- end -}}
+{{- /* `data/settings.yaml` `enable_search`: the `/search` page's result list.
+       Off, and neither it nor its fetch-on-type behaviour is styled. */ -}}
+{{- if hugo.Data.settings.enable_search -}}
+    {{- with resources.Get "css/search.css" -}}
+        {{- $css = $css | append . -}}
+    {{- end -}}
+{{- end -}}
+{{- /* `data/settings.yaml` `enable_darkmode`: the palette and the exceptions
+       under `html[data-theme="dark"]`. Off, and nothing ships — the file is
+       nothing but that selector, and the head never sets it. Loaded last, so
+       it overrides the core, the chrome and the bricks in one place. */ -}}
+{{- if hugo.Data.settings.enable_darkmode -}}
+    {{- with resources.Get "css/dark.css" -}}
+        {{- $css = $css | append . -}}
+    {{- end -}}
+{{- end -}}
 {{- if $withSectionStyles -}}
     {{- $css = $css | append (resources.Match "css/sections/*.css") -}}
 {{- end -}}

@@ -2,8 +2,10 @@ logo_image:
 menuitems:
   - title: About
     link:  /about/
-  - title: Elements
-    link:  /elements/
+  - title: Portfolio
+    link:  /projects/
+  - title: Blog
+    link:  /blog/
   - title: Privacy policy
     link:  /privacy-policy/
 socials:
@@ -19,4 +21,4 @@ socials:
   - title: Instagram
     link: https://instagram.com
     logo_image: /img/instagram.svg
-footer_text: This theme is open source. More info on [Github](https://github.com/jhvanderschee/hugobricks)!
+footer_text: Personal website of Dani Morrison.

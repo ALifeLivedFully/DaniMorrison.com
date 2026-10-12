@@ -1,0 +1,36 @@
+{{- /*
+  The search index: one flat JSON array per language, built at render time
+  and fetched once by `js/search.js` on the first keystroke on `/search/`.
+
+      [{ "title": "About", "url": "/about/", "text": "…" }, …]
+
+  `text` is the page as plain text, so the matcher can look inside the body
+  without shipping the markup. It is capped at 6000 characters — past the
+  first few screens of a page the tail says nothing a search should match,
+  and a demo site full of lorem ipsum should not be paying for it.
+
+  A page opts out with `search: false` in its front matter; the `search`
+  page does, because a form cannot answer for itself. The 404 page is left
+  out for the same kind of reason: nobody is looking for it.
+
+  @context {page} . — the home page of one language, whose `OutputFormats`
+  gives this template its permalink (`site.Home.OutputFormats`).
+*/ -}}
+{{- $entries := slice -}}
+{{- range site.Pages -}}
+    {{- $searchable := true -}}
+    {{- if isset .Params "search" -}}{{- $searchable = .Params.search -}}{{- end -}}
+    {{- $notFound := false -}}
+    {{- with .File -}}{{- $notFound = eq .BaseFileName "404" -}}{{- end -}}
+    {{- if and $searchable (not $notFound) (ne .Section "docs") (in (slice "home" "page" "section") .Kind) -}}
+        {{- $text := .Plain | htmlUnescape -}}
+        {{- if gt (len $text) 6000 -}}
+            {{- $text = printf "%s…" (substr $text 0 6000) -}}
+        {{- end -}}
+        {{- $entries = $entries | append (dict
+            "title" (or .Title site.Title)
+            "url"   .RelPermalink
+            "text"  $text) -}}
+    {{- end -}}
+{{- end -}}
+{{- $entries | jsonify -}}

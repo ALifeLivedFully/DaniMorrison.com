@@ -17,6 +17,9 @@ Hugobricks is a comprehensive starter theme that includes everything you need to
 - Built with Hugo and CSS variables for easy styling
 - Fully responsive on all devices
 - SEO-optimized for better search engine rankings
+- Client-side search over a JSON index built by Hugo
+- Dark mode with a moon/sun toggle in the banner
+- Decap CMS at `/admin/`, wired for local editing (`npx decap-server`)
 
 [View Online Documentation](https://www.hugobricks2.preview.usecue.com/docs/)
 

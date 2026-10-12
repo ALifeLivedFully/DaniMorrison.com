@@ -11,6 +11,21 @@
     <link rel="canonical" href="{{ .Permalink }}">
     {{ partial "site/favicon.html" . }}
     {{ partial "site/styles.html" . }}
+    {{ if $s.enable_darkmode }}
+    <script>
+        /* data/settings.yaml `enable_darkmode`: the stored choice, else the
+           system one, applied before first paint so the page never flashes
+           the wrong palette. `js/darkmode.js` wires the banner's toggle. */
+        (function () {
+            try {
+                var stored = localStorage.getItem("theme");
+                document.documentElement.setAttribute("data-theme",
+                    stored === "dark" || stored === "light" ? stored :
+                    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            } catch (error) {}
+        })();
+    </script>
+    {{ end }}
 </head>
 <body id="top" data-mobile-width="{{ $d.header.mobile_view_width | default 1100 }}">
 
@@ -26,6 +41,8 @@
 
     <script src="/js/site.js" defer></script>
     <script src="/js/lightbox.js" defer></script>
+    {{ if $s.enable_search }}<script src="/js/search.js" defer></script>{{ end }}
+    {{ if $s.enable_darkmode }}<script src="/js/darkmode.js" defer></script>{{ end }}
     {{ if and $s.enable_webshop $d.webshop.show_cart_icon }}<script src="/js/webshop.js" defer></script>{{ end }}
     {{ if $s.customcursor }}<script src="/js/customcursor.js" defer></script>{{ end }}
 

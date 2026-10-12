@@ -1,0 +1,261 @@
+# Decap CMS, wired up for local use.
+#
+#   1. npx decap-server        # the local backend (writes straight to this repo)
+#   2. hugo server             # the site on http://localhost:1313
+#   3. open http://localhost:1313/admin/
+#
+# Without decap-server the admin page loads but cannot save.
+# Front matter that is not listed below is left untouched on save.
+
+backend:
+  name: git-gateway
+  branch: main
+
+local_backend: true
+
+# The editor previews pages at this address, so keep it pointing at `hugo server`.
+site_url: http://localhost:1313/
+
+# Uploads land in the site's own static folder and are referenced with the
+# URL they get after Hugo publishes them.
+media_folder: static/uploads
+public_folder: /uploads
+
+collections:
+  # ---- site-wide switches, data/settings.yaml ----
+  - name: settings
+    label: Settings
+    files:
+      - name: global
+        label: Global switches
+        file: data/settings.yaml
+        fields:
+          - { label: Favicon image, name: favicon_image, widget: string, required: false }
+          - label: Favicon
+            name: favicon
+            widget: object
+            fields:
+              - { label: PNG asset, name: asset, widget: string, required: false }
+              - { label: SVG image, name: svg_image, widget: string, required: false }
+              - { label: ICO image, name: ico_image, widget: string, required: false }
+              - { label: Apple touch icon title, name: apple_mobile_web_app_title, widget: string, required: false }
+              - label: Web manifest
+                name: site_webmanifest
+                widget: object
+                fields:
+                  - { label: Name, name: name, widget: string }
+                  - { label: Short name, name: shortname, widget: string }
+                  - { label: Theme colour, name: theme_color, widget: string }
+                  - { label: Background colour, name: background_color, widget: string }
+          - { label: Accent colour, name: color_name, widget: string, required: false, hint: "yellow, red, blue or green — empty for the default" }
+          - { label: Sticky header, name: sticky_header, widget: boolean }
+          - { label: Dark header, name: dark_header, widget: boolean }
+          - { label: Transparent header, name: transparent_header, widget: boolean }
+          - { label: Dark footer, name: dark_footer, widget: boolean }
+          - { label: Custom cursor, name: customcursor, widget: boolean }
+          - { label: Scroll animations, name: intersectionobserver, widget: boolean }
+          - { label: Tag counts in the filter, name: filter_has_numbers, widget: boolean }
+          - { label: Posts per "load more", name: page_size, widget: number, value_type: int, min: 1 }
+          - label: Preheader
+            name: preheader
+            widget: object
+            fields:
+              - { label: Show preheader, name: active, widget: boolean }
+              - { label: Light style (black text), name: is_light, widget: boolean }
+          - { label: Search icon and /search page, name: enable_search, widget: boolean }
+          - { label: Dark mode switch, name: enable_darkmode, widget: boolean }
+          - { label: Webshop (products, cart, checkout), name: enable_webshop, widget: boolean }
+
+  # ---- content/en/* ----
+  - name: pages
+    label: Pages
+    label_singular: Page
+    folder: content/en
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Body, name: body, widget: text, hint: "Raw Markdown — attribute lists like (…){:.class}, image bricks and shortcodes are written by hand here" }
+
+  - name: posts
+    label: Blog
+    label_singular: Post
+    folder: content/en/posts
+    create: true
+    summary: "{{title}} — {{date}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Publish date, name: date, widget: datetime, format: "YYYY-MM-DD HH:mm:ss", date_format: "YYYY-MM-DD", time_format: "HH:mm" }
+      - { label: Image, name: image, widget: image, required: false }
+      - label: Tags
+        name: tags
+        widget: list
+        required: false
+        field: { label: Tag, name: tag, widget: string }
+      - { label: URL alias, name: url, widget: string, required: false, hint: "Optional; sets the pretty permalink" }
+      - { label: Exclude from search, name: search, widget: boolean, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: services
+    label: Services
+    label_singular: Service
+    folder: content/en/services
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Image, name: image, widget: image, required: false }
+      - label: Tags
+        name: tags
+        widget: list
+        required: false
+        field: { label: Tag, name: tag, widget: string }
+      - { label: URL alias, name: url, widget: string, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: portfolio
+    label: Portfolio
+    label_singular: Project
+    folder: content/en/projects
+    create: true
+    nested:
+      depth: 100
+      meta:
+        path:
+          display: folder
+          index_file: index
+          create: index
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Cover image, name: image, widget: image, required: false, hint: "900x500 crop on the card. SVG covers are shown as-is." }
+      - { label: One-line description, name: description, widget: string, required: false, hint: "The portfolio card's description" }
+      - label: Links
+        name: links
+        widget: list
+        required: false
+        fields:
+          - { label: Label, name: label, widget: string, hint: "e.g. Website, Source" }
+          - { label: URL, name: url, widget: string }
+      - label: Tags
+        name: tags
+        widget: list
+        required: false
+        field: { label: Tag, name: tag, widget: string }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: jobs
+    label: Resume
+    label_singular: Job
+    folder: content/en/jobs
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Image, name: image, widget: image, required: false }
+      - label: Tags
+        name: tags
+        widget: list
+        required: false
+        field: { label: Tag, name: tag, widget: string }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: products
+    label: Products
+    label_singular: Product
+    folder: content/en/products
+    create: true
+    summary: "{{title}} — {{variant_type}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Main image, name: image, widget: image, required: false }
+      - label: Gallery images
+        name: images
+        widget: list
+        required: false
+        fields:
+          - { label: Image, name: image, widget: image }
+      - label: Variant type
+        name: variant_type
+        widget: select
+        options: ["size", "colour"]
+        default: size
+      - label: Variants
+        name: variants
+        widget: list
+        fields:
+          - { label: Name, name: name, widget: string, hint: "e.g. tall, grande — or default" }
+          - { label: Price, name: price, widget: number, value_type: float, min: 0, step: 0.01 }
+          - { label: SKU, name: sku, widget: string }
+      - { label: Weight (grid order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: bricks
+    label: Bricks
+    label_singular: Brick
+    folder: content/en/bricks
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Body, name: body, widget: markdown }
+
+  # ---- content/en/docs/* ----
+  - name: docs
+    label: Docs
+    label_singular: Doc
+    folder: content/en/docs
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: docs_bricks
+    label: Docs — Bricks
+    label_singular: Brick doc
+    folder: content/en/docs/bricks
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: docs_settings
+    label: Docs — Settings
+    label_singular: Setting doc
+    folder: content/en/docs/settings
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: docs_shortcodes
+    label: Docs — Shortcodes
+    label_singular: Shortcode doc
+    folder: content/en/docs/shortcodes
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+  - name: docs_customizations
+    label: Docs — Customizations
+    label_singular: Customization doc
+    folder: content/en/docs/customizations
+    create: true
+    summary: "{{title}}"
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
+      - { label: Body, name: body, widget: markdown }
+
+# Other languages: copy a collection and change its folder, e.g.
+#   folder: content/nl/posts
+# Local backend writes files straight into those folders the same way.

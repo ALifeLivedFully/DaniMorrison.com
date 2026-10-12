@@ -1,0 +1,21 @@
+{{- /*
+  The about-page portrait: a round, colorized image.
+
+      {{< portrait "/uploads/photos/me.jpg" "alt text" >}}
+
+  Prints the image with the classes the `about` brick is routed on: `about`
+  is what the section rule in `hugo.yaml` matches (`img.about`) and `colorize`
+  adds the duotone filter. Written as a shortcode so a CMS editor can round-
+  trip the page: the attribute list that used to carry these classes
+  (`![...](...){:.colorize.about}`) is not syntax a rich text editor keeps.
+
+  @param {string} 0  the image path
+  @param {string} 1  alt text (optional, defaults to "Portrait")
+
+  The image is wrapped in a paragraph because `about.css` styles the portrait
+  as `section.about p > img` — an `img` on its own would fall through that
+  rule, and the rounding and the centring come from it.
+*/ -}}
+{{- with .Get 0 -}}
+    <p><img src="{{ . }}" alt="{{ $.Get 1 | default "Portrait" }}" class="colorize about"></p>
+{{- end -}}

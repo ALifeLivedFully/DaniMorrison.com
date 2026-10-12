@@ -1,4 +1,4 @@
-baseURL: https://www.hugobricks2.preview.usecue.com
+baseURL: https://danimorrison.com
 defaultContentLanguage: en
 
 # The stylesheet is authored under `static/css/`, so that is where Hugo Pipes
@@ -84,6 +84,22 @@ params:
       not_has:
       is:
       not_is:
+    # The portfolio, the resume and the blog come before `cta`, because `cta`
+    # (`has: a.button:last-child`, `is: :last-child`) matches any listing
+    # whose last card ends on a "Read more" button — a grid of projects,
+    # jobs or services would collapse into a call to action otherwise. These
+    # listings win first, so the cta is only ever the page's own call to
+    # action.
+    - title: projects
+      has: ul.projects
+      not_has:
+      is:
+      not_is:
+    - title: posts
+      has: ul.posts
+      not_has:
+      is:
+      not_is:
     - title: cta
       has: a.button:last-child
       not_has: img.map
@@ -96,11 +112,6 @@ params:
       not_is:
     - title: team
       has: ul.team
-      not_has:
-      is:
-      not_is:
-    - title: posts
-      has: ul.posts
       not_has:
       is:
       not_is:
@@ -176,6 +187,17 @@ outputs:
     # `json` renders layouts/home.json, the page lookup the Usecue CMS uses
     # for instant publishing.
     - json
-    # Search ships no index: `enable_search` in data/settings.yaml puts the
-    # banner's search icon up, and the `/search` page it points to scopes a
-    # Google search to this site.
+    # `searchindex` renders layouts/home.searchindex.json: one flat JSON
+    # array per language, which `js/search.js` fetches on the first keystroke
+    # and filters in the browser. No service, no build step, no tracking.
+    - searchindex
+
+# The index format behind client-side search. `baseName` keeps it out of the
+# way of the `index.json` the Usecue CMS reads, and `isPlainText` stops Hugo
+# HTML-escaping the JSON it hands to the browser.
+outputFormats:
+  searchindex:
+    mediaType: application/json
+    baseName: searchindex
+    isPlainText: true
+    notAlternative: true

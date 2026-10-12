@@ -3,15 +3,15 @@ favicon:
   asset: /uploads/branding/brick_icon2_bw.png
   svg_image: /uploads/branding/brick_icon2_bw.svg
   ico_image: /uploads/branding/brick_icon2_bw.ico
-  apple_mobile_web_app_title: Hugobricks
+  apple_mobile_web_app_title: Dani Morrison
   site_webmanifest:
-    name: Hugobricks The Ultimate Hugo Theme
-    shortname: Hugobricks
+    name: Dani Morrison's personal site
+    shortname: Dani Morrison
     theme_color: "#000000"
     background_color: "#000000"
 color_name:
 sticky_header: true
-dark_header: false
+dark_header: true
 transparent_header: false
 dark_footer: true
 customcursor: true
@@ -19,7 +19,8 @@ intersectionobserver: true
 filter_has_numbers: true
 page_size: 3
 preheader: 
-  active: true
+  active: false
   is_light: true
-enable_search: false
+enable_search: true
+enable_darkmode: true
 enable_webshop: true

@@ -3,7 +3,8 @@ title: Blog
 # The listing is the posts section's index page, so a post's parent — and
 # so its breadcrumb — is this page. `url` keeps it at /blog/, where the menu
 # and every tag link point.
-url: /blog/
+# url: /blog/
+aliases: /blog/
 ---
 
 {{< breadcrumbs >}}

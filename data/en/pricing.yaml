@@ -21,7 +21,7 @@ plans:
       - Bug fixes & security patches
     cta:
       title: Get started
-      link: /get-started/
+      link: /contact/
       style: ghost
 
   - badge: most popular
@@ -38,7 +38,7 @@ plans:
       - CMS system for editors
     cta:
       title: Yes, pick me!
-      link: /get-started/
+      link: /contact/
 
   - badge: everything
     title: Enterprise
@@ -51,5 +51,5 @@ plans:
       - Custom bricks (on request)
     cta:
       title: Contact us
-      link: /get-started/
+      link: /contact/
       style: ghost

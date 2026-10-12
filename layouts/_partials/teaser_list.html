@@ -46,7 +46,7 @@
             <a href="{{ .RelPermalink }}">
                 {{- with .Params.image }}
                     {{- $src := . -}}
-                    {{- with resources.GetMatch $src }}{{ $src = (.Fill "600x300 webp Center q50").RelPermalink }}{{ end }}
+                    {{- with resources.GetMatch $src }}{{ if and (eq .ResourceType "image") (ne .MediaType.SubType "svg") }}{{ $src = (.Fill "600x300 webp Center q50").RelPermalink }}{{ end }}{{ end }}
                     <img src="{{ $src }}" alt="" width="600" height="300">
                 {{- end }}
                 <strong>{{ .Title | safeHTML }}</strong>

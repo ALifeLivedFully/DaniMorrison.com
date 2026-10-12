@@ -1,0 +1,76 @@
+/* ==========================================================================
+   Dark mode — data/settings.yaml `enable_darkmode`
+
+   This file ships only when the switch is on, and every rule in it hangs off
+   `html[data-theme="dark"]`, which the inline script in the head sets before
+   first paint (the stored choice, else the system one) and `js/darkmode.js`
+   keeps in step with the banner's toggle.
+
+   Two parts, in order.
+
+   1. The tokens. Every colour the theme paints comes from `:root` in
+      variables.css, so redefining them here repaints the whole site:
+      body copy, headings, borders, tinted boxes, form fields, code, the
+      footer. `color-scheme` goes with them, so scrollbars and native
+      controls follow.
+
+   2. The exceptions. A handful of components build a *dark surface* out of
+      the text tokens — white copy on `--textDark` — and would flip to a light
+      ground under white type the moment those tokens turn light. Each is
+      pinned back to a dark value below: the dark banner, the preheader, the
+      mobile panel, the footer, the skip link, secondary buttons, the tag
+      chips. The icons that are drawn as solid black glyphs are lifted to
+      white instead of tinted.
+   ========================================================================== */
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    background: var(--page);
+
+    /* colour */
+    --page:         #161d22;
+    --textDarker:   #e9eef1;
+    --textDark:     #dfe6ea;
+    --textMedium:   rgb(223 230 234 / 0.7);
+    --borderMedium: rgb(255 255 255 / 0.22);
+    --borderLight:  rgb(255 255 255 / 0.09);
+    --light:        rgb(255 255 255 / 0.055);
+    --scrim:        rgb(0 0 0 / 0.55);
+}
+
+/* -- surfaces that are dark by design ------------------------------------ */
+
+/* Each of these carries white copy from a rule further down the stylesheet,
+   so each keeps its dark ground while the tokens around it turn light.
+   `.button.secondary.ghost` is left out: its background is `none` and its
+   border and label come from `--textDark`, which just became light — the
+   inversion it wants. */
+html[data-theme="dark"] :is(
+    .skiplink,
+    .preheader:not(.light),
+    .siteheader.dark,
+    body.mobilemenu .mainnav,
+    .sitefooter.dark,
+    .button.secondary:not(.ghost),
+    .button.icon,
+    section.posts .filter ul.tags button
+) { background-color: #0d1317; }
+
+/* -- icons drawn as solid black glyphs ----------------------------------- */
+
+/* The logo, the cart, the search and the toggle are tinted to `--textDark`
+   in the light theme with the theme's own sepia filter; on a dark ground
+   that tint lands too close to the background, so they go white instead. */
+html[data-theme="dark"] :is(.logo img, .cart img, .search img, .theme-toggle img, #togglemenu) {
+    filter: brightness(0) invert(1);
+}
+
+/* The light preheader keeps its icons at half strength, but half-strength
+   *black* over a dark ground is invisible — half-strength white is what the
+   numbers are relative to now. */
+html[data-theme="dark"] .preheader.light img { filter: invert(1); opacity: 0.55; }
+
+/* -- the toggle's two glyphs --------------------------------------------- */
+
+html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }

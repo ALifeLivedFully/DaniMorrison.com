@@ -1,0 +1,66 @@
+{{- /*
+  Renders the site's projects as a grid of cards: cover image, name,
+  description, tags and links — the shape of a portfolio like
+  tedawf.com/projects.
+
+  Each card is:
+    - the cover image (front matter `image`), linking to the project's page
+    - the project's title, also linking to its page — every project is a page
+      under `content/<lang>/projects/`
+    - a one-line description: the front matter `description` if it is set,
+      else the first prose paragraph of the body
+    - the project's tags, as chips
+    - a row of links from front matter `links` — a list of `{ label, url }`
+      pairs (`Website`, `Source`, …), external links opening in a new tab
+    - a "Case study" button when the body has prose beyond the cover, which
+      keeps a project whose links are its point from padding the row with one
+
+  The summary is the page's first paragraph of prose rather than Hugo's
+  `.Summary`, which counts words from the top of the rendered page and so would
+  open with the breadcrumb trail and the title. The cover's paragraph is
+  dropped first, the same trick as `teaser_list.html`.
+
+  The `<ul class="projects">` is what routes this section to the `projects`
+  brick — the rule `has: ul.projects` in `params.sections`.
+
+  @context {dict} . Pages (page slice)
+*/ -}}
+<ul class="projects">
+    {{- range .Pages }}
+        {{- $page := . -}}
+        {{- $prose := replaceRE `(?is)<p>\s*(?:<a\b[^>]*>\s*)?<img\b[^>]*>\s*(?:</a>\s*)?</p>` "" (string $page.Content) -}}
+        {{- $summary := trim (htmlUnescape (plainify (delimit (first 1 (findRE `(?is)<p>.*?</p>` $prose 1)) ""))) " \n\r\t" -}}
+        {{- $desc := $page.Params.description | default $summary -}}
+        {{- $hasBody := gt (len (findRE `(?is)<p>.*?</p>` $prose)) 0 -}}
+        {{- $tags := slice -}}
+        {{- range $page.Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+        {{- $links := slice -}}
+        {{- range $page.Params.links -}}{{- if and .label .url -}}{{- $links = $links | append . -}}{{- end -}}{{- end -}}
+        <li>
+            {{- with $page.Params.image }}
+                {{- $src := . -}}
+                {{- with resources.GetMatch $src }}{{ if and (eq .ResourceType "image") (ne .MediaType.SubType "svg") }}{{ $src = (.Fill "900x500 webp Center q50").RelPermalink }}{{ end }}{{ end }}
+                <a class="thumb" href="{{ $page.RelPermalink }}">
+                    <img src="{{ $src }}" alt="" width="900" height="500">
+                </a>
+            {{- end }}
+            <h3><a href="{{ $page.RelPermalink }}">{{ $page.Title | safeHTML }}</a></h3>
+            {{- with $desc }}<p class="description">{{ . | truncate 220 }}</p>{{ end }}
+            {{- with $tags }}
+                <ul class="tags">
+                    {{- range $name := . }}<li>{{ $name }}</li>{{ end }}
+                </ul>
+            {{- end }}
+            {{- if or $links $hasBody }}
+                <ul class="links">
+                    {{- range $link := $links }}
+                        <li><a class="button ghost smaller" href="{{ $link.url }}"{{ if hasPrefix $link.url "http" }} target="_blank" rel="noopener"{{ end }}>{{ $link.label }}</a></li>
+                    {{- end }}
+                    {{- if $hasBody }}
+                        <li><a class="button ghost smaller" href="{{ $page.RelPermalink }}">{{ i18n "Read more" }}</a></li>
+                    {{- end }}
+                </ul>
+            {{- end }}
+        </li>
+    {{- end -}}
+</ul>

@@ -1,0 +1,9 @@
+{{- /*
+  Renders the site's jobs as a grid of teaser cards under a tag filter.
+
+      {{< jobs >}}
+
+  The jobs are the pages of `content/<lang>/jobs/`, the resume. The grid
+  itself is `services_list.html`, shared with the services and the portfolio.
+*/ -}}
+{{- partial "services_list.html" (dict "Section" "jobs" "TagLabel" "Filter resume by tag") -}}

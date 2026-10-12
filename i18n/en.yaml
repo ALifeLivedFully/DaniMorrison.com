@@ -38,6 +38,8 @@ Add to cart: Add to cart
 Menu: Menu
 Home: Home
 Filter posts by tag: Filter posts by tag
+Filter resume by tag: Filter resume by tag
+Filter projects by tag: Filter projects by tag
 Filter services by tag: Filter services by tag
 Call: "Call {{ . }}"
 Email: "Email {{ . }}"
@@ -53,5 +55,7 @@ Stop filtering on: Stop filtering on
 Image: Image
 Tabs: Tabs
 Search this website: Search this website
-Search via Google: Search via Google
+Search…: Search…
+No results: No results
 Search: Search
+Toggle dark mode: Toggle dark mode

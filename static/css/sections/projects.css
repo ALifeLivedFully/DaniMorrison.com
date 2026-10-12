@@ -1,0 +1,85 @@
+/* -- brick: projects --------------------------------------------------------
+   The portfolio: a grid of project cards — a cover, a name, a one-line
+   description, the project's tags, and a row of links. The card is richer
+   than a post or a service teaser because a project's point is the links it
+   carries.
+
+   `section.projects > .container > ul.projects` settles the grid, as the
+   `posts` brick settles `ul.posts`. `auto-fill` keeps an empty track when the
+   grid has few cards, so a lone project keeps its column rather than
+   stretching to the row's width.                                             */
+
+section.projects > .container > ul.projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+section.projects li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+/* The cover. A card is whole-link up top, so the picture and the title are
+   one target; the links row below is the card's real navigation. */
+section.projects li a.thumb {
+    display: block;
+    text-decoration: none;
+}
+section.projects li a.thumb img {
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: var(--radius);
+}
+
+section.projects li h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.3;
+    color: var(--textDark);
+}
+section.projects li h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+section.projects li h3 a:hover { text-decoration: underline; }
+
+section.projects li .description {
+    margin: 0;
+    color: var(--textMedium);
+}
+
+/* The tags, as chips. Display only — a project's cards carry their own tags,
+   so unlike the services and the blog there is no filter on the page. */
+section.projects li ul.tags,
+section.projects li ul.links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+section.projects li ul.tags li {
+    margin: 0;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    color: var(--textDarker);
+    background: var(--light);
+    border: 1px solid var(--borderLight);
+    border-radius: 1rem;
+}
+
+/* The links row sits at the card's feet even when a description is long. */
+section.projects li ul.links {
+    gap: 0.5rem;
+    margin-block-start: auto;
+    padding-block-start: 0.8rem;
+}
