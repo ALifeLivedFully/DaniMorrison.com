@@ -14,13 +14,9 @@ title: Home
 
 ---
 
-## Testing auto-site feature
+## Automated documents
 
-Name: {{< my-name >}}  
-Role: {{< my-role >}}  
-Email: {{< my-email >}}  
-
-Skills:{{< my-skills >}}
+Generating business card, resume/CV, and more using typst.
 
 ![](/Business-card.svg){:.float}
 

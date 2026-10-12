@@ -18,8 +18,8 @@ Soetendaal 7\
 1081BL Amsterdam\
 The Netherlands
 
-joost@vdschee.nl\
-+31 618 518 928
+{{< my-email >}}  
+{{< my-phone >}}  
 
 {{< socialbuttons >}}
 
