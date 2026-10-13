@@ -113,10 +113,15 @@
         setOpen(false);
     });
 
-    /* The blog's tag filter and its paging, ported from the original theme's
-       `filter.js`. The `blog` shortcode writes each post's tags onto its card,
-       offers them on a `<select>`, and leaves an empty `<ul class="tags">` and
-       a hidden button for this to fill in.
+    /* The listing tag filters and the blog's paging, ported from the original
+       theme's `filter.js`. Each listing shortcode writes its entries' tags onto
+       their cards, offers them on a `<select>`, and leaves an empty
+       `<ul class="tags">` and a hidden button for this to fill in.
+
+       A page may carry more than one listing — the shop lists its products and
+       its services in turn — so every `form.filter` is wired separately. The
+       grid it narrows is the form's next element sibling, which is where the
+       shortcodes write it, and the "load more" button, if any, trails that grid.
 
        Picking a tag narrows rather than replaces: the chosen ones are ANDed,
        so each pick can only shrink the list. That is why an option whose
@@ -128,12 +133,13 @@
 
        Without this file the select does nothing, the button stays hidden and
        every card is visible: the whole list, unfiltered and unpaged. */
-    var filterForm = document.querySelector("form.filter");
-    var postlist = document.querySelector("ul.posts");
-    if (filterForm && postlist) {
+    Array.prototype.forEach.call(document.querySelectorAll("form.filter"), function (filterForm) {
+        var postlist = filterForm.nextElementSibling;
+        if (!postlist || postlist.tagName !== "UL") return;
         var select = filterForm.querySelector("select");
         var pills = filterForm.querySelector("ul.tags");
-        var more = document.querySelector(".loadmore button");
+        var next = postlist.nextElementSibling;
+        var more = next && next.classList.contains("loadmore") ? next.querySelector("button") : null;
         var pagesize = parseInt(postlist.getAttribute("data-pagesize"), 10) || 0;
         var numbers = select.getAttribute("data-numbers") === "true";
         var cards = Array.prototype.slice.call(postlist.children);
@@ -210,7 +216,7 @@
         var wanted = new URLSearchParams(window.location.search).get("tag");
         if (wanted && everyTag.indexOf(wanted) !== -1) chosen = [wanted];
         render();
-    }
+    });
 
     /* -- tabs ----------------------------------------------------------
        The `tabs` shortcode. The markup is complete without this file — the

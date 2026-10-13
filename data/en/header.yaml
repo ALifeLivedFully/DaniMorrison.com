@@ -16,11 +16,6 @@ menuitems:
     #   link: /intrests/
   - title: Portfolio
     link: /portfolio/
-    items:
-    - title: Projects
-      link: /projects/
-    - title: Art
-      link: /art/
   - title: Blog
     link: /blog/
   # - title: Notes

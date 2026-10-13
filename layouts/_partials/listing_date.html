@@ -1,0 +1,23 @@
+{{- /*
+  A listing entry's date, or its date range.
+
+  The page's `date` is the start; an optional front-matter `enddate` closes the
+  range — "1 Mar 2022 – 1 Aug 2023" — which is what an experience entry wants,
+  where a post or a product wants a single date. With no `enddate` it is the one
+  date the blog has always shown. An entry with no `date` at all renders
+  nothing, so a listing that never asked for dates is untouched.
+
+  The gate is on `.Params.date` rather than `.Date` alone: Hugo falls back to
+  the file's own timestamps when front matter has no `date`, and a file's mtime
+  is not a fact about the thing being listed.
+
+  @context {page} .
+*/ -}}
+{{- $end := .Params.enddate -}}
+{{- with .Params.date -}}
+<p class="meta">
+    <span class="icon" style="--icon: url('/img/icons/material-symbols/200/rounded/calendar_month-fill.svg')"></span>
+    <time datetime="{{ $.Date.Format "2006-01-02" }}">{{ $.Date | time.Format ":date_medium" }}</time>
+    {{- with $end }}{{ $e := time . }}<span class="sep" aria-hidden="true">–</span><time datetime="{{ $e.Format "2006-01-02" }}">{{ $e | time.Format ":date_medium" }}</time>{{ end }}
+</p>
+{{- end -}}

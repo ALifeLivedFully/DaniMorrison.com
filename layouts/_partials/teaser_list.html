@@ -24,10 +24,17 @@
   `Class: products` so the `webshop` rule can match `ul.products` — the same
   card, told apart by the list it sits in.
 
+  `Style` picks the look: `tiles` hands the pages to `tiles_list.html`, the
+  alternative tile grid, which emits the same list class and so routes and
+  filters identically. Anything else — the default — is the card below.
+
   @context {dict} . Pages (page slice), Dates (bool), PageSize (int, optional),
-                    Class (string, the list's class — default `posts`)
+                    Class (string, the list's class — default `posts`),
+                    Style (string, optional — `tiles` for the tile look)
 */ -}}
-{{- $icons := "/img/icons/material-symbols/200/rounded" -}}
+{{- if eq (.Style | default "cards") "tiles" -}}
+    {{- partial "tiles_list.html" . -}}
+{{- else -}}
 <ul class="{{ .Class | default `posts` }}"{{ with .PageSize }} data-pagesize="{{ . }}"{{ end }}>
     {{- range .Pages -}}
         {{- /* A page opens on its picture, and goldmark wraps a lone image in
@@ -51,9 +58,10 @@
                 {{- end }}
                 <strong>{{ .Title | safeHTML }}</strong>
             </a>
-            {{ if $.Dates }}{{ with .Date }}<p class="meta"><span class="icon" style="--icon: url('{{ $icons }}/calendar_month-fill.svg')"></span><time datetime="{{ .Format "2006-01-02" }}">{{ . | time.Format ":date_medium" }}</time></p>{{ end }}{{ end }}
+            {{ if $.Dates }}{{ partial "listing_date.html" . }}{{ end }}
             {{ with $summary }}<p>{{ . | truncate 190 }}</p>{{ end }}
             <p><a class="button ghost smaller" href="{{ .RelPermalink }}">{{ i18n "Read more" }}</a></p>
         </li>
     {{- end -}}
 </ul>
+{{- end -}}

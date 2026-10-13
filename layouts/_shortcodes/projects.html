@@ -1,16 +1,28 @@
 {{- /*
   Renders the site's projects as a grid of portfolio cards — image, name,
-  description, tags and links, the shape of tedawf.com/projects.
+  description, tags and links — under a tag filter.
 
       {{< projects >}}
+      {{< projects style="tiles" >}}
 
   The projects are the pages of `content/<lang>/projects/`, the portfolio, so a
   new project appears here by existing rather than by being added to a
   hand-written list. The cards themselves are `projects_list.html`: richer than
-  a service or a job teaser, because a project advertises its links. The
-  `<ul class="projects">` it emits is what routes the section to the `projects`
-  brick in `params.sections`.
+  a service or a job teaser, because a project advertises its links.
+  `style="tiles"` swaps the cards for the alternative tile grid.
+
+  The `<ul class="projects">` the partial emits is what routes the section to
+  the `projects` brick in `params.sections`.
 */ -}}
+{{- $style := .Get "style" -}}
+{{- $id := printf "projects-%d" .Ordinal -}}
 {{- with sort (where site.RegularPages "Section" "projects") "Title" -}}
-    {{- partial "projects_list.html" (dict "Pages" .) -}}
+
+{{- $tags := slice -}}
+{{- range site.RegularPages -}}
+    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+{{- end -}}
+{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter projects by tag" "ID" $id) -}}
+
+{{- partial "projects_list.html" (dict "Pages" . "Style" $style) -}}
 {{- end -}}

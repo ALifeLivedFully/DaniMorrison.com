@@ -1,0 +1,95 @@
+/* -- listing style: tiles -------------------------------------------------
+   The "alternative look" of a listing: a grid of tiles rather than of cards,
+   the shape the `blocks` brick draws by hand.
+
+       {{< services style="tiles" >}}
+       {{< blog style="tiles" >}}
+
+   A tile is one link — a picture that fills it behind a scrim, the title in
+   white over it, and the opening line — or, with no picture, a light box with
+   dark text. The tile grid is the brick's own: `posts.css` and `projects.css`
+   settle `ul.posts` and `ul.projects`, and the shared collection grid gives
+   each `<li>` its `position: relative`, which is what the absolutely placed
+   picture fills. So this file carries the look only, keyed on the `tiles`
+   class the renderer adds to any of those lists.
+
+   It is loaded after `posts.css` and `projects.css` (the `sections/*.css`
+   match is alphabetical), so where a card rule and a tile rule tie on
+   specificity the tile wins. The picture rule is spelled out to be sure:
+   `ul.tiles > li img` matches `:is(section.posts, section.webshop) li img`
+   but sits later, which is the whole of the argument.                      */
+
+ul.tiles > li {
+    display: block;
+    aspect-ratio: 1.5;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--radius);
+    text-align: center;
+    isolation: isolate;
+}
+ul.tiles > li > a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    block-size: 100%;
+    padding: 1.5rem;
+    text-decoration: none;
+}
+ul.tiles > li strong {
+    display: block;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    margin-block-end: 0.5rem;
+}
+
+/* The tile's own text: the opening line, and the date when a listing asks for
+   one. Its margins are the card's, so they are reset here — `> p.meta` is the
+   extra class that outranks `section.posts li .meta`. */
+ul.tiles > li > a > p { margin: 0; }
+ul.tiles > li > a > p.meta {
+    justify-content: center;
+    margin-block: 0.5rem 0;
+    color: inherit;
+}
+ul.tiles > li > a > p.meta .sep { margin-inline: 0.4rem; }
+
+/* A tile with a picture fills with it, dims it behind a scrim, and speaks in
+   white over it. */
+ul.tiles > li:has(img) { overflow: clip; }
+ul.tiles > li:has(img) > a,
+ul.tiles > li:has(img) strong { color: #fff; }
+ul.tiles > li img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    aspect-ratio: auto;
+    border-radius: 0;
+    margin: 0;
+}
+ul.tiles > li:has(img)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--scrim);
+    pointer-events: none;
+}
+
+/* A tile without one is a box: the theme's light fill and hairline border,
+   dark text on it. */
+ul.tiles > li:not(:has(img)) {
+    background: var(--light);
+    border: 1px solid var(--borderLight);
+}
+ul.tiles > li:not(:has(img)) > a { color: var(--textMedium); }
+ul.tiles > li:not(:has(img)) strong { color: var(--textDark); }
+
+/* Hover: a picture leans in, a box sharpens its edge. */
+@media (hover: hover) {
+    ul.tiles > li:hover img { transform: scale(1.075); }
+    ul.tiles > li:not(:has(img)):hover { border-color: var(--borderMedium); }
+}

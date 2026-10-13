@@ -1,0 +1,41 @@
+{{- /*
+  A grid of tiles, one per page handed in — the "alternative look" of a
+  listing, the shape the `blocks` brick draws by hand.
+
+  Each tile is one link: a picture that fills it behind a scrim, the title in
+  white over it, and the opening line. A page with no picture is a light box
+  with its title in the body colour — the same two states `blocks.css` gives a
+  hand-written tile, reached here through the list's own `tiles` class.
+
+  This is `teaser_list.html`'s sibling, chosen by the `style="tiles"` argument
+  on a listing shortcode. It emits the same list class — `ul.posts`,
+  `ul.projects`, `ul.products` — so the section still routes to the brick that
+  has always wrapped it, `site.js` still finds the list through the class, and
+  the tag filter and paging work on the tiles exactly as they do on the cards.
+
+  @context {dict} . Pages (page slice), Dates (bool), PageSize (int, optional),
+                    Class (string, the list's class — default `posts`)
+*/ -}}
+<ul class="{{ .Class | default `posts` }} tiles"{{ with .PageSize }} data-pagesize="{{ . }}"{{ end }}>
+    {{- range .Pages -}}
+        {{- /* The summary is the first paragraph of prose, the cover's own
+               paragraph dropped first — the same move `teaser_list.html`
+               makes, and for the same reason. */ -}}
+        {{- $prose := replaceRE `(?is)<p>\s*(?:<a\b[^>]*>\s*)?<img\b[^>]*>\s*(?:</a>\s*)?</p>` "" (string .Content) -}}
+        {{- $summary := trim (htmlUnescape (plainify (delimit (first 1 (findRE `(?is)<p>.*?</p>` $prose 1)) ""))) " \n\r\t" -}}
+        {{- $tags := slice -}}
+        {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }}>
+            <a href="{{ .RelPermalink }}">
+                {{- with .Params.image }}
+                    {{- $src := . -}}
+                    {{- with resources.GetMatch $src }}{{ if and (eq .ResourceType "image") (ne .MediaType.SubType "svg") }}{{ $src = (.Fill "600x300 webp Center q50").RelPermalink }}{{ end }}{{ end }}
+                    <img src="{{ $src }}" alt="" width="600" height="300">
+                {{- end }}
+                <strong>{{ .Title | safeHTML }}</strong>
+                {{- if $.Dates }}{{ partial "listing_date.html" . }}{{ end }}
+                {{- with $summary }}<p>{{ . | truncate 190 }}</p>{{ end }}
+            </a>
+        </li>
+    {{- end -}}
+</ul>

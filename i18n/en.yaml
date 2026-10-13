@@ -41,6 +41,7 @@ Filter posts by tag: Filter posts by tag
 Filter resume by tag: Filter resume by tag
 Filter projects by tag: Filter projects by tag
 Filter services by tag: Filter services by tag
+Filter products by tag: Filter products by tag
 Call: "Call {{ . }}"
 Email: "Email {{ . }}"
 Website of: "Website of {{ . }}"

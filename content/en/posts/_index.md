@@ -1,10 +1,14 @@
 ---
 title: Blog
-# The listing is the posts section's index page, so a post's parent — and
-# so its breadcrumb — is this page. `url` keeps it at /blog/, where the menu
-# and every tag link point.
-# url: /blog/
-aliases: /blog/
+# The listing is the posts section's index page, so a post's parent — and so
+# its breadcrumb — is this page. `url` moves the listing itself to /blog/,
+# where the menu points, while the posts stay under /posts/<slug>/.
+#
+# It is `url` rather than an `aliases` entry on purpose: an alias renders a
+# redirect page whose target is absolute — built from `baseURL` — so /blog/
+# would bounce a local `hugo server` to the live domain. Keeping the listing
+# here means /blog/ is the page, not a redirect away from it.
+url: /blog/
 ---
 
 {{< breadcrumbs >}}

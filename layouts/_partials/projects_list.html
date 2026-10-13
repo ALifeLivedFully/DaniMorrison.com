@@ -21,10 +21,15 @@
   dropped first, the same trick as `teaser_list.html`.
 
   The `<ul class="projects">` is what routes this section to the `projects`
-  brick — the rule `has: ul.projects` in `params.sections`.
+  brick — the rule `has: ul.projects` in `params.sections`. `Style` picks the
+  look: `tiles` hands the pages to `tiles_list.html`, the alternative tile
+  grid, which emits the same list class so it routes and filters identically.
 
-  @context {dict} . Pages (page slice)
+  @context {dict} . Pages (page slice), Style (string, optional)
 */ -}}
+{{- if eq (.Style | default "cards") "tiles" -}}
+    {{- partial "tiles_list.html" (dict "Pages" .Pages "Class" "projects") -}}
+{{- else -}}
 <ul class="projects">
     {{- range .Pages }}
         {{- $page := . -}}
@@ -36,7 +41,7 @@
         {{- range $page.Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
         {{- $links := slice -}}
         {{- range $page.Params.links -}}{{- if and .label .url -}}{{- $links = $links | append . -}}{{- end -}}{{- end -}}
-        <li>
+        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }}>
             {{- with $page.Params.image }}
                 {{- $src := . -}}
                 {{- with resources.GetMatch $src }}{{ if and (eq .ResourceType "image") (ne .MediaType.SubType "svg") }}{{ $src = (.Fill "900x500 webp Center q50").RelPermalink }}{{ end }}{{ end }}
@@ -64,3 +69,4 @@
         </li>
     {{- end -}}
 </ul>
+{{- end -}}

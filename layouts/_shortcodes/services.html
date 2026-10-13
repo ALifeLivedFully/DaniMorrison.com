@@ -1,40 +1,24 @@
 {{- /*
-  Renders the site's services as a grid of teaser cards under a filter that
-  narrows them by tag.
+  Renders the site's services as a grid under a filter that narrows them by tag.
 
       {{< services >}}
+      {{< services style="tiles" >}}
 
   The services are the pages of `content/<lang>/services/`, so a new service
   appears here by existing rather than by being added to a hand-written list.
 
-  The cards are `teaser_list.html`, the same ones the blog uses, and they route
-  the section to the same `posts` brick — a service listing and a post listing
-  are the same thing with different pages in them, which is how the original
-  theme builds `/our-services/` too. No date: a service is not news.
-
-  The filter is the blog's, worked by the same `site.js`, but its tags are the
-  site's rather than this listing's — the original theme offers every tag on
-  the site wherever the filter appears, and this page keeps that. A tag no
-  service carries is offered and disabled rather than hidden, which is `site.js`
-  doing what it does everywhere: an option that would leave nothing is closed
-  off, not lied about.
+  The grid is `services_list.html`, shared with the jobs listing, and routes
+  the section to the `posts` brick — a service listing and a post listing are
+  the same thing with different pages in them. The optional `style` picks the
+  look: `tiles` for the alternative tile grid, the default teaser cards
+  otherwise.
 */ -}}
-{{- with sort (where site.RegularPages "Section" "services") "Title" -}}
-
-{{- $tags := slice -}}
-{{- range site.RegularPages -}}
-    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
-{{- end -}}
-{{- with sort (uniq $tags) -}}
-<form class="filter">
-    <label class="sr-only" for="tagfilter">{{ i18n "Filter services by tag" }}</label>
-    <select id="tagfilter" data-numbers="{{ hugo.Data.settings.filter_has_numbers }}" data-label-stop="{{ i18n "Stop filtering on" }}">
-        <option value="">{{ i18n "Filter tags" }}</option>
-        {{- range $name := . -}}<option value="{{ $name }}">{{ $name }}</option>{{- end -}}
-    </select>
-    <ul class="tags" aria-live="polite"></ul>
-</form>
-{{- end -}}
-
-{{- partial "teaser_list.html" (dict "Pages" . "Dates" false) -}}
-{{- end -}}
+{{- /* A page may hold more than one listing, so the filter's id is the
+       shortcode's own ordinal — two services listings must not share a
+       `<select id>`. */ -}}
+{{- $id := printf "services-%d" .Ordinal -}}
+{{- partial "services_list.html" (dict
+      "Section" "services"
+      "TagLabel" "Filter services by tag"
+      "ID" $id
+      "Style" (.Get "style")) -}}

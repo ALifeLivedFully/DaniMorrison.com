@@ -13,7 +13,7 @@ title: Resume
 
 For more see my [jobs](/jobs/)
 
-{{< jobs >}}
+{{< jobs dates="true" style="tiles" >}}
 
 ---
 

@@ -73,8 +73,12 @@ section.posts > .container > ul.posts {
    pulls it back into the 4rem the intro leaves below itself, so the filter
    rides in that space rather than pushing the grid down. It is the one control
    on the page that does nothing without `site.js`, and the page is complete
-   without it: every card is visible until something hides one. */
-section.posts .filter {
+   without it: every card is visible until something hides one.
+
+   The filter is shared — most listings carry it — so it is keyed on the bricks
+   whose entries it narrows, `posts`, `projects` and `webshop`, rather than on
+   the posts brick alone. */
+:is(section.posts, section.projects, section.webshop) .filter {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -85,7 +89,7 @@ section.posts .filter {
 /* The theme's own control: no fill, a hairline border, and 0.25em/0.75em of
    padding. The base control rule already puts selects at `line-height:
    normal`. */
-section.posts .filter select {
+:is(section.posts, section.projects, section.webshop) .filter select {
     background: none;
     padding: 0.25em 0.75em;
     border: 1px solid var(--borderMedium);
@@ -94,7 +98,7 @@ section.posts .filter select {
 
 /* The chosen tags, as chips that drop themselves. `site.js` builds them, so
    the list is empty and takes no room until one is picked. */
-section.posts .filter ul.tags {
+:is(section.posts, section.projects, section.webshop) .filter ul.tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -103,8 +107,8 @@ section.posts .filter ul.tags {
     list-style: none;
     order: -1;
 }
-section.posts .filter ul.tags li { margin: 0; }
-section.posts .filter ul.tags button {
+:is(section.posts, section.projects, section.webshop) .filter ul.tags li { margin: 0; }
+:is(section.posts, section.projects, section.webshop) .filter ul.tags button {
     display: flex;
     align-items: center;
     block-size: 2rem;
@@ -122,7 +126,7 @@ section.posts .filter ul.tags button {
 /* The cross is a rotated plus, as in the theme. It is decoration: the button's
    `aria-label` names the tag it drops, and an accessible name replaces the
    content rather than adding to it, so nothing reads out a stray "+". */
-section.posts .filter ul.tags button::after {
+:is(section.posts, section.projects, section.webshop) .filter ul.tags button::after {
     content: "+";
     display: inline-block;
     margin-inline-start: 1rem;

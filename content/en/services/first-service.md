@@ -1,9 +1,11 @@
 ---
-title: First service
+title: Range training
 image: /uploads/photos/06.jpg
 tags:
   -
 ---
+
+Armed minorities are harder to oppress.  
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus cursus egestas arcu, in vestibulum tortor pellentesque vitae. Curabitur dapibus tempor libero id vulputate. Proin sodales, nisi quis laoreet commodo, sapien quam consectetur lorem, ut molestie augue eros in enim. Nam tincidunt lobortis sapien, et molestie urna viverra sollicitudin. In hac habitasse platea dictumst. Donec placerat vestibulum luctus. Sed vel convallis nisi.
 

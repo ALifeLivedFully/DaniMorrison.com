@@ -5,4 +5,4 @@ title: Jobs
 # Jobs
 info about jobs.
 
-{{< jobs >}}
+{{< jobs dates="true" >}}

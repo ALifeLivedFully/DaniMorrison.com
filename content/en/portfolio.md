@@ -10,12 +10,4 @@ info about portfolio.
 
 ---
 
-## Programming
-
-info about programming portfolio.
-
----
-
-## Art
-
-Info about my art portfolio.
+{{< projects >}}
