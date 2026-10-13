@@ -1,8 +1,14 @@
 ---
-title: Jobs
+title: Resume
 ---
 
-# Jobs
-info about jobs.
+{{< breadcrumbs >}}
+# Resume
+{{< my-summary >}}<br>
 
-{{< jobs dates="true" >}}
+[Download Resume.pdf](/Resume.pdf){:.button}
+
+---
+
+{{< jobs dates="true" style="tiles" >}}
+
