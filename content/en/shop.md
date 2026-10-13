@@ -20,4 +20,4 @@ Physical items? in this economy?
 
 I like to help people, heres some of the things I can offer to help you with.
 
-{{< services >}}
+{{< services style="tiles" >}}

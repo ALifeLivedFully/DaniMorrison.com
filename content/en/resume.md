@@ -2,6 +2,7 @@
 title: Resume
 ---
 
+{{< breadcrumbs >}}
 # Resume
 {{< my-summary >}}<br>
 
@@ -9,14 +10,5 @@ title: Resume
 
 ---
 
-## Experience
-
-For more see my [jobs](/jobs/)
-
 {{< jobs dates="true" style="tiles" >}}
 
----
-
-## Education
-
-Info about my education.

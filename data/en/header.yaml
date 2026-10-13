@@ -5,28 +5,33 @@ mobile_view_width: 1100
 menuitems:
   - title: Resume
     link: /resume/
-    items:
-    - title: Experience
-      link: /jobs/
-    - title: Education
-      link: /Education/
-    - title: Skills
-      link: /skills/
+    # items:
+    # - title: Experience
+    #   link: /resume/#experience
+    # - title: Projects
+    #   link: /resume/#projects
+    # - title: Education
+    #   link: /resume/#education
+    # - title: Skills
+    #   link: /resume/#skills
+    # - title: Certifications
+    #   link: /resume/#certifications
     # - title: Intrests
-    #   link: /intrests/
+    #   link: /resume/#intrests
   - title: Portfolio
     link: /portfolio/
   - title: Blog
     link: /blog/
+    # items:
   # - title: Notes
   #   link: https://notes.danimorrison.com
   - title: Shop
     link: /shop/
-    items:
-    - title: Products
-      link: /products/      
-    - title: Services
-      link: /services/
+    # items:
+    # - title: Products
+    #   link: /shop/#products      
+    # - title: Services
+    #   link: /shop/#services
 cta:
   active: true
   title: Contact
