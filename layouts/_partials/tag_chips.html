@@ -1,0 +1,37 @@
+{{- /*
+  An entry's own tags, as a row of chips — one button per tag.
+
+  `site.js` wires each chip to the listing's tag filter: clicking one adds its
+  tag to the filter and clicking it again drops it, so a tag can be followed
+  from the card it sits on. The chips are the filter made touchable, not a
+  second filter — they drive the same `chosen` set as the `<select>` and the
+  pills.
+
+  Only the first `Max` tags show; the rest become a `+n`, because a resume
+  entry can carry more keywords than a card can hold without the card becoming
+  a wall of chips. The `+n` links to the entry's own page (`Url`), where every
+  tag is spelled out, rather than being a dead count. Every tag is also still
+  offered by the filter's `<select>`, so none is out of reach.
+
+  Emitted only where there is a filter to wire them to: `services_list.html`
+  hands `Tags` when its filter is on, and `projects_list.html` always carries
+  one, so a listing written `filter="false"` carries no dead controls.
+
+  @context {dict} . Tags (slice), Max (int, optional — default 6),
+                    Url (string, optional — where the `+n` leads)
+*/ -}}
+{{- $tags := .Tags -}}
+{{- $max := .Max | default 6 -}}
+{{- $url := .Url -}}
+{{- with $tags -}}
+    {{- $shown := . -}}
+    {{- $extra := 0 -}}
+    {{- if gt (len .) $max -}}
+        {{- $shown = first $max . -}}
+        {{- $extra = sub (len .) $max -}}
+    {{- end -}}
+<ul class="tags">
+    {{- range $name := $shown }}<li><button type="button" class="tag" data-tag="{{ $name }}">{{ $name }}</button></li>{{ end }}
+    {{- if gt $extra 0 }}<li class="more">{{ with $url }}<a href="{{ . }}">+{{ $extra }}</a>{{ else }}<span>+{{ $extra }}</span>{{ end }}</li>{{ end }}
+</ul>
+{{- end -}}

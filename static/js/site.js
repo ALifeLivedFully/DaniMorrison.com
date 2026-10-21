@@ -113,10 +113,12 @@
         setOpen(false);
     });
 
-    /* The listing tag filters and the blog's paging, ported from the original
+    /* The listing controls and the blog's paging, ported from the original
        theme's `filter.js`. Each listing shortcode writes its entries' tags onto
        their cards, offers them on a `<select>`, and leaves an empty
-       `<ul class="tags">` and a hidden button for this to fill in.
+       `<ul class="tags">` and a hidden button for this to fill in. A sort
+       `<select>` and a search `<input>` ride along when the shortcode asked for
+       them.
 
        A page may carry more than one listing — the shop lists its products and
        its services in turn — so every `form.filter` is wired separately. The
@@ -129,41 +131,96 @@
        original theme's `itemsLeft`, which is also where the counts beside each
        tag come from, and why they are counted here rather than in the template:
        they answer "how many are left if I add this one", which changes with
-       every pick. `?tag=name` picks one on arrival, so a tag can be linked to.
+       every pick. The search box narrows the same set on the text each card
+       carries (`data-search`), and the sort `<select>` reorders the cards by
+       `data-date`, `data-title` or `data-length`. `?tag=name` picks one on
+       arrival, so a tag can be linked to.
 
-       Without this file the select does nothing, the button stays hidden and
-       every card is visible: the whole list, unfiltered and unpaged. */
+       Without this file the selects and the search do nothing, the button stays
+       hidden and every card is visible: the whole list, unfiltered and unpaged. */
     Array.prototype.forEach.call(document.querySelectorAll("form.filter"), function (filterForm) {
         var postlist = filterForm.nextElementSibling;
         if (!postlist || postlist.tagName !== "UL") return;
-        var select = filterForm.querySelector("select");
+        var select = filterForm.querySelector("select.tagfilter");
+        var sortSelect = filterForm.querySelector("select.sortfilter");
+        var searchInput = filterForm.querySelector("input.searchfilter");
         var pills = filterForm.querySelector("ul.tags");
         var next = postlist.nextElementSibling;
         var more = next && next.classList.contains("loadmore") ? next.querySelector("button") : null;
         var pagesize = parseInt(postlist.getAttribute("data-pagesize"), 10) || 0;
-        var numbers = select.getAttribute("data-numbers") === "true";
+        var numbers = select && select.getAttribute("data-numbers") === "true";
         var cards = Array.prototype.slice.call(postlist.children);
-        var everyTag = Array.prototype.map.call(select.options, function (option) {
+        /* The tag chips on the cards, if the listing carries them: a chip is
+           the filter made touchable, so it drives the same `chosen` set. */
+        var chips = Array.prototype.slice.call(postlist.querySelectorAll("[data-tag]"));
+        var everyTag = select ? Array.prototype.map.call(select.options, function (option) {
             return option.value;
-        }).filter(Boolean);
+        }).filter(Boolean) : [];
         var chosen = [];
+        var query = "";
         var shown = pagesize;
 
         var carries = function (card, tags) {
             var have = (card.getAttribute("data-tags") || "").split(" ");
             return tags.every(function (tag) { return have.indexOf(tag) !== -1; });
         };
+        var queryHit = function (card) {
+            if (!query) return true;
+            var hay = card.getAttribute("data-search");
+            if (hay == null) hay = card.textContent.toLowerCase();
+            return hay.indexOf(query) !== -1;
+        };
+        var matches = function (card, tags) {
+            return carries(card, tags) && queryHit(card);
+        };
         var countWith = function (tag) {
             return cards.filter(function (card) {
-                return carries(card, chosen.concat(tag));
+                return matches(card, chosen.concat(tag));
             }).length;
         };
 
+        /* Reorder the cards the sort `<select>` asks for, in place. Appending
+           each in turn moves it to the end, so the sorted slice lands in order;
+           the counters and the paging then walk the list in that new order.
+           Every order falls back to the title so equal keys keep a settled
+           order. `date` and `range` are the card's start date and its
+           `date`–`enddate` span in seconds, both `data-` attributes the list
+           partials write. */
+        var sortCards = function () {
+            if (!sortSelect || !sortSelect.value) return;
+            var mode = sortSelect.value;
+            var num = function (card, name) {
+                return parseInt(card.getAttribute(name), 10) || 0;
+            };
+            var ordered = cards.slice();
+            ordered.sort(function (a, b) {
+                var at = a.getAttribute("data-title") || "";
+                var bt = b.getAttribute("data-title") || "";
+                var byTitle = at.localeCompare(bt);
+                if (mode === "newest" || mode === "oldest") {
+                    var diff = num(b, "data-date") - num(a, "data-date");
+                    return (mode === "newest" ? diff : -diff) || byTitle;
+                }
+                if (mode === "longest" || mode === "shortest") {
+                    var diffLen = num(b, "data-length") - num(a, "data-length");
+                    return (mode === "longest" ? diffLen : -diffLen) || byTitle;
+                }
+                if (mode === "range" || mode === "range-asc") {
+                    var diffRange = num(b, "data-range") - num(a, "data-range");
+                    return (mode === "range" ? diffRange : -diffRange) || byTitle;
+                }
+                return mode === "za" ? -byTitle : byTitle;
+            });
+            ordered.forEach(function (card) { postlist.append(card); });
+        };
+
         var render = function () {
-            /* The cards: the ones carrying every chosen tag, up to the page. */
+            /* The cards: the ones carrying every chosen tag and matching the
+               search, up to the page, in the order the sort asks for. */
+            sortCards();
             var matching = 0;
-            cards.forEach(function (card) {
-                var hit = carries(card, chosen);
+            Array.prototype.forEach.call(postlist.children, function (card) {
+                var hit = matches(card, chosen);
                 if (hit) matching += 1;
                 card.hidden = !hit || (pagesize > 0 && matching > shown);
             });
@@ -171,41 +228,79 @@
 
             /* The select: every tag not already picked, minus the ones that
                would leave nothing. */
-            Array.prototype.forEach.call(select.options, function (option) {
-                if (!option.value) return;
-                var left = countWith(option.value);
-                option.disabled = chosen.indexOf(option.value) !== -1 || left === 0;
-                option.textContent = numbers ? option.value + " (" + left + ")" : option.value;
-            });
-            select.value = "";
-            select.hidden = everyTag.every(function (tag) {
-                return chosen.indexOf(tag) !== -1;
-            });
+            if (select) {
+                Array.prototype.forEach.call(select.options, function (option) {
+                    if (!option.value) return;
+                    var left = countWith(option.value);
+                    option.disabled = chosen.indexOf(option.value) !== -1 || left === 0;
+                    option.textContent = numbers ? option.value + " (" + left + ")" : option.value;
+                });
+                select.value = "";
+                select.hidden = everyTag.every(function (tag) {
+                    return chosen.indexOf(tag) !== -1;
+                });
+            }
 
             /* The chips: one per chosen tag, each a button that drops it. */
-            pills.textContent = "";
-            chosen.forEach(function (tag) {
-                var item = document.createElement("li");
-                var drop = document.createElement("button");
-                drop.type = "button";
-                drop.textContent = tag;
-                drop.setAttribute("aria-label", (select.getAttribute("data-label-stop") || "Stop filtering on") + " " + tag);
-                drop.addEventListener("click", function () {
-                    chosen = chosen.filter(function (name) { return name !== tag; });
-                    shown = pagesize;
-                    render();
+            if (pills) {
+                pills.textContent = "";
+                chosen.forEach(function (tag) {
+                    var item = document.createElement("li");
+                    var drop = document.createElement("button");
+                    drop.type = "button";
+                    drop.textContent = tag;
+                    drop.setAttribute("aria-label", (select ? select.getAttribute("data-label-stop") : "Stop filtering on") + " " + tag);
+                    drop.addEventListener("click", function () {
+                        chosen = chosen.filter(function (name) { return name !== tag; });
+                        shown = pagesize;
+                        render();
+                    });
+                    item.append(drop);
+                    pills.append(item);
                 });
-                item.append(drop);
-                pills.append(item);
+            }
+
+            /* Each chip on the cards shows whether its tag is in the filter. */
+            chips.forEach(function (chip) {
+                chip.setAttribute("aria-pressed", chosen.indexOf(chip.getAttribute("data-tag")) !== -1 ? "true" : "false");
             });
         };
 
-        select.addEventListener("change", function () {
-            if (!select.value) return;
-            chosen = chosen.concat(select.value);
-            shown = pagesize;
-            render();
+        /* A chip toggles its own tag: on the first click it joins the filter,
+           on the next it leaves, so a tag can be followed from the card it sits
+           on as well as from the `<select>`. */
+        chips.forEach(function (chip) {
+            chip.addEventListener("click", function () {
+                var tag = chip.getAttribute("data-tag");
+                chosen = chosen.indexOf(tag) === -1
+                    ? chosen.concat(tag)
+                    : chosen.filter(function (name) { return name !== tag; });
+                shown = pagesize;
+                render();
+            });
         });
+
+        if (select) {
+            select.addEventListener("change", function () {
+                if (!select.value) return;
+                chosen = chosen.concat(select.value);
+                shown = pagesize;
+                render();
+            });
+        }
+        if (sortSelect) {
+            sortSelect.addEventListener("change", function () {
+                shown = pagesize;
+                render();
+            });
+        }
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                query = searchInput.value.trim().toLowerCase();
+                shown = pagesize;
+                render();
+            });
+        }
         if (more) {
             more.addEventListener("click", function () {
                 shown += pagesize;

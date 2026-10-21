@@ -1,35 +1,17 @@
 ---
-title: Stagehand
-image: /uploads/photos/06.jpg
+title: "Stagehand"
+date: "2022-07-01"
 tags:
-  -
+  - "live-production"
+  - "logistics"
+  - "safety"
+image: /uploads/photos/lego.jpg
 ---
 
--
+**IATSE Local 13 — Minneapolis, MN**
 
-## Tabs
+- Execute staging, load-in, operation, and strike for theater, concerts, and live events
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Read the [documentation](/docs/shortcodes/tabs/) for more info.
+- Coordinate crews to hang lighting, route audio, assemble scenery, and enforce venue safety
 
-{{< tabs >}}
-
-## These titles
-
-Nam elementum bibendum augue quis hendrerit. Sed lectus neque, efficitur id velit eget, feugiat ultricies mauris. Aliquam et dictum sem. Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Maecenas](https://www.google.com) molestie sodales bibendum.
-
----
-
-## Are clickable
-
-Sed lectus neque, efficitur id velit eget, feugiat ultricies mauris. Aliquam et dictum sem. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam elementum bibendum augue quis hendrerit. [Maecenas](https://www.google.com) molestie sodales bibendum.
-
----
-
-## Tabs
-
-Aliquam et dictum sem. Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Maecenas](https://www.google.com) molestie sodales bibendum. Nullam egestas nulla eget justo cursus, vitae convallis nibh fermentum.
-
-{{< /tabs >}}
-
--
-
+- Enforce safety protocols across rapid set changes, rigging, cabling, and heavy equipment moves

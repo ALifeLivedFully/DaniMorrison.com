@@ -668,7 +668,7 @@ section.collection > .container.small {
     margin-block-end: 4rem;
     padding-top: 1rem;
 }
-section.collection > .container > ul {
+section.collection > .container > ul:not(.image-gallery) {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
     gap: 1.55rem 1.5rem;

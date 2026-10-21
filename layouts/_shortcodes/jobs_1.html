@@ -1,0 +1,19 @@
+{{- /*
+  Renders the site's jobs as a grid under a tag filter.
+
+      {{< jobs >}}
+      {{< jobs style="tiles" dates="true" >}}
+
+  The jobs are the pages of `content/<lang>/jobs/`, the resume. The grid itself
+  is `services_list.html`, shared with the services. `style="tiles"` picks the
+  alternative tile look; `dates="true"` shows each entry's date, or its
+  `date`–`enddate` range, which is what an experience entry wants.
+*/ -}}
+{{- $id := printf "jobs-%d" .Ordinal -}}
+{{- $dates := eq (.Get "dates") "true" -}}
+{{- partial "services_list.html" (dict
+      "Section" "jobs"
+      "TagLabel" "Filter resume by tag"
+      "ID" $id
+      "Style" (.Get "style")
+      "Dates" $dates) -}}

@@ -108,6 +108,26 @@
     {{- end -}}
   {{- end -}}
 
+  {{- /* Read the section's rules without its `tabs` widget. The widget is an
+         interactive control, not a brick: it is a `<section class="tabs …">`
+         the shortcode writes, a tablist over a panel per tab. A listing inside
+         a panel writes `ul.posts`, a routing key that would otherwise send the
+         whole section to a collection brick, where `split_list.html` cuts a
+         section at its first `<ul>` and `<form>` and would tear the tablist
+         off its panels. Taken out here, a panel listing is invisible to the
+         rules. A section that is nothing but a widget then routes to the
+         `tabs` brick, which renders the widget whole. */ -}}
+  {{- $widget := "" -}}
+  {{- if strings.Contains $html `<section class="tabs` -}}
+    {{- $widget = index (findRE `(?s)<section class="tabs[^>]*>.*?</section>` $html 1) 0 -}}
+  {{- end -}}
+  {{- $route := $html -}}
+  {{- with $widget -}}{{- $route = replace $html . "" -}}{{- end -}}
+  {{- if and (not $matched) $widget (not (trim $route "\n\r\t ")) -}}
+    {{- $name = "tabs" -}}
+    {{- $matched = true -}}
+  {{- end -}}
+
   {{- range $rule := $rules -}}
     {{- if not $matched -}}
       {{- $match := true -}}
@@ -116,11 +136,11 @@
       {{- /* has / not_has: what the section is made of */ -}}
       {{- with $rule.has -}}
         {{- $tested = true -}}
-        {{- $match = and $match (partial "section_has.html" (dict "Html" $html "Selectors" .)) -}}
+        {{- $match = and $match (partial "section_has.html" (dict "Html" $route "Selectors" .)) -}}
       {{- end -}}
       {{- with $rule.not_has -}}
         {{- $tested = true -}}
-        {{- $match = and $match (not (partial "section_has.html" (dict "Html" $html "Selectors" .))) -}}
+        {{- $match = and $match (not (partial "section_has.html" (dict "Html" $route "Selectors" .))) -}}
       {{- end -}}
 
       {{- /* is / not_is: where the section sits among the sections of this page */ -}}

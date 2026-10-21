@@ -9,17 +9,17 @@ favicon:
     shortname: Dani Morrison
     theme_color: "#000000"
     background_color: "#000000"
-color_name:
+color_name: ""
 sticky_header: true
 dark_header: true
 transparent_header: false
 dark_footer: true
 customcursor: true
-intersectionobserver: true
+intersectionobserver: false
 filter_has_numbers: true
 page_size: 3
-preheader: 
-  active: false
+preheader:
+  active: true
   is_light: true
 enable_search: true
 enable_darkmode: true

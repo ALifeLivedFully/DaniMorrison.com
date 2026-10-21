@@ -1,55 +1,46 @@
-# ---------------------------------------------------------------------------
-# Pricing plans, rendered by the `{{< pricing >}}` shortcode into the `prices`
-# brick. The section's own heading and intro stay in the markdown; everything
-# below them lives here.
-#
-# `featured: true` is the plan that is lifted out of the row. Mark exactly one.
-# ---------------------------------------------------------------------------
 
 currency: $
 period: /month
-
 plans:
-  - badge: budget
-    title: Open-source
-    description: Full-featured theme/page builder to create a super fast & amazing website.
-    price: 0
+  - badge: supporter
+    title: Friend
+    description: Help keep my independent projects and resources going with a small monthly contribution.
+    price: 3
     features:
-      - Hugobricks theme/code
-      - All available bricks
-      - Regular updates
-      - Bug fixes & security patches
+      - Support my ongoing work
+      - Help fund future projects
+      - Access to public resources
+      - Cancel anytime
     cta:
-      title: Get started
-      link: /contact/
+      title: Become a supporter
+      link: /support/
       style: ghost
 
   - badge: most popular
-    title: Hosted
-    description: Everything in one toolkit — we host your website on our top-notch infrastructure.
-    price: 25
+    title: Sustainer
+    description: Provide steady support that helps me spend more time building, documenting, and sharing projects.
+    price: 7
     featured: true
     features:
-      - Hugobricks theme/code
-      - All available bricks
-      - Regular updates
-      - Bug fixes & security patches
-      - Form handling + notifications
-      - CMS system for editors
+      - Everything in Friend
+      - Project progress updates
+      - Behind-the-scenes posts
+      - Early access to selected work
     cta:
-      title: Yes, pick me!
-      link: /contact/
+      title: Become a sustainer
+      link: /support/
 
-  - badge: everything
-    title: Enterprise
-    description: Get exceptional value and cost savings with our complete product suite.
-    price: 75
+  - badge: patron
+    title: Benefactor
+    description: Make a bigger contribution toward independent work, practical resources, and community-focused projects.
+    price: 15
     features:
-      - "All other features plus:"
-      - High priority support
-      - Theme adjustments
-      - Custom bricks (on request)
+      - Everything in Sustainer
+      - Detailed project notes
+      - Input on future project ideas
+      - My sincere appreciation
     cta:
-      title: Contact us
-      link: /contact/
+      title: Become a benefactor
+      link: /support/
       style: ghost
+

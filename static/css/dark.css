@@ -53,7 +53,7 @@ html[data-theme="dark"] :is(
     .sitefooter.dark,
     .button.secondary:not(.ghost),
     .button.icon,
-    section.posts .filter ul.tags button
+    :is(section.posts, section.projects, section.webshop) .filter ul.tags button
 ) { background-color: #0d1317; }
 
 /* -- icons drawn as solid black glyphs ----------------------------------- */

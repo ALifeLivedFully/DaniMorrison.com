@@ -68,6 +68,30 @@ section.posts > .container > ul.posts {
     gap: 1.55rem 2rem;
 }
 
+/* The card shell: each entry is its own enclosed card — a hairline, a radius
+   and a soft resting shadow — so a grid of teasers reads as a set of cards
+   rather than a run of loose columns. Every card in a row is the same height
+   (the grid stretches them) and the "Read more" rides its foot, so the cards
+   line up. The tile look is exempt: `tiles.css` strips this back to a
+   full-bleed picture. */
+:is(section.posts, section.webshop) > .container > ul:not(.tiles) > li {
+    display: flex;
+    flex-direction: column;
+    background: var(--page);
+    border: 1px solid var(--borderLight);
+    border-radius: var(--radius);
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgb(38 50 56 / 0.05);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+:is(section.posts, section.webshop) > .container > ul:not(.tiles) > li:hover {
+    border-color: var(--borderMedium);
+    box-shadow: 0 6px 20px rgb(38 50 56 / 0.09);
+}
+:is(section.posts, section.webshop) > .container > ul:not(.tiles) > li > p:last-child {
+    margin-block-start: auto;
+}
+
 /* The tag filter sits over the grid, at the grid's right edge — `split_list`
    puts it in the wide container for exactly that. The negative top margin
    pulls it back into the 4rem the intro leaves below itself, so the filter
@@ -94,6 +118,17 @@ section.posts > .container > ul.posts {
     padding: 0.25em 0.75em;
     border: 1px solid var(--borderMedium);
     margin: 0;
+}
+/* The search box rides with the selects: the same hairline and no fill, sized
+   to a few words rather than the whole row. */
+:is(section.posts, section.projects, section.webshop) .filter input.searchfilter {
+    background: none;
+    padding: 0.25em 0.75em;
+    border: 1px solid var(--borderMedium);
+    margin: 0;
+    font: inherit;
+    inline-size: 12rem;
+    max-inline-size: 100%;
 }
 
 /* The chosen tags, as chips that drop themselves. `site.js` builds them, so
@@ -135,5 +170,49 @@ section.posts > .container > ul.posts {
 }
 
 /* The way on. `site.js` unhides it while cards are still held back. */
-section.posts .loadmore { margin-block: 0; position: relative; inset-block-end: 1rem; }
+:is(section.posts, section.projects, section.webshop) .loadmore { margin-block: 0; position: relative; inset-block-end: 1rem; }
+
+/* An entry's own tags, as chips — buttons that toggle the listing's filter
+   (`site.js`), the card's own way into the same set the `<select>` offers. */
+:is(section.posts, section.webshop) li ul.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+}
+:is(section.posts, section.webshop) li ul.tags li { margin: 0; padding: 0; }
+/* The `+n` — the tags a card has no room for — links to the entry, where all
+   of them are spelled out. */
+:is(section.posts, section.webshop) li ul.tags li.more a {
+    display: block;
+    padding: 0.28rem 0.6rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    color: var(--textMedium);
+    border: 1px dashed var(--borderMedium);
+    border-radius: 1rem;
+    text-decoration: none;
+}
+:is(section.posts, section.webshop) li ul.tags li.more a:hover { border-color: var(--textMedium); }
+:is(section.posts, section.webshop) li ul.tags button {
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0.28rem 0.7rem;
+    color: var(--textDarker);
+    background: var(--light);
+    border: 1px solid var(--borderLight);
+    border-radius: 1rem;
+    cursor: pointer;
+}
+:is(section.posts, section.webshop) li ul.tags button:hover { border-color: var(--borderMedium); }
+/* Picked, the chip inverts. `--page` (white) rather than `--light`, which is
+   a near-transparent *dark* and left the label unreadable on the dark fill. */
+:is(section.posts, section.webshop) li ul.tags button[aria-pressed="true"] {
+    color: var(--page);
+    background: var(--textDark);
+    border-color: var(--textDark);
+}
 

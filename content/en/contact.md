@@ -1,26 +1,25 @@
 ---
-title: Contact us
+title: Contact
 ---
-
 {{< breadcrumbs >}}
 
-# Contact us
+# Get in Touch
 
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum nesciunt commodi vel nisi ut alias excepturi ipsum, totam, labore tempora, odit ex iste tempore sed.
+Have a question, want to discuss a project, need a hand with something, or interested in something I make? I'd be happy to hear from you.
+
+Whether it's a work opportunity, a service inquiry, a custom request, or just a conversation, feel free to reach out.
 
 ---
 
 {{< contactform >}}
 
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum nesciunt commodi vel nisi ut alias excepturi ipsum, totam, labore tempora, odit ex iste tempore sed.
+## Frequently asked questions
 
-Soetendaal 7\
-1081BL Amsterdam\
-The Netherlands
+Hopefully this covers any questions you have but if not just send me a message!  
 
-{{< my-email >}}  
-{{< my-phone >}}  
+{{< faq 1 >}}   
 
-{{< socialbuttons >}}
+{{< contactbuttons >}}
+{{< socialbuttons >}}   
 
 ---.map

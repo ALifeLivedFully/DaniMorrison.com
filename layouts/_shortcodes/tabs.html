@@ -20,6 +20,28 @@
   inner markdown before the page is split, so a tab boundary does not become
   a brick boundary.
 
+  The tablist sits left by default; `center="true"` centres it, for an opener
+  that is itself centred. The tablist is wrapped in its own `.container` so the
+  rule under it runs the width of the content, not edge to edge.
+
+  Neither does anything else the widget holds. A `jobs` or `services` listing
+  inside a panel emits a `ul.posts`, which would otherwise route this whole
+  section to the `posts` brick and hand it to `split_list.html` — and that
+  splits a section at its first `<ul>` and `<form>`, tearing the tablist away
+  from its panels. So `section_map.html` takes the widget out of a section
+  before it tests the routing rules, recognising it as the `<section
+  class="tabs …">` written below. A section that is nothing but a widget then
+  routes to the `tabs` brick, `sections/tabs.html`.
+
+  The widget is its own `<section class="tabs posts collection">` for the same
+  reason: with the `posts` and `collection` classes the existing card, tile
+  and grid rules in `sections/posts.css`, `sections/tiles.css` and `style.css`
+  style any listing a panel holds, and each panel is a `.container` so the
+  grid's `section.collection > .container > ul` matches it. The `tabs` class
+  is what `tabs.css` and `site.js` work on, and what `section_map.html` reads;
+  the tablist is a `.container`-wrapped child and each panel a direct
+  `.container`, so the `>` selectors there still hold.
+
   Revised from the original theme: real `role="tab"` buttons with the roving
   tabindex and `aria-selected` that `site.js` maintains, instead of `<a
   href="#…" onclick>`; the script lives there rather than inline, and without
@@ -29,6 +51,7 @@
   @context {shortcode} .
 */ -}}
 {{- $ordinal := .Ordinal -}}
+{{- $center := eq (.Get "center") "true" -}}
 {{- $parts := slice -}}
 {{- range $part := split .Inner "---" -}}
     {{- with trim $part "\n\r\t " -}}
@@ -38,8 +61,9 @@
 {{- if not $parts -}}
     {{- warnf "tabs: the shortcode on %q is empty — write `## Heading` runs separated by `---` inside it" .Page.File.Path -}}
 {{- end -}}
-<div class="tabs">
-    <div role="tablist" aria-label="{{ i18n "Tabs" }}">
+<section class="tabs posts collection{{ if $center }} centered{{ end }}">
+    <div class="container">
+    <div class="tablist" role="tablist" aria-label="{{ i18n "Tabs" }}">
     {{- range $i, $part := $parts -}}
         {{- $title := replaceRE `<[^>]*>` "" (or (index (findRE `(?s)<h2[^>]*>.*?</h2>` (markdownify $part) 1) 0) "") -}}
         {{- if not $title -}}
@@ -49,9 +73,10 @@
         <button type="button" role="tab" id="tab-{{ $ordinal }}-{{ $i }}" aria-controls="tabpanel-{{ $ordinal }}-{{ $i }}" aria-selected="{{ eq $i 0 }}">{{ $title | safeHTML }}</button>
     {{- end -}}
     </div>
+    </div>
     {{- range $i, $part := $parts }}
-    <section role="tabpanel" id="tabpanel-{{ $ordinal }}-{{ $i }}" aria-labelledby="tab-{{ $ordinal }}-{{ $i }}" tabindex="0">
+    <div class="container" role="tabpanel" id="tabpanel-{{ $ordinal }}-{{ $i }}" aria-labelledby="tab-{{ $ordinal }}-{{ $i }}" tabindex="0">
         {{ markdownify $part }}
-    </section>
+    </div>
     {{- end }}
-</div>
+</section>

@@ -1,0 +1,20 @@
+{{- /*
+  Brick: tabs
+  A `tabs` widget and nothing else.
+
+  The widget is a `<section class="tabs posts collection">` of its own, written
+  by the shortcode, so this brick only wraps it: the widget already carries the
+  classes that style it and centres its own `.container` children. Giving it no
+  container here is what keeps those measured against the page rather than
+  inside another measure.
+
+  `section_map.html` routes a section here when, with its `tabs` widget taken
+  out, nothing else is left. A section with prose around the widget keeps its
+  own brick; the widget then sits inside it, its panels still styled by their
+  own container.
+
+  @context {dict} . Content, Name, Index, Page
+*/ -}}
+<section class="tabs-brick">
+    {{ .Content }}
+</section>

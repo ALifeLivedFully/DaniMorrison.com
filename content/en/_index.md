@@ -4,7 +4,7 @@ title: Home
 
 # Maker
 
-📍 Based in Minnesota (USA)  
+📍 Based in Minnesota, USA  
 🌐 Available to work globally  
 
 [Resume/CV](/resume/){:.button.smaller}
@@ -14,43 +14,48 @@ title: Home
 
 ---
 
-## Automated documents
+## About me
 
-Generating business card, resume/CV, and more using typst.
+I'm a hands-on problem solver with interests spanning technology, engineering, creative projects, and practical skills. I enjoy learning how things work, building useful things, and helping people solve problems.
 
-![](/Business-card.svg){:.float}
+This site brings together my work, interests, projects, and the things I share with my community.
+
+[More about me](/blog/){:.button.smaller}
+
+![](/uploads/photos/avatars/Dani.jpg){:.float}
 
 ---
 
-## What bricks are available?
+## Work & experience
 
-We aim to provide the following bricks: intro, title, image, cta, contact, team, testimonials, about, pricing, products, product, usps, stats, gallery, quote, faqs, brands, video, blogs, post, related.
+Explore my professional background, skills, education, certifications, and projects. Whether you're a potential employer, collaborator, or just curious about what I've done, you'll find it here.
 
-We are constantly adding bricks and shortcodes to this theme. Are you missing a brick or a shortcode? [Let us know](/contact/)! We will build it for you!
+[Resume/CV](/resume/){:.button.smaller}
+[Portfolio](/portfolio/){:.button.smaller}
 
 ![](/uploads/illustrations/cuate/version-control.svg){:.float}
 
 ---
 
-## What users say about Hugobricks
+## How others describe me
 
-Don’t just take our word for it - hear from some of our satisfied users! Check out some of our testimonials below to see what others are saying about Hugobricks.
+I asked people I know who work across different industries to describe me in three words. Their responses reflect a range of perspectives on my character, strengths, and approach to life.
 
 {{< reviews >}}
 
 ---
 
-## The Ultimate Hugo theme
+## A little about my background
 
-Hugobricks covers all components you would like to have at hand. It is a power engine for your web oriented projects. It has excellent performance in all categories.
+My experience spans healthcare, security, technology, education, and hands-on operations. Explore the industries I've worked in, the skills I've developed, and the certifications that support my work.
 
 {{< features >}}
 
 ---
 
-## Our friendly pricing
+## Support my work
 
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum nesciunt commodi vel nisi ut alias excepturi ipsum, totam, labore tempora, odit ex iste tempore sed.
+Your support helps me dedicate more time to building projects, sharing knowledge, and creating useful resources. Choose a membership tier that works for you and help make future projects possible.
 
 {{< pricing >}}
 

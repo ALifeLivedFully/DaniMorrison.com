@@ -22,13 +22,21 @@
 
   The `<ul class="projects">` is what routes this section to the `projects`
   brick — the rule `has: ul.projects` in `params.sections`. `Style` picks the
-  look: `tiles` hands the pages to `tiles_list.html`, the alternative tile
-  grid, which emits the same list class so it routes and filters identically.
+  look: `tiles` (or its alias `gallery`) hands the pages to `tiles_list.html`,
+  the alternative tile grid, which emits the same list class so it routes and
+  filters identically.
 
-  @context {dict} . Pages (page slice), Style (string, optional)
+  Each card carries what the sort and search need as data: its date, title,
+  word count and a lowercased haystack of title, description and tags.
+
+  @context {dict} . Pages (page slice), Style (string, optional),
+                    Tags (bool, optional — show each entry's tags; default true)
 */ -}}
-{{- if eq (.Style | default "cards") "tiles" -}}
-    {{- partial "tiles_list.html" (dict "Pages" .Pages "Class" "projects") -}}
+{{- $style := .Style | default "cards" -}}
+{{- $showTags := ne .Tags false -}}
+{{- if eq $style "gallery" -}}{{- $style = "tiles" -}}{{- end -}}
+{{- if eq $style "tiles" -}}
+    {{- partial "tiles_list.html" (dict "Pages" .Pages "Class" "projects" "Tags" $showTags) -}}
 {{- else -}}
 <ul class="projects">
     {{- range .Pages }}
@@ -41,7 +49,9 @@
         {{- range $page.Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
         {{- $links := slice -}}
         {{- range $page.Params.links -}}{{- if and .label .url -}}{{- $links = $links | append . -}}{{- end -}}{{- end -}}
-        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }}>
+        {{- $range := 0 -}}
+        {{- if and $page.Params.date $page.Params.enddate -}}{{- $range = sub (time $page.Params.enddate).Unix $page.Date.Unix -}}{{- end -}}
+        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }} data-date="{{ $page.Date.Unix }}" data-range="{{ $range }}" data-title="{{ $page.Title }}" data-length="{{ $page.WordCount }}" data-search="{{ lower (printf "%s %s %s" $page.Title $desc (delimit $tags " ")) }}">
             {{- with $page.Params.image }}
                 {{- $src := . -}}
                 {{- with resources.GetMatch $src }}{{ if and (eq .ResourceType "image") (ne .MediaType.SubType "svg") }}{{ $src = (.Fill "900x500 webp Center q50").RelPermalink }}{{ end }}{{ end }}
@@ -51,11 +61,7 @@
             {{- end }}
             <h3><a href="{{ $page.RelPermalink }}">{{ $page.Title | safeHTML }}</a></h3>
             {{- with $desc }}<p class="description">{{ . | truncate 220 }}</p>{{ end }}
-            {{- with $tags }}
-                <ul class="tags">
-                    {{- range $name := . }}<li>{{ $name }}</li>{{ end }}
-                </ul>
-            {{- end }}
+            {{- if $showTags }}{{ partial "tag_chips.html" (dict "Tags" $tags "Max" 6 "Url" $page.RelPermalink) }}{{ end }}
             {{- if or $links $hasBody }}
                 <ul class="links">
                     {{- range $link := $links }}

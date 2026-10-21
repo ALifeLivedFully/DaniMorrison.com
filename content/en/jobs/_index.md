@@ -1,5 +1,6 @@
 ---
 title: Resume
+image: /uploads/photos/06.jpg
 ---
 
 {{< breadcrumbs >}}

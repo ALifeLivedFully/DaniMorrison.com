@@ -1,31 +1,25 @@
-- name: Gitio Hamano
-  function: Source Code version controller
+- name: Miranda
+  function: Stagehand
   image: /uploads/photos/avatars/1.jpeg
-  description: Rings of Uranus hearts of the stars corpus callosum invent the universe take root and flourish concept of the number one.
+  description: "I'd describe you as brave, smart, and strong."
   stars: 5
-- name: Rasmus Phorfp
-  function: All Stacks developer 
+- name: Lara
+  function: Stagehand
   image: /uploads/photos/avatars/2.jpeg
-  description: Finite but unbounded astonishment two ghostly white figures in coveralls and helmets are softly dancing billions upon billions Vangelis Hypatia. 
+  description: "Intelligent, compassionate, and strong. Those are the three words that come to mind."
   stars: 5
-- name: Madogg Kabul
-  function: Keyboard Guru
+- name: Kathleen
+  function: Nurse
   image: /uploads/photos/avatars/3.jpeg
-  description: Hypatia globular star cluster explorations the ash of stellar alchemy rings of Uranus a still more glorious dawn awaits.
+  description: "Ingenious, industrious, and intelligent. You have a knack for figuring things out and getting things done."
   stars: 5
-- name: Kenny Thompson
-  function: Nix architect
+- name: Leroy
+  function: Electrician
   image: /uploads/photos/avatars/4.jpeg
-  description: Extraordinary claims require extraordinary evidence how far away a very small stage in a vast cosmic arena something incredible is waiting to be known concept of the number one not a sunrise but a galaxyrise.
+  description: "Investigative, curious, and compassionate. You want to understand how things work, and you care about people."
   stars: 5
-- name: Linus O'Callaghan
-  function: Systems Administrator
+- name: James
+  function: Tech Founder
   image: /uploads/photos/avatars/5.jpeg
-  description: Descended from astronomers stirred by starlight circumnavigated colonies dispassionate extraterrestrial observer a very small stage in a vast cosmic arena.
+  description: "Thoughtful, innovative, and hardworking. You put real consideration into what you do and find ways to make things better."
   stars: 5
-- name: Ada Lovelace
-  function: Alma (cyber)Mater
-  image: /uploads/photos/avatars/6.jpeg
-  description:  The carbon in our apple pies Drake Equation the only home we've ever known the ash of stellar alchemy Drake Equation star stuff harvesting star light?
-  stars: 4
-

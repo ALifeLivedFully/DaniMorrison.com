@@ -1,0 +1,12 @@
+{{- /*
+  A tag, as a link into the site search.
+
+  A tag is a label, not a page — a job's `full-stack` has no page of its own —
+  so a tag links to `/search/?q=<tag>`, which `js/search.js` answers on arrival
+  by filtering the index. `urlize` matches the form `site.js` gives the filter's
+  own `?tag=` parameter, so a link written from a tag and one the filter writes
+  agree.
+
+  @context {string} . — the tag
+*/ -}}
+<a href="{{ "search/" | relLangURL }}?q={{ . | urlize }}">{{ . }}</a>

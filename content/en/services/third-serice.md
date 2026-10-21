@@ -1,9 +1,10 @@
 ---
-title: Third service
+title: Outdoor companion
 image: /uploads/photos/08.jpg
 tags:
-  - test
+  - Companion
 ---
+More hands makes less work. 
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus cursus egestas arcu, in vestibulum tortor pellentesque vitae. Curabitur dapibus tempor libero id vulputate. Proin sodales, nisi quis laoreet commodo, sapien quam consectetur lorem, ut molestie augue eros in enim. Nam tincidunt lobortis sapien, et molestie urna viverra sollicitudin. In hac habitasse platea dictumst. Donec placerat vestibulum luctus. Sed vel convallis nisi.
 

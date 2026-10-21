@@ -22,6 +22,10 @@
 */ -}}
 {{- $style := .Get "style" -}}
 {{- $id := printf "posts-%d" .Ordinal -}}
+{{- $limit := int (.Get "limit") -}}
+{{- if le $limit 0 -}}{{- $limit = int hugo.Data.settings.page_size -}}{{- end -}}
+{{- $sort := .Get "sort" -}}
+{{- $search := eq (.Get "search") "true" -}}
 {{- $posts := sort (where site.RegularPages "Section" "posts") "Date" "desc" -}}
 {{- with $posts -}}
 
@@ -29,8 +33,8 @@
 {{- range . -}}
     {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
 {{- end -}}
-{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter posts by tag" "ID" $id) -}}
+{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter posts by tag" "ID" $id "Sort" $sort "Search" $search) -}}
 
-{{- partial "teaser_list.html" (dict "Pages" . "Dates" true "PageSize" hugo.Data.settings.page_size "Style" $style) -}}
+{{- partial "teaser_list.html" (dict "Pages" . "Dates" true "PageSize" $limit "Style" $style) -}}
 <p class="loadmore"><button type="button" class="button secondary ghost smaller" hidden>{{ i18n "Load more posts" }}…</button></p>
 {{- end -}}

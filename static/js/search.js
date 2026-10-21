@@ -38,15 +38,19 @@
 
     /* 0 for a miss — and a miss on any one word loses the page, so that
        "web stack" finds nothing about a stack of bricks — otherwise the
-       title's say over the body's, plus the whole phrase as typed. */
+       title's say over the body's, plus the whole phrase as typed. A page's
+       tags count too (between title and body), so a tag link — which searches
+       the tag — finds every page labelled with it. */
     var score = function (page, words) {
         var title = (page.title || "").toLowerCase();
+        var tags = " " + (page.tags || "").toLowerCase() + " ";
         var body = (page.text || "").toLowerCase();
         var points = 0;
         for (var i = 0; i < words.length; i++) {
             var inTitle = title.indexOf(words[i]) !== -1;
-            if (!inTitle && body.indexOf(words[i]) === -1) return 0;
-            points += inTitle ? 5 : 1;
+            var inTags = tags.indexOf(words[i]) !== -1;
+            if (!inTitle && !inTags && body.indexOf(words[i]) === -1) return 0;
+            points += inTitle ? 5 : inTags ? 3 : 1;
         }
         if (title.indexOf(words.join(" ")) === 0) points += 4;
         return points;

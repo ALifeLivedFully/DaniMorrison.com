@@ -24,6 +24,23 @@ section.projects li {
     gap: 0.7rem;
 }
 
+/* The card shell, as on a post or service teaser: an enclosed card with a
+   hairline, a radius and a soft shadow, so the portfolio reads as a grid of
+   cards. The grid stretches every card in a row to the same height and the
+   links row rides the foot (`margin-block-start: auto` below). */
+section.projects > .container > ul:not(.tiles) > li {
+    background: var(--page);
+    border: 1px solid var(--borderLight);
+    border-radius: var(--radius);
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgb(38 50 56 / 0.05);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+section.projects > .container > ul:not(.tiles) > li:hover {
+    border-color: var(--borderMedium);
+    box-shadow: 0 6px 20px rgb(38 50 56 / 0.09);
+}
+
 /* The cover. A card is whole-link up top, so the picture and the title are
    one target; the links row below is the card's real navigation. */
 section.projects li a.thumb {
@@ -55,8 +72,8 @@ section.projects li .description {
     color: var(--textMedium);
 }
 
-/* The tags, as chips. Display only — a project's cards carry their own tags,
-   so unlike the services and the blog there is no filter on the page. */
+/* The tags, as chips — buttons that toggle the listing's filter (`site.js`),
+   the card's own way into the same set the `<select>` offers. */
 section.projects li ul.tags,
 section.projects li ul.links {
     display: flex;
@@ -66,15 +83,34 @@ section.projects li ul.links {
     margin: 0;
     padding: 0;
 }
-section.projects li ul.tags li {
-    margin: 0;
-    padding: 0.28rem 0.7rem;
+section.projects li ul.tags li { margin: 0; padding: 0; }
+section.projects li ul.tags li.more a {
+    display: block;
+    padding: 0.28rem 0.6rem;
     font-size: 0.8rem;
     line-height: 1;
+    color: var(--textMedium);
+    border: 1px dashed var(--borderMedium);
+    border-radius: 1rem;
+    text-decoration: none;
+}
+section.projects li ul.tags li.more a:hover { border-color: var(--textMedium); }
+section.projects li ul.tags button {
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0.28rem 0.7rem;
     color: var(--textDarker);
     background: var(--light);
     border: 1px solid var(--borderLight);
     border-radius: 1rem;
+    cursor: pointer;
+}
+section.projects li ul.tags button:hover { border-color: var(--borderMedium); }
+section.projects li ul.tags button[aria-pressed="true"] {
+    color: var(--page);
+    background: var(--textDark);
+    border-color: var(--textDark);
 }
 
 /* The links row sits at the card's feet even when a description is long. */

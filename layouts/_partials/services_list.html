@@ -1,29 +1,69 @@
 {{- /*
-  Renders the pages of one section as a grid under a filter that narrows them
-  by tag.
+  Renders the pages of one content folder as a grid under optional controls
+  that narrow and reorder them — a tag filter, a sort `<select>`, a search box.
 
-  Shared by the `services` and `jobs` shortcodes: a service and a job read the
-  same way on a listing — a picture, a title, an opening line and a way in — so
-  they are the same list, the same `<ul class="posts">` and the same brick
-  (`posts`). No date by default; `Dates` turns one on, which is what an
-  experience listing wants.
+  Shared by the `services`, `jobs` and generic `listing` shortcodes: a service,
+  a job and a resume entry read the same way on a listing — a picture, a title,
+  an opening line and a way in — so they are the same list, the same
+  `<ul class="posts">` and the same brick (`posts`). No date by default;
+  `Dates` turns one on, which is what an experience listing wants.
 
-  The filter is the blog's, worked by the same `site.js`, but its tags are the
-  site's rather than this listing's — the original theme offers every tag on
-  the site wherever the filter appears, and these pages keep that.
+  The folder to list is either `Dir` — a directory under the language's content
+  dir, matched on `File.Dir`, so any folder at any depth works — or `Section`,
+  the top-level section, which is how `jobs` and `services` name their pages.
 
-  @context {dict} . Section (string), TagLabel (i18n key), ID (string),
-                    Style (string, optional), Dates (bool, optional)
+  The filter is optional (`Filter`, on by default so `jobs` and `services` keep
+  their own). Its tags are the site's rather than this listing's — the original
+  theme offers every tag on the site wherever the filter appears, and these
+  pages keep that — except when a folder is named, where the tags come from the
+  folder's own pages, so a resume tab does not offer another tab's tags.
+
+  `Limit` caps how many cards show at once — the page size the blog's button
+  uses — and unhides a "load more" button below the grid while cards are still
+  held back. `Sort` and `Search` are passed through to `filter.html`; `Tags`
+  decides whether each card carries its own tag chips (default: with the
+  filter).
+
+  @context {dict} . Dir (string, optional) or Section (string),
+                    TagLabel (i18n key), ID (string),
+                    Style (string, optional), Dates (bool, optional),
+                    Filter (bool, optional — default true),
+                    ShowTags (string, optional — "true"/"false"; default = Filter),
+                    Limit (int, optional), Sort (string, optional),
+                    Search (bool, optional)
 */ -}}
 {{- $style := .Style | default "cards" -}}
 {{- $dates := .Dates | default false -}}
-{{- with sort (where site.RegularPages "Section" .Section) "Title" -}}
+{{- $filter := .Filter | default true -}}
+{{- $limit := .Limit | default 0 -}}
+{{- $sort := .Sort | default "" -}}
+{{- $search := .Search | default false -}}
+{{- $showTags := $filter -}}
+{{- if eq .ShowTags "true" -}}{{- $showTags = true -}}{{- end -}}
+{{- if eq .ShowTags "false" -}}{{- $showTags = false -}}{{- end -}}
+{{- $dir := .Dir -}}
+{{- $pages := slice -}}
+{{- if $dir -}}
+    {{- $pages = where site.RegularPages "File.Dir" (printf "%s/" (strings.Trim $dir "/")) -}}
+{{- else -}}
+    {{- $pages = where site.RegularPages "Section" .Section -}}
+{{- end -}}
+{{- with sort $pages "Title" -}}
 
 {{- $tags := slice -}}
-{{- range site.RegularPages -}}
-    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+{{- if $filter -}}
+    {{- $tagSource := site.RegularPages -}}
+    {{- if $dir -}}{{- $tagSource = . -}}{{- end -}}
+    {{- range $tagSource -}}
+        {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+    {{- end -}}
 {{- end -}}
-{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" $.TagLabel "ID" $.ID) -}}
+{{- if or $tags $sort $search -}}
+{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" $.TagLabel "ID" $.ID "Sort" $sort "Search" $search) -}}
+{{- end -}}
 
-{{- partial "teaser_list.html" (dict "Pages" . "Dates" $dates "Style" $style) -}}
+{{- partial "teaser_list.html" (dict "Pages" . "Dates" $dates "Style" $style "Tags" $showTags "PageSize" $limit) -}}
+{{- if gt $limit 0 -}}
+<p class="loadmore"><button type="button" class="button secondary ghost smaller" hidden>{{ i18n "Load more" }}…</button></p>
+{{- end -}}
 {{- end -}}

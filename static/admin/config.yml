@@ -13,6 +13,8 @@ backend:
 
 local_backend: true
 
+show_preview_links: true
+
 # The editor previews pages at this address, so keep it pointing at `hugo server`.
 site_url: http://localhost:1313/
 
@@ -22,7 +24,7 @@ media_folder: static/uploads
 public_folder: /uploads
 
 collections:
-  # ---- site-wide switches, data/settings.yaml ----
+  # ---- site-wide settings plus the per-language data files (data/en/*.yaml) ----
   - name: settings
     label: Settings
     files:
@@ -65,6 +67,330 @@ collections:
           - { label: Search icon and /search page, name: enable_search, widget: boolean }
           - { label: Dark mode switch, name: enable_darkmode, widget: boolean }
           - { label: Webshop (products, cart, checkout), name: enable_webshop, widget: boolean }
+
+      - name: general
+        label: General
+        file: data/en/general.yaml
+        fields:
+          - { label: Site title, name: title, widget: string }
+          - { label: Description, name: description, widget: text }
+          - label: Contact details
+            name: contact
+            widget: object
+            fields:
+              - { label: Phone, name: phone, widget: string, required: false }
+              - { label: Email, name: email, widget: string, required: false }
+
+      - name: header
+        label: Header
+        file: data/en/header.yaml
+        fields:
+          - { label: Logo image, name: logo_image, widget: image, required: false }
+          - { label: Logo subtitle, name: logo_subtitle, widget: string, required: false }
+          - { label: Dark header, name: dark_header, widget: boolean, required: false }
+          - { label: Mobile view width, name: mobile_view_width, widget: number, value_type: int, required: false }
+          - label: Menu items
+            name: menuitems
+            widget: list
+            required: false
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Link, name: link, widget: string }
+              - label: Sub items
+                name: items
+                widget: list
+                required: false
+                fields:
+                  - { label: Title, name: title, widget: string }
+                  - { label: Link, name: link, widget: string }
+          - label: Call to action
+            name: cta
+            widget: object
+            fields:
+              - { label: Active, name: active, widget: boolean }
+              - { label: Title, name: title, widget: string, required: false }
+              - { label: Link, name: link, widget: string, required: false }
+          - { label: Preheader, name: preheader, widget: string, required: false }
+
+      - name: footer
+        label: Footer
+        file: data/en/footer.yaml
+        fields:
+          - { label: Logo image, name: logo_image, widget: image, required: false }
+          - label: Menu items
+            name: menuitems
+            widget: list
+            required: false
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Link, name: link, widget: string }
+          - label: Social links
+            name: socials
+            widget: list
+            required: false
+            fields:
+              - { label: Title, name: title, widget: string }
+              - { label: Link, name: link, widget: string }
+              - { label: Logo image, name: logo_image, widget: image, required: false }
+          - { label: Footer text, name: footer_text, widget: text, required: false }
+
+      - name: contactform
+        label: Contact form
+        file: data/en/contactform.yaml
+        fields:
+          - { label: Action, name: action, widget: string }
+          - { label: Placeholders, name: placeholders, widget: boolean }
+          - label: Fields
+            name: fields
+            widget: list
+            fields:
+              - { label: Name, name: name, widget: string }
+              - label: Input type
+                name: input_type
+                widget: select
+                options: [text, email, textarea, checkbox, submit, html]
+              - { label: Label, name: label, widget: string }
+              - { label: Required, name: required, widget: boolean }
+
+      - name: ctaform
+        label: CTA form
+        file: data/en/ctaform.yaml
+        fields:
+          - { label: Action, name: action, widget: string }
+          - { label: Placeholders, name: placeholders, widget: boolean }
+          - label: Fields
+            name: fields
+            widget: list
+            fields:
+              - { label: Name, name: name, widget: string }
+              - label: Input type
+                name: input_type
+                widget: select
+                options: [text, email, textarea, checkbox, submit, html]
+              - { label: Label, name: label, widget: string }
+              - { label: Required, name: required, widget: boolean }
+
+      - name: newsletterform
+        label: Newsletter form
+        file: data/en/newsletterform.yaml
+        fields:
+          - { label: Action, name: action, widget: string }
+          - { label: Placeholders, name: placeholders, widget: boolean }
+          - label: Fields
+            name: fields
+            widget: list
+            fields:
+              - { label: Name, name: name, widget: string }
+              - label: Input type
+                name: input_type
+                widget: select
+                options: [text, email, textarea, checkbox, submit, html]
+              - { label: Label, name: label, widget: string }
+              - { label: Required, name: required, widget: boolean }
+
+      - name: openinghours
+        label: Opening hours
+        file: data/en/openinghours.yaml
+        fields:
+          - label: Monday
+            name: mon
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Tuesday
+            name: tue
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Wednesday
+            name: wed
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Thursday
+            name: thu
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Friday
+            name: fri
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Saturday
+            name: sat
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+          - label: Sunday
+            name: sun
+            widget: object
+            fields:
+              - { label: Start, name: start, widget: string, required: false }
+              - { label: End, name: end, widget: string, required: false }
+
+      - name: pricing
+        label: Pricing plans
+        file: data/en/pricing.yaml
+        fields:
+          - { label: Currency, name: currency, widget: string }
+          - { label: Period, name: period, widget: string }
+          - label: Plans
+            name: plans
+            widget: list
+            fields:
+              - { label: Badge, name: badge, widget: string, required: false }
+              - { label: Title, name: title, widget: string }
+              - { label: Description, name: description, widget: text }
+              - { label: Price, name: price, widget: number, value_type: float, min: 0 }
+              - { label: Featured, name: featured, widget: boolean, required: false }
+              - label: Features
+                name: features
+                widget: list
+                required: false
+                field: { label: Feature, name: feature, widget: string }
+              - label: Call to action
+                name: cta
+                widget: object
+                fields:
+                  - { label: Title, name: title, widget: string }
+                  - { label: Link, name: link, widget: string }
+                  - { label: Style, name: style, widget: string, required: false }
+
+      - name: webshop
+        label: Webshop
+        file: data/en/webshop.yaml
+        fields:
+          - { label: Cart link, name: cart_link, widget: string, required: false }
+          - { label: Checkout link, name: checkout_link, widget: string, required: false }
+          - { label: Payment link, name: payment_link, widget: string, required: false }
+          - { label: Thank-you link, name: thankyou_link, widget: string, required: false }
+          - { label: Products link, name: products_link, widget: string, required: false }
+          - { label: Show cart icon, name: show_cart_icon, widget: boolean }
+          - { label: Send order to mail, name: send_order_to_mail, widget: string, required: false }
+          - { label: Form handler, name: form_handler, widget: string, required: false }
+          - { label: POS id, name: pos_id, widget: number, value_type: int, required: false }
+          - { label: Currency code, name: currency_code, widget: string, required: false }
+          - { label: Currency symbol, name: currency_symbol, widget: string, required: false }
+          - label: Shipping
+            name: shipping
+            widget: object
+            fields:
+              - { label: Active, name: active, widget: boolean }
+              - label: Options
+                name: options
+                widget: list
+                required: false
+                fields:
+                  - { label: Title, name: title, widget: string }
+                  - { label: Label, name: label, widget: string }
+                  - { label: Price, name: price, widget: number, value_type: float }
+          - label: Custom values
+            name: custom_values
+            widget: list
+            required: false
+            fields:
+              - { label: Title, name: title, widget: string }
+              - label: Options
+                name: options
+                widget: list
+                fields:
+                  - { label: Title, name: title, widget: string }
+                  - { label: Value, name: value, widget: string }
+                  - { label: Price, name: price, widget: number, value_type: float }
+
+  # ---- the same data files, edited as raw YAML text ----
+  # `format: yaml-frontmatter` plus a single `body` text field turns each file
+  # into one plaintext box. With no `---` front matter in the file, Decap reads
+  # the whole file as the body and writes it back verbatim, so nothing is
+  # wrapped or reformatted. The field must be named `body`.
+  #
+  # These entries point at the same paths as the typed Settings files above, so
+  # every file can be edited either way; this is the only way to reach
+  # faqs/features/people/reviews, which are top-level YAML arrays and cannot be
+  # given typed widgets (decap-cms issue #531).
+  - name: settings_raw
+    label: Settings (raw)
+    format: yaml-frontmatter
+    editor:
+      preview: false
+    files:
+      - name: global
+        label: Global switches
+        file: data/settings.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: general
+        label: General
+        file: data/en/general.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: header
+        label: Header
+        file: data/en/header.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: footer
+        label: Footer
+        file: data/en/footer.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: contactform
+        label: Contact form
+        file: data/en/contactform.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: ctaform
+        label: CTA form
+        file: data/en/ctaform.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: newsletterform
+        label: Newsletter form
+        file: data/en/newsletterform.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: openinghours
+        label: Opening hours
+        file: data/en/openinghours.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: pricing
+        label: Pricing plans
+        file: data/en/pricing.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: webshop
+        label: Webshop
+        file: data/en/webshop.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: faqs
+        label: FAQs
+        file: data/en/faqs.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: features
+        label: Features
+        file: data/en/features.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: people
+        label: People
+        file: data/en/people.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
+      - name: reviews
+        label: Reviews
+        file: data/en/reviews.yaml
+        fields:
+          - { label: Raw YAML, name: body, widget: text }
 
   # ---- content/en/* ----
   - name: pages
@@ -200,57 +526,26 @@ collections:
       - { label: Title, name: title, widget: string }
       - { label: Body, name: body, widget: markdown }
 
-  # ---- content/en/docs/* ----
+  # ---- content/en/docs/** (one collection, nested folders shown as a dropdown) ----
   - name: docs
     label: Docs
     label_singular: Doc
     folder: content/en/docs
     create: true
-    summary: "{{title}}"
-    fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
-      - { label: Body, name: body, widget: markdown }
-
-  - name: docs_bricks
-    label: Docs — Bricks
-    label_singular: Brick doc
-    folder: content/en/docs/bricks
-    create: true
-    summary: "{{title}}"
-    fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
-      - { label: Body, name: body, widget: markdown }
-
-  - name: docs_settings
-    label: Docs — Settings
-    label_singular: Setting doc
-    folder: content/en/docs/settings
-    create: true
-    summary: "{{title}}"
-    fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
-      - { label: Body, name: body, widget: markdown }
-
-  - name: docs_shortcodes
-    label: Docs — Shortcodes
-    label_singular: Shortcode doc
-    folder: content/en/docs/shortcodes
-    create: true
-    summary: "{{title}}"
-    fields:
-      - { label: Title, name: title, widget: string }
-      - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }
-      - { label: Body, name: body, widget: markdown }
-
-  - name: docs_customizations
-    label: Docs — Customizations
-    label_singular: Customization doc
-    folder: content/en/docs/customizations
-    create: true
-    summary: "{{title}}"
+    nested:
+      depth: 100
+      # Docs keep their pages as flat .md files inside subfolders, with a
+      # `_index.md` per folder — Decap's `subfolders: false` layout.
+      subfolders: false
+      summary: "{{title}}"
+    # `meta.path` is a collection-level sibling of `nested` (not nested inside
+    # it), and the schema requires `label` + `widget`. `index_file` names the
+    # per-folder page, which for these Hugo sections is `_index.md`.
+    meta:
+      path:
+        widget: string
+        label: Path
+        index_file: _index
     fields:
       - { label: Title, name: title, widget: string }
       - { label: Weight (menu order), name: weight, widget: number, value_type: int, required: false }

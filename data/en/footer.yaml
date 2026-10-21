@@ -1,24 +1,26 @@
-logo_image:
+logo_image: null
 menuitems:
-  - title: About
-    link:  /about/
+  - title: Resume
+    link: /resume/
   - title: Portfolio
-    link:  /projects/
+    link: /projects/
   - title: Blog
-    link:  /blog/
+    link: /blog/
+  - title: Shop
+    link: /shop/
   - title: Privacy policy
-    link:  /privacy-policy/
+    link: /privacy-policy/
 socials:
   - title: Facebook
-    link: https://facebook.com
+    link: https://facebook.com/ALifeLivedFully
     logo_image: /img/facebook.svg
   - title: Twitter
-    link: https://twitter.com
-    logo_image: /img/twitter.svg      
-  - title: Mastodon
-    link: https://joinmastodon.org
-    logo_image: /img/mastodon.svg      
+    link: https://twitter.com/ALifeLivedFully
+    logo_image: /img/twitter.svg
+  # - title: Mastodon
+  #   link: https://joinmastodon.org
+  #   logo_image: /img/mastodon.svg
   - title: Instagram
-    link: https://instagram.com
+    link: https://instagram.com/ALifeLivedFully
     logo_image: /img/instagram.svg
-footer_text: Personal website of Dani Morrison.
+footer_text: Made with love ♥️

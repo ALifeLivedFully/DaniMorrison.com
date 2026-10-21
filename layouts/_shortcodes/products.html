@@ -17,13 +17,27 @@
 */ -}}
 {{- $style := .Get "style" -}}
 {{- $id := printf "products-%d" .Ordinal -}}
+{{- $filter := ne (.Get "filter") "false" -}}
+{{- $limit := int (or (.Get "limit") (.Get "show")) -}}
+{{- $sort := .Get "sort" -}}
+{{- $search := eq (.Get "search") "true" -}}
+{{- $showTags := $filter -}}
+{{- if eq (.Get "show-tags") "true" -}}{{- $showTags = true -}}{{- end -}}
+{{- if eq (.Get "show-tags") "false" -}}{{- $showTags = false -}}{{- end -}}
 {{- with where site.RegularPages "Section" "products" -}}
 
 {{- $tags := slice -}}
-{{- range site.RegularPages -}}
-    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+{{- if $filter -}}
+    {{- range site.RegularPages -}}
+        {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+    {{- end -}}
 {{- end -}}
-{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter products by tag" "ID" $id) -}}
+{{- if or $tags $sort $search -}}
+{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter products by tag" "ID" $id "Sort" $sort "Search" $search) -}}
+{{- end -}}
 
-{{- partial "teaser_list.html" (dict "Pages" . "Class" "products" "Style" $style) -}}
+{{- partial "teaser_list.html" (dict "Pages" . "Class" "products" "Style" $style "Tags" $showTags "PageSize" $limit) -}}
+{{- if gt $limit 0 -}}
+<p class="loadmore"><button type="button" class="button secondary ghost smaller" hidden>{{ i18n "Load more" }}…</button></p>
+{{- end -}}
 {{- end -}}

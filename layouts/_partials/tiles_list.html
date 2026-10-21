@@ -7,14 +7,16 @@
   with its title in the body colour — the same two states `blocks.css` gives a
   hand-written tile, reached here through the list's own `tiles` class.
 
-  This is `teaser_list.html`'s sibling, chosen by the `style="tiles"` argument
-  on a listing shortcode. It emits the same list class — `ul.posts`,
-  `ul.projects`, `ul.products` — so the section still routes to the brick that
-  has always wrapped it, `site.js` still finds the list through the class, and
-  the tag filter and paging work on the tiles exactly as they do on the cards.
+  This is `teaser_list.html`'s sibling, chosen by the `style="tiles"` (or
+  `style="gallery"`) argument on a listing shortcode. It emits the same list
+  class — `ul.posts`, `ul.projects`, `ul.products` — so the section still
+  routes to the brick that has always wrapped it, `site.js` still finds the
+  list through the class, and the tag filter, sort, search and paging work on
+  the tiles exactly as they do on the cards.
 
   @context {dict} . Pages (page slice), Dates (bool), PageSize (int, optional),
-                    Class (string, the list's class — default `posts`)
+                    Class (string, the list's class — default `posts`),
+                    Tags (bool, optional — show each entry's tags as filter chips)
 */ -}}
 <ul class="{{ .Class | default `posts` }} tiles"{{ with .PageSize }} data-pagesize="{{ . }}"{{ end }}>
     {{- range .Pages -}}
@@ -25,7 +27,9 @@
         {{- $summary := trim (htmlUnescape (plainify (delimit (first 1 (findRE `(?is)<p>.*?</p>` $prose 1)) ""))) " \n\r\t" -}}
         {{- $tags := slice -}}
         {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
-        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }}>
+        {{- $range := 0 -}}
+        {{- if and .Params.date .Params.enddate -}}{{- $range = sub (time .Params.enddate).Unix .Date.Unix -}}{{- end -}}
+        <li{{ with $tags }} data-tags="{{ delimit . " " }}"{{ end }} data-date="{{ .Date.Unix }}" data-range="{{ $range }}" data-title="{{ .Title }}" data-length="{{ .WordCount }}" data-search="{{ lower (printf "%s %s %s" .Title $summary (delimit $tags " ")) }}">
             <a href="{{ .RelPermalink }}">
                 {{- with .Params.image }}
                     {{- $src := . -}}
@@ -36,6 +40,7 @@
                 {{- if $.Dates }}{{ partial "listing_date.html" . }}{{ end }}
                 {{- with $summary }}<p>{{ . | truncate 190 }}</p>{{ end }}
             </a>
+            {{- if $.Tags }}{{ partial "tag_chips.html" (dict "Tags" $tags "Max" 4 "Url" .RelPermalink) }}{{ end }}
         </li>
     {{- end -}}
 </ul>

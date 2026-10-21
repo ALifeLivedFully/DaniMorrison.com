@@ -1,25 +1,23 @@
-- icon: /img/icons/material-symbols/200/rounded/auto_awesome_mosaic.svg
-  title: Covers all components
-  description: 'We aim to provide the following bricks: intro, title, image, cta, contact, team, testimonials,
-    about, pricing, products, product, usps, stats, gallery, quote, faqs, brands, video, blogs, post,
-    related.'
-- icon: /img/icons/material-symbols/200/rounded/performance_max.svg
-  title: 99+ Google Lighthouse score
-  description: Lightning fast website. Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis
-    illum nesciunt commodi vel nisi ut alias excepturi ipsum.
-- icon: /img/icons/material-symbols/200/rounded/design_services.svg
-  title: Themeable through CSS variables
-  description: Easily themeable. Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum
-    nesciunt commodi vel nisi ut alias excepturi ipsum.
+- icon: /img/icons/material-symbols/200/rounded/ECG-Heart.svg
+  title: Healthcare
+  description: Experience in patient care and healthcare support, backed by CNA/HHA experience and CPR, BLS, and AED certifications. Focused on safety, compassionate service, and improving people's well-being.
+
+- icon: /img/icons/material-symbols/200/rounded/Person-Shield.svg
+  title: Security & Public Safety
+  description: Background in security work, security officer responsibilities, and law enforcement community engagement. Familiar with situational awareness, risk prevention, and maintaining safe environments.
+
 - icon: /img/icons/material-symbols/200/rounded/devices.svg
-  title: Fully responsive on all devices
-  description: Works on every screen. Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis
-    illum nesciunt commodi vel nisi ut alias excepturi ipsum.
+  title: Technical & IT
+  description: Experience exploring programming, Linux, cybersecurity, virtualization, and information assurance. Focused on practical problem-solving, reliable systems, and continuous technical learning.
+
+- icon: /img/icons/material-symbols/200/rounded/design_services.svg
+  title: Education & Training
+  description: Educational experience spanning cybersecurity, forensics, virtualization, and fire science. Committed to building new skills through structured learning, hands-on projects, and professional development.
+
 - icon: /img/icons/material-symbols/200/rounded/timer.svg
-  title: Super fast builds and deploys
-  description: Extremely fast. Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis illum
-    nesciunt commodi vel nisi ut alias excepturi ipsum.
+  title: Operations & Management
+  description: Experience coordinating responsibilities, supporting teams, and maintaining efficient day-to-day operations in customer-facing workplaces. Brings a practical approach to prioritization, teamwork, and problem-solving.
+
 - icon: /img/icons/material-symbols/200/rounded/auto_fix.svg
-  title: 10+ pre-built pages
-  description: Start with the end result. Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis
-    illum nesciunt commodi vel nisi ut alias excepturi ipsum.
+  title: Event Production & Skilled Work
+  description: Stagehand experience through IATSE, supporting live events and production operations. Comfortable with hands-on work, equipment handling, teamwork, and adapting to changing conditions.

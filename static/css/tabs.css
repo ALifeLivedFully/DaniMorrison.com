@@ -3,20 +3,22 @@
    stays hidden and the panels simply stack under their own headings, so
    nothing is behind a control that does not work. */
 
-.tabs > [role="tablist"] {
+.tabs .tablist {
     display: none;
     align-items: flex-end;
+    justify-content: flex-start;
     gap: 2rem;
     margin: 0 0 1.5rem;
     padding-top: 2rem;
     border-bottom: 1px solid var(--borderMedium);
     overflow: auto;
-    width: 100%;
 }
-.tabs.ready > [role="tablist"] { display: flex; }
+.tabs.ready .tablist { display: flex; }
+.tabs.centered .tablist { justify-content: center; }
+.tabs.centered .tablist { justify-content: safe center; }
 .tabs button {letter-spacing: 0!important;}
 .tabs button:hover {transform: none!important;}
-.tabs > [role="tablist"] > [role="tab"] {
+.tabs .tablist > [role="tab"] {
     background: none;
     border: 0;
     padding: 0 0 0.5rem;
@@ -26,11 +28,12 @@
     font-weight: bold;
     line-height: 1.15;
     position: relative;
+    white-space: nowrap;
     cursor: pointer;
 }
 
 /* The underline slides in, as on the original theme. */
-.tabs > [role="tablist"] > [role="tab"]::after {
+.tabs .tablist > [role="tab"]::after {
     content: "";
     width: 100%;
     height: 0.13rem;
@@ -41,8 +44,8 @@
     transform: scaleX(0) translateY(50%);
     transition: transform 0.2s ease-in-out;
 }
-.tabs > [role="tablist"] > [role="tab"]:hover::after,
-.tabs > [role="tablist"] > [role="tab"][aria-selected="true"]::after {
+.tabs .tablist > [role="tab"]:hover::after,
+.tabs .tablist > [role="tab"][aria-selected="true"]::after {
     transform: scaleX(1) translateY(50%);
 }
 
@@ -50,3 +53,10 @@
    the markdown opened on; stacked without the script, it stays. */
 .tabs.ready > [role="tabpanel"] > h2:first-child { display: none; }
 .tabs { margin-bottom: 3.5rem; }
+
+/* A listing inside a panel brings its tag filter, which the `posts` brick
+   pulls up by -2rem to ride in the intro's space above the grid (`posts.css`).
+   In a panel there is no intro to ride in — the panel's heading is hidden when
+   the widget is ready — so the pull would lift the filter out of the panel and
+   into the tablist. Put it back below the tablist, where the panel begins. */
+.tabs > [role="tabpanel"] .filter { margin-block: 0 1.25rem; }

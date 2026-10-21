@@ -4,25 +4,47 @@
 
       {{< projects >}}
       {{< projects style="tiles" >}}
+      {{< projects limit="3" sort="newest" search="true" >}}
 
   The projects are the pages of `content/<lang>/projects/`, the portfolio, so a
   new project appears here by existing rather than by being added to a
   hand-written list. The cards themselves are `projects_list.html`: richer than
   a service or a job teaser, because a project advertises its links.
-  `style="tiles"` swaps the cards for the alternative tile grid.
+  `style="tiles"` (or `"gallery"`) swaps the cards for the alternative tile
+  grid.
+
+  The tag filter is on by default; `filter="false"` turns it off. `show-tags`
+  decides whether each card carries its own tag chips. `limit` caps how many
+  cards show at once and unhides a "load more" button; `sort` adds a sort
+  `<select>` opening on `newest`, `oldest`, `az` or `length`; `search="true"`
+  adds a search box.
 
   The `<ul class="projects">` the partial emits is what routes the section to
   the `projects` brick in `params.sections`.
 */ -}}
 {{- $style := .Get "style" -}}
 {{- $id := printf "projects-%d" .Ordinal -}}
+{{- $filter := ne (.Get "filter") "false" -}}
+{{- $limit := int (or (.Get "limit") (.Get "show")) -}}
+{{- $sort := .Get "sort" -}}
+{{- $search := eq (.Get "search") "true" -}}
+{{- $showTags := $filter -}}
+{{- if eq (.Get "show-tags") "true" -}}{{- $showTags = true -}}{{- end -}}
+{{- if eq (.Get "show-tags") "false" -}}{{- $showTags = false -}}{{- end -}}
 {{- with sort (where site.RegularPages "Section" "projects") "Title" -}}
 
 {{- $tags := slice -}}
-{{- range site.RegularPages -}}
-    {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+{{- if $filter -}}
+    {{- range site.RegularPages -}}
+        {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
+    {{- end -}}
 {{- end -}}
-{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter projects by tag" "ID" $id) -}}
+{{- if or $tags $sort $search -}}
+{{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" "Filter projects by tag" "ID" $id "Sort" $sort "Search" $search) -}}
+{{- end -}}
 
-{{- partial "projects_list.html" (dict "Pages" . "Style" $style) -}}
+{{- partial "projects_list.html" (dict "Pages" . "Style" $style "Tags" $showTags) -}}
+{{- if gt $limit 0 -}}
+<p class="loadmore"><button type="button" class="button secondary ghost smaller" hidden>{{ i18n "Load more" }}…</button></p>
+{{- end -}}
 {{- end -}}

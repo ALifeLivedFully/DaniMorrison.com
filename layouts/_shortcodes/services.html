@@ -21,4 +21,9 @@
       "Section" "services"
       "TagLabel" "Filter services by tag"
       "ID" $id
-      "Style" (.Get "style")) -}}
+      "Style" (.Get "style")
+      "Filter" (ne (.Get "filter") "false")
+      "ShowTags" (.Get "show-tags")
+      "Limit" (int (or (.Get "limit") (.Get "show")))
+      "Sort" (.Get "sort")
+      "Search" (eq (.Get "search") "true")) -}}

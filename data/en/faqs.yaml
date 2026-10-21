@@ -1,9 +1,17 @@
-- title: Hugobricks theme
+- title: Contact FAQs
   faqs:
-    - question: Why choose Hugobricks for my next project?
-      answer: Hugo allows you to build a fast, efficient, and scalable website. It offers you a clean separation of concerns, content vs layout and styles. The Hugobricks brings a pagebuilder to that workflow.
-    - question: I need to develop a performant website. Does Hugobricks offer a good performance?
-      answer:  Hugobricks is renowned for its exceptional speed and performance. It is built using the Go programming language, which enables it to generate websites at an astonishing pace. Whether you have a small blog or a large enterprise site, Hugobricks’s speed ensures that your pages load quickly, providing an excellent user experience. This advantage becomes especially significant when dealing with large websites or making frequent updates.
+    - question: What can I contact you about?
+      answer: Anything from job opportunities and project collaborations to handmade goods, services, or general questions. If you're unsure whether I can help, feel free to ask.
+    - question: How much do you charge for your services?
+      answer: It depends on the work involved. Some help may be free, donation-based, or offered at an agreed price. Contact me to discuss your needs.
+    - question: Do you accept custom requests?
+      answer: Yes! Whether it's a handmade item, a technical project, or practical assistance, tell me what you have in mind and we can see what's possible.
+    - question: Do you offer local or remote assistance?
+      answer: Both, depending on the request. Some services can be handled remotely, while hands-on assistance and product exchanges depend on location and availability.
+    - question: How soon can I expect a response?
+      answer: I'll get back to you as soon as I can. Response times vary depending on my schedule, so please allow some time for a reply.
+    - question: What if I'm not sure what I need?
+      answer: That's fine! Describe your situation, question, or idea in your own words. We can figure out the details together.
 - title: Scalability, ease of use and flexibility?
   faqs:
     - question: What about scalability and portability

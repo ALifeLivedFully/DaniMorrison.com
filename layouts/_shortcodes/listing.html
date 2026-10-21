@@ -1,0 +1,73 @@
+{{- /*
+  Renders the pages of any content folder as a listing under optional
+  controls: a tag filter, a sort `<select>` and a search box.
+
+      {{< listing folder="education" >}}
+      {{< listing folder="jobs" dates="true" style="tiles" >}}
+      {{< listing folder="projects" limit="3" sort="newest" search="true" >}}
+      {{< listing folder="jobs" show-tags="false" >}}
+
+  One shortcode for every category: `folder` is the directory under
+  `content/<lang>/`, so `education`, `jobs`, `projects` or any other folder is
+  listed by existing rather than by a named shortcode apiece. The entries are
+  the folder's regular pages, so a new one appears here by being written.
+
+  The grid itself is `services_list.html`, shared with the `services` and
+  `jobs` shortcodes. `dates="true"` shows each entry's date, or its `date`–
+  `enddate` range, which is what an experience or education entry wants;
+  `style="tiles"` picks the alternative tile look (`style="gallery"`, its
+  alias) and `style="cards"`, the default, the teaser card.
+
+  Each option comes from `data/<lang>/listing.yaml` unless the call overrides
+  it, so the site's listing defaults are written down once, per language. The
+  tag filter is on by default, as it is for `services`, so a listing lists its
+  tags wherever it is used; `filter="false"` turns it off. `show-tags` decides
+  whether each card carries its own tag chips — defaulting to the same answer
+  as the filter. `limit` caps how many cards show at once and unhides a "load
+  more" button; `sort` names the order a sort `<select>` opens on — `newest`,
+  `oldest`, `az` (title A–Z), `za` (title Z–A), `longest`/`shortest` (word
+  count), `range`/`range-asc` (date-`enddate` span) — and `search="true"` adds a
+  search box.
+
+  @param {string} folder     directory under the language's content dir to list
+  @param {string} dates      "true" to show each entry's date or date range
+  @param {string} style      "tiles"/"gallery" for the tile grid, else cards
+  @param {string} filter     "false" to hide the tag filter (on by default)
+  @param {string} show-tags  "true"/"false" to override the entry tag chips
+  @param {string} limit      most cards to show before "load more"
+  @param {string} show       alias of `limit`
+  @param {string} sort       "newest"|"oldest"|"az"|"za"|"longest"|"shortest"|"range"|"range-asc"
+  @param {string} search     "true" to add a search box
+*/ -}}
+{{- $d := partial "data.html" .Page -}}
+{{- $folder := .Get "folder" -}}
+{{- if not $folder -}}
+    {{- warnf "listing: no `folder` given on %q — write one, e.g. {{< listing folder=\"education\" >}}" .Page.File.Path -}}
+{{- end -}}
+{{- $id := printf "listing-%d" .Ordinal -}}
+
+{{- /* The defaults, from `data/<lang>/listing.yaml`. The leading dict is only
+       a fallback for a language that ships no such file. */ -}}
+{{- $cfg := merge (dict
+      "dates" false
+      "style" "cards"
+      "filter" true
+      "show_tags" true
+      "limit" 0
+      "sort" ""
+      "search" false) ($d.listing | default dict) -}}
+{{- $dates := eq (printf "%v" (or (.Get "dates") $cfg.dates)) "true" -}}
+{{- $filter := eq (printf "%v" (or (.Get "filter") $cfg.filter)) "true" -}}
+{{- $limit := int (or (.Get "limit") (.Get "show") $cfg.limit) -}}
+{{- $search := eq (printf "%v" (or (.Get "search") $cfg.search)) "true" -}}
+{{- partial "services_list.html" (dict
+      "Dir" $folder
+      "TagLabel" "Filter tags"
+      "ID" $id
+      "Style" (or (.Get "style") $cfg.style)
+      "Dates" $dates
+      "Filter" $filter
+      "ShowTags" (printf "%v" (or (.Get "show-tags") $cfg.show_tags))
+      "Limit" $limit
+      "Sort" (or (.Get "sort") $cfg.sort)
+      "Search" $search) -}}

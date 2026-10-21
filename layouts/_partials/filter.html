@@ -1,26 +1,56 @@
 {{- /*
-  The tag filter over a listing.
+  The controls over a listing: a tag filter, an optional sort, an optional
+  search box.
 
   A `<select>` of the tags on offer and an empty `<ul class="tags">` for the
   chips `site.js` builds as tags are picked. The list it narrows is the form's
   next element sibling — the listing's own `<ul>` — which is why every shortcode
   writes this partial immediately before its grid, and why a page may carry
   more than one: `site.js` wires each form to the list that follows it, and the
-  `ID` here keeps the `<select>` and its `<label>` apart from a second one.
+  `ID` here keeps the controls, and their labels, apart from a second one.
 
   A tag no entry carries is offered and disabled rather than hidden — that is
   `site.js` doing what it does everywhere: an option that would leave nothing
   is closed off, not lied about.
 
-  @context {dict} . Tags (slice of names), Label (i18n key), ID (string)
+  `Sort` names the sort key a listing opens on — `newest`, `oldest`, `az`,
+  `za`, `longest`, `shortest`, `range` or `range-asc` — and turns the sort
+  `<select>` on; `Search` turns on the search box. Both narrow and reorder the
+  same cards, client-side, alongside the tags; a listing with neither writes
+  neither.
+
+  @context {dict} . Tags (slice of names), Label (i18n key), ID (string),
+                    Sort (string, optional), Search (bool, optional)
 */ -}}
-{{- with .Tags -}}
+{{- $tags := .Tags -}}
+{{- $sort := .Sort | default "" -}}
+{{- $search := .Search | default false -}}
+{{- if or $tags $sort $search -}}
 <form class="filter">
+    {{- with $tags }}
     <label class="sr-only" for="tagfilter-{{ $.ID }}">{{ i18n $.Label }}</label>
-    <select id="tagfilter-{{ $.ID }}" data-numbers="{{ hugo.Data.settings.filter_has_numbers }}" data-label-stop="{{ i18n "Stop filtering on" }}">
+    <select id="tagfilter-{{ $.ID }}" class="tagfilter" data-numbers="{{ hugo.Data.settings.filter_has_numbers }}" data-label-stop="{{ i18n "Stop filtering on" }}">
         <option value="">{{ i18n "Filter tags" }}</option>
         {{- range $name := . -}}<option value="{{ $name }}">{{ $name }}</option>{{- end -}}
     </select>
+    {{- end }}
+    {{- if $sort }}
+    <label class="sr-only" for="sortfilter-{{ $.ID }}">{{ i18n "Sort by" }}</label>
+    <select id="sortfilter-{{ $.ID }}" class="sortfilter">
+        <option value="newest"{{ if eq $sort "newest" }} selected{{ end }}>{{ i18n "Newest" }}</option>
+        <option value="oldest"{{ if eq $sort "oldest" }} selected{{ end }}>{{ i18n "Oldest" }}</option>
+        <option value="az"{{ if eq $sort "az" }} selected{{ end }}>{{ i18n "Title (A-Z)" }}</option>
+        <option value="za"{{ if eq $sort "za" }} selected{{ end }}>{{ i18n "Title (Z-A)" }}</option>
+        <option value="longest"{{ if eq $sort "longest" }} selected{{ end }}>{{ i18n "Longest posts first" }}</option>
+        <option value="shortest"{{ if eq $sort "shortest" }} selected{{ end }}>{{ i18n "Shortest posts first" }}</option>
+        <option value="range"{{ if eq $sort "range" }} selected{{ end }}>{{ i18n "Longest date range" }}</option>
+        <option value="range-asc"{{ if eq $sort "range-asc" }} selected{{ end }}>{{ i18n "Shortest date range" }}</option>
+    </select>
+    {{- end }}
+    {{- if $search }}
+    <label class="sr-only" for="searchfilter-{{ $.ID }}">{{ i18n "Search" }}</label>
+    <input id="searchfilter-{{ $.ID }}" class="searchfilter" type="search" placeholder="{{ i18n "Search…" }}">
+    {{- end }}
     <ul class="tags" aria-live="polite"></ul>
 </form>
 {{- end -}}

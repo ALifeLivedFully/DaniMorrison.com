@@ -1,8 +1,9 @@
 ---
-title: Range training
+title: Range companion
 image: /uploads/photos/06.jpg
 tags:
-  -
+  - Security
+  - Companion
 ---
 
 {{< breadcrumbs >}}

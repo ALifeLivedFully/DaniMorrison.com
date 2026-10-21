@@ -16,4 +16,9 @@
       "TagLabel" "Filter resume by tag"
       "ID" $id
       "Style" (.Get "style")
-      "Dates" $dates) -}}
+      "Dates" $dates
+      "Filter" (ne (.Get "filter") "false")
+      "ShowTags" (.Get "show-tags")
+      "Limit" (int (or (.Get "limit") (.Get "show")))
+      "Sort" (.Get "sort")
+      "Search" (eq (.Get "search") "true")) -}}

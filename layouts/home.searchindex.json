@@ -2,10 +2,13 @@
   The search index: one flat JSON array per language, built at render time
   and fetched once by `js/search.js` on the first keystroke on `/search/`.
 
-      [{ "title": "About", "url": "/about/", "text": "…" }, …]
+      [{ "title": "About", "url": "/about/", "text": "…", "tags": "full-stack api" }, …]
 
   `text` is the page as plain text, so the matcher can look inside the body
-  without shipping the markup. It is capped at 6000 characters — past the
+  without shipping the markup. `tags` carries the page's own tags, space
+  separated, so a tag link (`tag_link.html`) — which lands on `/search/?q=<tag>`
+  — finds every page labelled with it, including the ones whose prose never
+  spells it out. It is capped at 6000 characters — past the
   first few screens of a page the tail says nothing a search should match,
   and a demo site full of lorem ipsum should not be paying for it.
 
@@ -23,14 +26,28 @@
     {{- $notFound := false -}}
     {{- with .File -}}{{- $notFound = eq .BaseFileName "404" -}}{{- end -}}
     {{- if and $searchable (not $notFound) (ne .Section "docs") (in (slice "home" "page" "section") .Kind) -}}
-        {{- $text := .Plain | htmlUnescape -}}
+        {{- /* Cut the page at its first listing. A listing shortcode renders a
+               filter whose `<select>` names every tag on offer, and the cards
+               below it carry their own tags as text; plainified, that is a wall
+               of keywords no search should match — every tag would return the
+               section page instead of the entries that carry it. So the index
+               keeps the prose above the first listing (`ul.posts`,
+               `ul.projects`, `ul.products`, a tile grid) or filter form, which
+               is the page's own writing, and stops there. */ -}}
+        {{- $html := .Content | string -}}
+        {{- $cut := findRE `(?is)<(?:ul|form)[^>]*class="[^"]*(?:posts|projects|products|tiles|filter)[^"]*"` $html 1 -}}
+        {{- if $cut -}}
+            {{- $html = index (split $html (index $cut 0)) 0 -}}
+        {{- end -}}
+        {{- $text := $html | plainify | htmlUnescape -}}
         {{- if gt (len $text) 6000 -}}
             {{- $text = printf "%s…" (substr $text 0 6000) -}}
         {{- end -}}
         {{- $entries = $entries | append (dict
             "title" (or .Title site.Title)
             "url"   .RelPermalink
-            "text"  $text) -}}
+            "text"  $text
+            "tags"  (delimit (.Params.tags | default slice) " ")) -}}
     {{- end -}}
 {{- end -}}
 {{- $entries | jsonify -}}

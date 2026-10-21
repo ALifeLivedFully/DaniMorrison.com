@@ -24,6 +24,9 @@ ul.tiles > li {
     aspect-ratio: 1.5;
     margin: 0;
     padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
     border-radius: var(--radius);
     text-align: center;
     isolation: isolate;
@@ -92,4 +95,54 @@ ul.tiles > li:not(:has(img)) strong { color: var(--textDark); }
 @media (hover: hover) {
     ul.tiles > li:hover img { transform: scale(1.075); }
     ul.tiles > li:not(:has(img)):hover { border-color: var(--borderMedium); }
+}
+
+/* An entry's own tags, as chips at the tile's foot — buttons that toggle the
+   listing's filter (`site.js`). They sit over the tile, above the scrim, so
+   the tile stays one picture and its tags stay touchable. */
+ul.tiles > li > ul.tags {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0.9rem;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0 1rem;
+    list-style: none;
+}
+ul.tiles > li > ul.tags li { margin: 0; padding: 0; }
+ul.tiles > li > ul.tags li.more a {
+    display: block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    line-height: 1;
+    color: #fff;
+    background: rgb(0 0 0 / 0.25);
+    border: 1px dashed rgb(255 255 255 / 0.35);
+    border-radius: 1rem;
+    text-decoration: none;
+}
+ul.tiles > li > ul.tags li.more a:hover { background: rgb(0 0 0 / 0.45); }
+ul.tiles > li > ul.tags button {
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 0.25rem 0.6rem;
+    color: #fff;
+    background: rgb(0 0 0 / 0.35);
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: 1rem;
+    cursor: pointer;
+}
+ul.tiles > li > ul.tags button:hover { background: rgb(0 0 0 / 0.55); }
+/* Picked, the chip inverts to the theme's own dark surface, as a card's chip
+   does — `--page` on `--textDark`. A fixed `#fff` ground left the label on
+   light type in dark mode. */
+ul.tiles > li > ul.tags button[aria-pressed="true"] {
+    color: var(--page);
+    background: var(--textDark);
+    border-color: var(--textDark);
 }
