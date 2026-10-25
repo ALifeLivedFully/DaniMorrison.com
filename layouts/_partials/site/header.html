@@ -87,6 +87,11 @@
 
             <nav id="mainnav" class="mainnav" aria-label="{{ i18n "Main" }}">
                 {{ partial "site/menu.html" (dict "Page" . "Items" $d.header.menuitems) }}
+                {{ if $d.header.cta.active }}
+                <ul class="mobile-cta-list">
+                    <li><a href="{{ $d.header.cta.link }}">{{ $d.header.cta.title }}</a></li>
+                </ul>
+                {{ end }}
             </nav>
 
             <div class="actions">
@@ -114,7 +119,7 @@
                 {{ end }}
                 {{ partial "site/languageswitch.html" (dict "Page" . "Label" (.Language.Lang | upper)) }}
                 {{ if $d.header.cta.active }}
-                    <a class="button smaller" href="{{ $d.header.cta.link }}">{{ $d.header.cta.title }}</a>
+                    <a class="button smaller header-cta" href="{{ $d.header.cta.link }}">{{ $d.header.cta.title }}</a>
                 {{ end }}
                 <button type="button" id="togglemenu" aria-controls="mainnav" aria-expanded="false">
                     <span>{{ i18n "Menu" }}</span>

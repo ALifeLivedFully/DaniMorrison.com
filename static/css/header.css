@@ -313,9 +313,21 @@ body.mobilemenu .mainnav ul ul {
 }
 body.mobilemenu .mainnav ul ul a { padding-inline-start: 5rem; color: rgb(255 255 255 / 0.7); }
 body.mobilemenu .mainnav li.active > a { color: var(--accent); font-weight: 700; }
+.mainnav .mobile-cta-list { display: none; }
+body.mobilemenu .mainnav .mobile-cta-list { display: block; margin: 1rem 2.5rem 0 3rem; padding-top: 0; border-top: none; }
+body.mobilemenu .mainnav .mobile-cta-list li { margin: 0; }
+body.mobilemenu .mainnav .mobile-cta-list a {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: var(--accent);
+    color: #fff !important;
+    font-weight: 700;
+    border-radius: var(--radius-s);
+    font-size: 1rem;
+}
 
-@media (max-width: 500px) {
-    .masthead .actions .button { display: none; }
+@media (max-width: 1100px) {
+    .masthead .actions .header-cta { display: none; }
 }
 
 @media (max-width: 400px) {

@@ -1,0 +1,23 @@
+name: Deploy Shop Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/shop/**"
+      - ".github/workflows/deploy-shop.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/shop
+          command: deploy
+

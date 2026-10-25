@@ -8,7 +8,7 @@ images:
 - image: /uploads/products/beer/beer-1.jpg
 variant_type: size
 variants:
-- name: half-a-pint
+- name: half a pint
   price: 2.75
   sku: beerhalfapint
 - name: pint
