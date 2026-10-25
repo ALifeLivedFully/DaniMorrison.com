@@ -37,9 +37,9 @@ jobs:
       - name: Install Typst
         uses: typst-community/setup-typst@v4
       - name: Build CV
-        run: typst compile --root . static/typst/CV.typ static/CV.pdf
+        run: typst compile --root . typst/Resume.typ static/Resume.pdf
       - name: Build Business-Card
-        run: typst compile --root . static/typst/Business-Card-US.typ static/Business-Card-US.svg
+        run: typst compile --root . typst/Business-Card-US.typ static/Business-Card.svg
       - name: Install Hugo CLI
         run: |
           wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
