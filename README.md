@@ -1,87 +1,105 @@
-[![](/hugobricks.jpg)](https://vimeo.com/862118474)
+# DaniMorrison.com
 
-# What is Hugobricks?
+Personal site, blog, portfolio and small shop, built with [Hugo](https://gohugo.io/).
 
-[View DEMO website](https://www.hugobricks2.preview.usecue.com/)
+This repository is based on [HugoBricks v2](https://github.com/jhvanderschee/hugobricks_v2), created by [Joost van der Schee](https://github.com/jhvanderschee), and has been substantially modified and extended for this site. HugoBricks provides the stackable content-brick approach and the original theme; the features below are additions and changes made here.
 
-Hugobricks is a free website theme for Hugo. It makes building Hugo websites child’s play due to its stackable (LEGO-like) content bricks. Stack an intro brick on top of some image bricks and a pricing table and build a complete website in seconds!
+## Features
 
-In the past you may have chosen a Wordpress theme and adjusted the images, colors and fonts to the needs of your client. In combination with tools like Gutenberg blocks and page builders like Elementor there was little that could compete with the development speed and flexibility that Wordpress offered. With Hugobricks we bring these advantages to the Jamstack eco-system. If you choose for the Hugobricks theme you get not just a head start, tremendous flexibility and lots of ready to use and reusable components, but also a lightning fast and unbreakable architecture. What are you waiting for? The future is here!
+- **Hugo static site** — fast, self-contained HTML with no database or server runtime.
+- **Content bricks** — pages are composed from reusable sections such as intros, features, pricing tables, reviews, galleries and calls to action.
+- **Client-side search** — Hugo generates a JSON index per language; `static/js/search.js` fetches it once and filters it in the browser. No search service, no tracking.
+- **Dark mode** — a moon/sun toggle in the banner, with the choice stored in `localStorage`, falling back to the visitor's system preference. The theme is applied before first paint to avoid a flash of the wrong palette.
+- **Decap CMS** — available at `/admin/`, configured for local editing with `npx decap-server`.
+- **Multi-language setup** — English, Dutch, German, Czech and Korean content directories.
+- **Typst-generated documents** — the resume PDF and business card are generated from `typst/` sources and shared personal data.
+- **Shop** — a small product catalogue built from Markdown, with a browser-local cart and checkout flow.
+- **Cloudflare Worker** — a scaffold in `workers/contact/` for receiving contact-form submissions.
+- **GitHub Pages deployment** — [`.github/workflows/pages.yml`](.github/workflows/pages.yml) compiles the Typst documents and deploys the generated Hugo site.
 
-## What’s included in Hugobricks?
+## Requirements
 
-Hugobricks is a comprehensive starter theme that includes everything you need to get started with your Hugo project.
+- [Hugo extended](https://gohugo.io/installation/) 0.164 or newer
+- [Typst](https://typst.app/) (only needed to regenerate the resume and business card)
+- [Node.js](https://nodejs.org/) and npm (only needed for Decap CMS)
+- Optionally, [Wrangler](https://developers.cloudflare.com/workers/wrangler/) for the contact worker
 
-- 10+ Pre-build pages
-- 99+ Google Pagespeed Score
-- Built with Hugo and CSS variables for easy styling
-- Fully responsive on all devices
-- SEO-optimized for better search engine rankings
-- Client-side search over a JSON index built by Hugo
-- Dark mode with a moon/sun toggle in the banner
-- Decap CMS at `/admin/`, wired for local editing (`npx decap-server`)
+## Quick start
 
-[View Online Documentation](https://www.hugobricks2.preview.usecue.com/docs/)
-
-
-## Hugobricks workflow
-
-Hugobricks aims to enhance the Hugo web framework by providing a variety of pre-made bricks for straightforward website-building. Our companion project, [hugocodex](https://hugocodex.org), guides beginners in starting a Hugo project from scratch. For those who already have experience with Hugo and want to use it for rapid prototyping and iterating, Hugobricks offers premade websites and customizable components powered by Hugo. Cloning this repository allows you to start building lightning-fast static sites with flexibility and ease with and already working website. Here is an example of two bricks (title and cta):
-
-```
----
-title: Page title
----
-
-# The Ultimate Theme You Need To Start Your Hugo Website
-
-Hugobricks is a free website theme built with Hugo and vanilla CSS.
-
-[Get started for free](/get-started/){:.button}
-
-![](/uploads/brick_intro.png)
-
----
-
-## The Ultimate Hugo theme
-
-Hugobricks covers all components you would like to have at hand.
-
-{{< features >}}
-
----
-
-## Get started with Hugobricks today!
-
-Experience the future of web development with Hugo and stackable content bricks.
-
-[Get started now](/get-started/){:.button}
-
-![](/uploads/illustrations/cuate/server.svg)
+```bash
+git clone https://github.com/ALifeLivedFully/DaniMorrison.com.git
+cd DaniMorrison.com
+hugo server
 ```
 
-## Get started with Hugobricks
+Open <http://localhost:1313/>.
 
-In order to get a working website you should:
+To build the Typst documents before running Hugo:
 
-- clone our repository and start building with stackable content bricks
-- enjoy your already working hugo website, plan your changes/iterations
-- re-use default hugobricks
-- and/or customise them !
+```bash
+./scripts/build.sh
+hugo --minify
+```
 
+The generated site is written to `public/`.
 
+## Editing content
 
-## Hugobricks under the Hood
+- Site pages and blog posts live in `content/<language>/`, with English under `content/en/`.
+- Shared data — menus, contact details, footer links, forms, pricing and shop settings — lives in `data/<language>/` and `data/settings.yaml`.
+- Images and other uploads live in `static/uploads/` and are referenced as `/uploads/...`.
+- Theme documentation is published at `/docs/`.
 
-Hugobricks is build with the regular [Hugo](https://gohugo.io/overview/introduction/) building blocks, like [shortcodes](https://gohugo.io/content-management/shortcodes/#what-a-shortcode-is), [partials](https://gohugo.io/templates/partials/) and [layouts](https://gohugo.io/templates/base/). Hugobricks takes advantage of these things to allow content re-use, pivot around content and layouts, and calling the required styling and functional logic.
+Most feature switches are in `data/settings.yaml`, including `enable_search`, `enable_darkmode` and `enable_webshop`.
 
-## Hugobricks Feedback 
+## Search
 
-Make your wishlist. Missing a given Hugobrick? [Let us know.](https://github.com/jhvanderschee/hugobricks_v2/issues/)
+Set `enable_search: true` in `data/settings.yaml`. The banner then shows a search icon linking to `/search/`, where the visitor gets live results as they type.
 
+The index is generated by [`layouts/home.searchindex.json`](layouts/home.searchindex.json) as an output format of the home page, and is fetched by [`static/js/search.js`](static/js/search.js). Pages can opt out with `search: false` in their front matter. Matching is intentionally simple: every typed word must appear somewhere on the page, with title and tag matches ranked above body matches.
 
-## Credits and licenses
+## Dark mode
 
-The functionality is inspired by the many [Gutenberg Block Plugins](https://wpastra.com/plugins/wordpress-gutenberg-block-plugins/) that are available online. The design is based on the MIT licensed [Hugoplate from Zeon Studio](https://github.com/zeon-studio/hugoplate.git). The fonts and icons are Apache Licensed and come from [Google Fonts](https://fonts.google.com) and [Google Material Symbols](https://fonts.google.com/icons). The illustrations are free to use but require [an attribution to Storyset](https://storyset.com/terms). The avatars are CC0 licensed and come from [Pravatar](https://www.pravatar.cc/images). The paragliding photos are provided by and property of the [Flyspot Airsports & Travel Agency](https://flyspot.com.tr/) and cannot be used elsewhere without written permission of Flyspot. All other photos come from [Unsplash](https://unsplash.com/license) and are free to use. The social media icons (Facebook, Instagram, etc) belong to the respective social networks/their owners.
+Set `enable_darkmode: true` in `data/settings.yaml`. This adds the moon/sun toggle to the banner and enables the dark palette in `static/css/dark.css`.
 
+The visitor's stored choice wins; otherwise the site follows `prefers-color-scheme`. The choice is shared across tabs on the same origin.
 
+## Decap CMS
+
+Decap CMS is served from `/admin/` using [`static/admin/config.yml`](static/admin/config.yml).
+
+To edit locally:
+
+```bash
+npx decap-server
+hugo server
+```
+
+Then open <http://localhost:1313/admin/>. `decap-server` provides the local backend and writes changes directly into this repository; without it, the admin page loads but cannot save. Review and commit those changes yourself.
+
+The CMS is configured for local use only. Publishing remotely would require changing the backend configuration and adding a suitable authentication flow.
+
+## Project layout
+
+```text
+content/        Pages, posts, projects, products and docs, by language
+data/           Site-wide and per-language YAML data
+layouts/        Hugo templates, partials and shortcodes
+static/         CSS, JavaScript, images, uploads and the Decap admin
+typst/          Resume and business-card sources
+scripts/        Build helpers and resume tooling
+workers/        Cloudflare Workers
+.github/        GitHub Actions deployment workflow
+hugo.yaml       Hugo configuration, languages and output formats
+```
+
+## Credits and licence
+
+HugoBricks v2 was created by Joost van der Schee and is released under the MIT licence. See [LICENSE](LICENSE) and the [upstream repository](https://github.com/jhvanderschee/hugobricks_v2).
+
+Upstream documentation and demo:
+
+- <https://www.hugobricks2.preview.usecue.com/>
+- <https://www.hugobricks2.preview.usecue.com/docs/>
+
+Bundled assets keep their original licences. Fonts and icons come from [Google Fonts](https://fonts.google.com) and [Google Material Symbols](https://fonts.google.com/icons); illustrations from [Storyset](https://storyset.com/terms); avatars from [Pravatar](https://www.pravatar.cc/images); other photos from [Unsplash](https://unsplash.com/license). The Flyspot photographs remain the property of [Flyspot Airsports & Travel Agency](https://flyspot.com.tr/) and may not be reused without written permission. Social-media icons belong to their respective networks.
