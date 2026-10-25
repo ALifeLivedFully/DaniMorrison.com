@@ -2,45 +2,42 @@
 currency: $
 period: /month
 plans:
-  - badge: supporter
-    title: Friend
-    description: Help keep my independent projects and resources going with a small monthly contribution.
-    price: 3
+  - badge: contribute
+    title: Student
+    description: A small, steady hand — like buying me a coffee once a month, or slowly saving toward the unexpected.
+    price: 5
     features:
-      - Support my ongoing work
-      - Help fund future projects
-      - Access to public resources
+      - Saves toward unexpected expenses
+      - Helps me afford books
       - Cancel anytime
     cta:
       title: Become a supporter
-      link: /support/
+      link: /contact/
       style: ghost
 
   - badge: most popular
-    title: Sustainer
-    description: Provide steady support that helps me spend more time building, documenting, and sharing projects.
-    price: 7
+    title: Researcher
+    description: Keeps the independent research and reading behind everything I build and write within reach.
+    price: 10
     featured: true
     features:
-      - Everything in Friend
-      - Project progress updates
-      - Behind-the-scenes posts
-      - Early access to selected work
+      - Everything at the Student tier
+      - Supports independent research
+      - Helps me afford the tools and equipment I deem necessary
     cta:
       title: Become a sustainer
-      link: /support/
+      link: /contact/
 
   - badge: patron
-    title: Benefactor
-    description: Make a bigger contribution toward independent work, practical resources, and community-focused projects.
-    price: 15
+    title: Builder
+    description: Put real time behind future projects, from early experiments to finished work.
+    price: 20
     features:
-      - Everything in Sustainer
-      - Detailed project notes
-      - Input on future project ideas
-      - My sincere appreciation
+      - Everything at the Researcher tier
+      - Funds future projects
+      - Time to build and share them
     cta:
       title: Become a benefactor
-      link: /support/
+      link: /contact/
       style: ghost
 

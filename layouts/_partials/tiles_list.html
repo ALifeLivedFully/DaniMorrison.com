@@ -20,11 +20,13 @@
 */ -}}
 <ul class="{{ .Class | default `posts` }} tiles"{{ with .PageSize }} data-pagesize="{{ . }}"{{ end }}>
     {{- range .Pages -}}
-        {{- /* The summary is the first paragraph of prose, the cover's own
-               paragraph dropped first — the same move `teaser_list.html`
-               makes, and for the same reason. */ -}}
+        {{- /* The summary is the front-matter `description` if it is set, else
+               the first paragraph of prose — the cover's own paragraph dropped
+               first, the same move `teaser_list.html` makes, and for the same
+               reason. */ -}}
         {{- $prose := replaceRE `(?is)<p>\s*(?:<a\b[^>]*>\s*)?<img\b[^>]*>\s*(?:</a>\s*)?</p>` "" (string .Content) -}}
         {{- $summary := trim (htmlUnescape (plainify (delimit (first 1 (findRE `(?is)<p>.*?</p>` $prose 1)) ""))) " \n\r\t" -}}
+        {{- $summary = .Params.description | default $summary -}}
         {{- $tags := slice -}}
         {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
         {{- $range := 0 -}}

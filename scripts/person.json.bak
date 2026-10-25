@@ -1,0 +1,614 @@
+{
+  "name": "Dani Morrison",
+  "company": "ALifeLivedFully",
+  "title": "Technical Consultant",
+  "contact": {
+    "email": "Contact@DaniMorrison.com",
+    "phone": "+1 (123)-456-7890",
+    "location": "Minneapolis, MN, USA",
+    "linkedin": "linkedin.com/in/alifelivedfully/",
+    "github": "github.com/alifelivedfully",
+    "website": "DaniMorrison.com"
+  },
+  "summary": "Versatile technical professional with hands-on experience spanning software engineering, web development, systems administration, and operational coordination. Builds and deploys full-stack applications, automates developer environments with Linux and NixOS, and collaborates effectively in high-tempo, multi-disciplinary team settings with an emphasis on practical problem-solving and rapid learning.",
+  "experience": [
+    {
+      "role": "Software Engineer",
+      "company": "ALifeLivedFully",
+      "location": "Minneapolis, MN (Remote)",
+      "start": "Apr 2020",
+      "end": "Present",
+      "bullets": [
+        {
+          "text": "Architect a full-stack web platform and portfolio with responsive UI and integrated back-end services",
+          "tags": [
+            "full-stack",
+            "frontend",
+            "backend",
+            "web-development",
+            "ui-ux",
+            "portfolio"
+          ]
+        },
+        {
+          "text": "Engineered a PHP/SQL issue-tracking and ticketing web app with streamlined record management",
+          "tags": [
+            "full-stack",
+            "php",
+            "sql",
+            "database",
+            "api",
+            "ticketing"
+          ]
+        },
+        {
+          "text": "Build performant static and CMS sites with Hugo, WordPress, JavaScript, and semantic HTML/CSS",
+          "tags": [
+            "static-site-generation",
+            "cms",
+            "hugo",
+            "wordpress",
+            "javascript",
+            "html"
+          ]
+        },
+        {
+          "text": "Automate developer workflows and local AI with Linux, shell scripting, and self-hosted tooling",
+          "tags": [
+            "automation",
+            "linux",
+            "scripting",
+            "self-hosted",
+            "devops",
+            "cli"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Stagehand",
+      "company": "IATSE Local 13",
+      "location": "Minneapolis, MN",
+      "start": "Jul 2022",
+      "end": "Present",
+      "bullets": [
+        {
+          "text": "Execute staging, load-in, operation, and strike for theater, concerts, and live events",
+          "tags": [
+            "equipment-setup",
+            "equipment-breakdown",
+            "live-production",
+            "stage-production",
+            "logistics",
+            "theater"
+          ]
+        },
+        {
+          "text": "Coordinate crews to hang lighting, route audio, assemble scenery, and enforce venue safety",
+          "tags": [
+            "lighting",
+            "audio",
+            "rigging",
+            "scenery",
+            "safety",
+            "coordination"
+          ]
+        },
+        {
+          "text": "Enforce safety protocols across rapid set changes, rigging, cabling, and heavy equipment moves",
+          "tags": [
+            "rigging",
+            "equipment",
+            "logistics",
+            "risk-management",
+            "safety"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Technical Consultant",
+      "company": "Spark-Y",
+      "location": "Minneapolis, MN",
+      "start": "Mar 2023",
+      "end": "Feb 2025",
+      "bullets": [
+        {
+          "text": "Manage operations and preventative maintenance of closed-loop aquaponics and urban agriculture",
+          "tags": [
+            "aquaponics",
+            "agriculture",
+            "sustainability",
+            "maintenance",
+            "operations"
+          ]
+        },
+        {
+          "text": "Lead hands-on workshops on sustainable agriculture, environmental science, and green technology",
+          "tags": [
+            "teaching",
+            "training",
+            "public-speaking",
+            "community-engagement",
+            "environmental-education",
+            "outreach"
+          ]
+        },
+        {
+          "text": "Design, build, and deploy accessible, mobile-responsive web pages for sustainability outreach",
+          "tags": [
+            "web-development",
+            "frontend",
+            "html",
+            "css",
+            "javascript",
+            "accessibility"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Flex Officer",
+      "company": "Securitas Security Services USA, Inc.",
+      "location": "Greater Minneapolis-St. Paul Area",
+      "start": "Jan 2020",
+      "end": "Aug 2022",
+      "bullets": [
+        {
+          "text": "Delivered rapid-response physical security across corporate, financial, healthcare, and retail sites",
+          "tags": [
+            "physical-security",
+            "security-operations",
+            "access-control",
+            "risk-management",
+            "corporate-security",
+            "incident-response"
+          ]
+        },
+        {
+          "text": "Maintained access control, incident reporting, and emergency response with daily safety compliance",
+          "tags": [
+            "access-control",
+            "incident-reporting",
+            "emergency-response",
+            "documentation",
+            "safety"
+          ]
+        },
+        {
+          "text": "Operated as a hybrid security and administrative liaison at Ally Bank enforcing access protocols",
+          "tags": [
+            "access-control",
+            "customer-service",
+            "administration",
+            "visitor-management",
+            "corporate-security"
+          ]
+        },
+        {
+          "text": "Conducted foot patrols, monitored CCTV, and de-escalated conflicts to resolve site incidents safely",
+          "tags": [
+            "surveillance",
+            "de-escalation",
+            "situational-awareness",
+            "risk-management",
+            "safety"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "LECPA Member",
+      "company": "Saint Paul Police Department",
+      "location": "Saint Paul, MN",
+      "start": "Jun 2019",
+      "end": "Feb 2020",
+      "bullets": [
+        {
+          "text": "Engaged in community outreach, youth mentorship, and civic partnerships across Saint Paul neighborhoods",
+          "tags": [
+            "community-engagement",
+            "youth-programming",
+            "mentorship",
+            "public-safety",
+            "leadership",
+            "outreach"
+          ]
+        },
+        {
+          "text": "Completed coursework in criminal justice, de-escalation, ethics, and emergency readiness",
+          "tags": [
+            "training",
+            "law-enforcement",
+            "public-safety",
+            "de-escalation",
+            "ethics",
+            "emergency-preparedness"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Swim Instructor",
+      "company": "FOSS Swim School",
+      "location": "Greater Minneapolis-St. Paul Area",
+      "start": "Feb 2019",
+      "end": "Mar 2019",
+      "bullets": [
+        {
+          "text": "Delivered structured swim instruction to youth across skill levels, emphasizing technique and confidence",
+          "tags": [
+            "teaching",
+            "coaching",
+            "youth",
+            "education",
+            "communication"
+          ]
+        },
+        {
+          "text": "Enforced water safety, supervised poolside activity, and consulted parents on student progress",
+          "tags": [
+            "water-safety",
+            "customer-service",
+            "communication",
+            "risk-management",
+            "child-supervision"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Sales Associate",
+      "company": "Ace Hardware Corporation",
+      "location": "Greater Minneapolis-St. Paul Area",
+      "start": "Dec 2018",
+      "end": "Jan 2019",
+      "bullets": [
+        {
+          "text": "Delivered consultative service and technical recommendations for plumbing, electrical, and paint",
+          "tags": [
+            "customer-service",
+            "consultative-sales",
+            "product-knowledge",
+            "home-improvement",
+            "technical-recommendations"
+          ]
+        },
+        {
+          "text": "Executed inventory replenishment, cycle counts, displays, and point-of-sale register operations",
+          "tags": [
+            "inventory-management",
+            "store-operations",
+            "point-of-sale",
+            "retail",
+            "organization"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Volunteer Nursing Assistant",
+      "company": "Amherst H. Wilder Foundation",
+      "location": "Saint Paul, MN",
+      "start": "Aug 2018",
+      "end": "Oct 2018",
+      "bullets": [
+        {
+          "text": "Delivered compassionate ADL support including mobility transfers, personal hygiene, and meals",
+          "tags": [
+            "patient-care",
+            "caregiving",
+            "activities-of-daily-living",
+            "elder-care",
+            "mobility",
+            "hygiene"
+          ]
+        },
+        {
+          "text": "Monitored client comfort, reported observations to nursing staff, and provided social companionship",
+          "tags": [
+            "patient-care",
+            "documentation",
+            "communication",
+            "support-services",
+            "elder-care"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "Chef / Sous Chef / Dishwasher",
+      "company": "PYCC",
+      "location": "Maui, HI",
+      "start": "Jun 2009",
+      "end": "Apr 2011",
+      "bullets": [
+        {
+          "text": "Promoted from dishwasher to head chef managing prep, line execution, sanitation, and team coaching",
+          "tags": [
+            "culinary",
+            "kitchen-operations",
+            "food-safety",
+            "leadership",
+            "teamwork",
+            "time-management"
+          ]
+        },
+        {
+          "text": "Enforced food safety, sanitation, refrigeration control, and ServSafe-aligned hygiene standards",
+          "tags": [
+            "food-safety",
+            "sanitation",
+            "temperature-control",
+            "kitchen-operations"
+          ]
+        },
+        {
+          "text": "Trained, coached, and mentored kitchen staff on recipes, prep, and speed of service under rush",
+          "tags": [
+            "training",
+            "coaching",
+            "mentorship",
+            "leadership",
+            "kitchen-operations"
+          ]
+        },
+        {
+          "text": "Managed food inventory, portion control, waste reduction, and supplier deliveries",
+          "tags": [
+            "inventory-management",
+            "supply-chain",
+            "waste-reduction",
+            "kitchen-operations"
+          ]
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "Century College",
+      "location": "White Bear Lake, MN",
+      "start": "Sep 2018",
+      "end": "Mar 2020",
+      "details": [
+        "Coursework in Cybersecurity, Digital Forensics, Virtualization, and Information Assurance"
+      ]
+    },
+    {
+      "school": "Hubert H. Humphrey Job Corps Center",
+      "degree": "CNA, HHA & GED Certifications",
+      "location": "Saint Paul, MN",
+      "start": "2018",
+      "end": "2018"
+    }
+  ],
+  "skills": [
+    {
+      "category": "Programming & Scripting",
+      "items": [
+        "Bash",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "PHP",
+        "SQL",
+        "Go"
+      ]
+    },
+    {
+      "category": "Web Development",
+      "items": [
+        "HTML",
+        "CSS",
+        "Hugo",
+        "WordPress",
+        "React",
+        "Next.js"
+      ]
+    },
+    {
+      "category": "Systems & DevOps",
+      "items": [
+        "Linux",
+        "NixOS",
+        "Git",
+        "Neovim",
+        "Docker",
+        "Ollama",
+        "GitHub",
+        "CI/CD"
+      ]
+    },
+    {
+      "category": "Security & Operations",
+      "items": [
+        "Security Operations",
+        "Incident Response",
+        "Access Control",
+        "Risk Management",
+        "OpenPGP",
+        "Cybersecurity Fundamentals"
+      ]
+    },
+    {
+      "category": "Live Production & Trades",
+      "items": [
+        "Lighting & Audio Routing",
+        "Stage Rigging & Scenery",
+        "Equipment Staging & Strike",
+        "Aquaponics & Urban Agriculture",
+        "Food Safety & Commercial Kitchen Operations"
+      ]
+    },
+    {
+      "category": "Professional & Leadership",
+      "items": [
+        "Team Leadership & Coaching",
+        "Technical Problem Solving",
+        "Youth & Peer Mentorship",
+        "Cross-functional Collaboration",
+        "Operational Safety",
+        "Adaptability"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "ALifeLivedFully Website",
+      "tech": "Hugo, HTML, CSS, JavaScript, PHP, SQL, WordPress",
+      "tags": [
+        "web-development",
+        "portfolio",
+        "personal-project"
+      ],
+      "bullets": [
+        {
+          "text": "Architected a personal web platform serving as portfolio, tech blog, and app laboratory",
+          "tags": [
+            "web-development",
+            "portfolio",
+            "web-design",
+            "technical-blog"
+          ]
+        },
+        {
+          "text": "Implemented custom themes, dynamic content, and database features with Hugo and WordPress",
+          "tags": [
+            "hugo",
+            "wordpress",
+            "static-site-generation",
+            "content-management",
+            "database"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LiveTerm",
+      "tech": "TypeScript, React, Next.js",
+      "tags": [
+        "web-development",
+        "frontend",
+        "personal-project"
+      ],
+      "bullets": [
+        {
+          "text": "Built a terminal-styled portfolio emulator with React, Next.js, and TypeScript",
+          "tags": [
+            "react",
+            "nextjs",
+            "typescript",
+            "frontend",
+            "cli",
+            "terminal"
+          ]
+        },
+        {
+          "text": "Designed a responsive command parser with custom commands, autocomplete, and themes",
+          "tags": [
+            "react",
+            "typescript",
+            "command-line",
+            "ui-ux",
+            "frontend"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Automated Video Production",
+      "tech": "Python, FFmpeg, Bash",
+      "tags": [
+        "automation",
+        "media",
+        "scripting"
+      ],
+      "bullets": [
+        {
+          "text": "Engineered an FFmpeg/Python pipeline to stitch intros, content, sponsors, and outros",
+          "tags": [
+            "ffmpeg",
+            "python",
+            "automation",
+            "video-production",
+            "scripting"
+          ]
+        },
+        {
+          "text": "Implemented batch rendering and asset verification scripts for resolution, audio, and codecs",
+          "tags": [
+            "python",
+            "bash",
+            "automation",
+            "batch-processing",
+            "media"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Local Linux & Developer Tooling",
+      "tech": "NixOS, Bash, Python, Git, Neovim, Ollama",
+      "tags": [
+        "linux",
+        "automation",
+        "developer-tooling"
+      ],
+      "bullets": [
+        {
+          "text": "Created declarative NixOS configs with custom shell utilities, Neovim workflows, and local AI",
+          "tags": [
+            "nixos",
+            "linux",
+            "automation",
+            "self-hosted",
+            "local-ai",
+            "devops"
+          ]
+        },
+        {
+          "text": "Developed CLI automation tools for dotfiles, package management, and offline-first workflows",
+          "tags": [
+            "cli",
+            "automation",
+            "dotfiles",
+            "git",
+            "scripting"
+          ]
+        }
+      ]
+    }
+  ],
+  "certifications": [
+    "Workplace Violence Prevention for Nurses",
+    "Personal Care Assistant",
+    "Religious and Cultural Literacy and Competency in Disaster",
+    "Responsive Web Design",
+    "Mental Health First Aid"
+  ],
+  "interests": [
+    "Software development",
+    "Linux and open-source software",
+    "Automation",
+    "Cybersecurity",
+    "Self-hosted and offline-first technology",
+    "Camping",
+    "Travel",
+    "Cooking",
+    "Small engine repair",
+    "Reading"
+  ],
+  "github": {
+    "username": "ALifeLivedFully",
+    "public_repositories": 23,
+    "public_stars": 9,
+    "focus": [
+      "Web development",
+      "Programming education",
+      "Blockchain/Web3 prototyping",
+      "Personal projects",
+      "Developer tooling"
+    ]
+  }
+}

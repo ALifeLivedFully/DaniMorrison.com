@@ -22,30 +22,30 @@ title: Resume
 
 ## Experience
 
-{{< listing folder="jobs" dates="true" style="tiles" filter="true" show-tags="true" limit="3" sort="newest" search="true" >}}
+{{< listing folder="jobs" dates="true" style="tiles" filter="true" show-tags="false" limit="3" sort="newest" search="true" >}}
 
 ---
 
 ## Education
 
-{{< listing folder="education" dates="true" style="tiles" filter="true" show-tags="true" limit="3" sort="newest" search="true" >}}
+{{< listing folder="education" dates="true" style="tiles" filter="true" show-tags="false" limit="3" sort="newest" search="true" >}}
 
 ---
 
 ## Projects
 
-{{< listing folder="projects" style="tiles" filter="true" show-tags="true" limit="3" search="true" >}}
+{{< listing folder="projects" style="tiles" filter="true" show-tags="false" limit="3" search="true" >}}
 
 ---
 
 ## Certifications
 
-{{< listing folder="certifications" style="tiles" filter="true" show-tags="true" limit="3" search="true" >}}
+{{< listing folder="certifications" style="tiles" filter="true" show-tags="false" limit="3" search="true" >}}
 
 ---
 
 ## Skills
 
-{{< listing folder="skills" style="tiles" filter="true" show-tags="true" limit="3" >}}
+{{< listing folder="skills" style="tiles" filter="true" show-tags="false" limit="3" >}}
 
 {{< /tabs >}}

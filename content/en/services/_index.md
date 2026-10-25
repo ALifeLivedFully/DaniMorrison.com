@@ -6,16 +6,14 @@ title: Services
 
 # Services
 
-This is a demo of the services page. In ultricies vel enim vel pulvinar. Quisque finibus sem velit, sed consequat mi ullamcorper vitae. Proin finibus tristique sollicitudin.
+I like to help people. A lot of what I know came from someone taking the time
+to show me, so I try to pass that on - whether that's fixing something that
+stopped working, teaching a skill that takes practice, or simply being a second
+set of hands when a job is easier with company. Some of what I offer is paid, 
+some is a favor to friends and family, and some sits somewhere in between.
 
-{{< services style="tiles" >}}
+[Shop all products & services](/shop/)
 
----
+{{< services style="tiles" filter="true" show-tags="false" search="true" sort="az" >}}
 
-## Get started with Hugobricks today!
-
-Experience the future of web development with Hugo and stackable content bricks. Build lightning-fast static sites with ease and flexibility.
-
-[Get started now](/get-started/){:.button}
-
-![](/uploads/illustrations/cuate/server.svg)
+---.cta

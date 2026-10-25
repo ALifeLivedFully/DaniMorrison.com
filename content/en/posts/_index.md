@@ -9,4 +9,4 @@ aliases:
 
 # Blog
 
-{{< blog limit="3" >}}
+{{< blog limit="3" search="true" sort="newest" >}}

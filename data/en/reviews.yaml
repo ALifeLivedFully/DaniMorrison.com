@@ -1,25 +1,25 @@
 - name: Miranda
   function: Stagehand
-  image: /uploads/photos/avatars/1.jpeg
+  image: /uploads/photos/avatars/Miranda.jpg
   description: "I'd describe you as brave, smart, and strong."
   stars: 5
 - name: Lara
   function: Stagehand
-  image: /uploads/photos/avatars/2.jpeg
+  image: /uploads/photos/avatars/Lara.jpg
   description: "Intelligent, compassionate, and strong. Those are the three words that come to mind."
   stars: 5
 - name: Kathleen
   function: Nurse
-  image: /uploads/photos/avatars/3.jpeg
+  image: /uploads/photos/avatars/Kathleen.jpg
   description: "Ingenious, industrious, and intelligent. You have a knack for figuring things out and getting things done."
   stars: 5
 - name: Leroy
   function: Electrician
-  image: /uploads/photos/avatars/4.jpeg
+  image: /uploads/photos/avatars/Leroy.jpg
   description: "Investigative, curious, and compassionate. You want to understand how things work, and you care about people."
   stars: 5
 - name: James
   function: Tech Founder
-  image: /uploads/photos/avatars/5.jpeg
+  image: /uploads/photos/avatars/James.jpg
   description: "Thoughtful, innovative, and hardworking. You put real consideration into what you do and find ways to make things better."
   stars: 5

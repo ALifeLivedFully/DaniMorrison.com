@@ -60,8 +60,12 @@ html[data-theme="dark"] :is(
 
 /* The logo, the cart, the search and the toggle are tinted to `--textDark`
    in the light theme with the theme's own sepia filter; on a dark ground
-   that tint lands too close to the background, so they go white instead. */
-html[data-theme="dark"] :is(.logo img, .cart img, .search img, .theme-toggle img, #togglemenu) {
+   that tint lands too close to the background, so they go white instead.
+
+   Scoped to `.masthead`: a bare `.cart img` would also match the product
+   thumbnails that `webshop.js` draws into `section.cart`, draining the
+   photos to white silhouettes. */
+html[data-theme="dark"] .masthead :is(.logo img, .cart img, .search img, .theme-toggle img, #togglemenu) {
     filter: brightness(0) invert(1);
 }
 

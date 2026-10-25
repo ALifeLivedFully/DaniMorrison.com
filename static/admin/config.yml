@@ -278,6 +278,13 @@ collections:
           - { label: POS id, name: pos_id, widget: number, value_type: int, required: false }
           - { label: Currency code, name: currency_code, widget: string, required: false }
           - { label: Currency symbol, name: currency_symbol, widget: string, required: false }
+          - label: Currency position
+            name: currency_position
+            widget: select
+            required: false
+            default: prefix
+            options: [prefix, suffix]
+          - { label: Space between symbol and amount, name: currency_space, widget: boolean, required: false, default: false }
           - label: Shipping
             name: shipping
             widget: object

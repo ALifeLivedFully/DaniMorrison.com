@@ -35,7 +35,7 @@
 */ -}}
 {{- $w := (partial "data.html" .Page).webshop -}}
 {{- $sym := $w.currency_symbol -}}
-<form id="checkoutform" method="post" action="{{ $w.form_handler }}" data-currency="{{ $sym }}" data-payment-link="{{ $w.payment_link }}/" data-label-cart="{{ i18n "Shopping cart" }}" data-label-total="{{ i18n "Payment total" }}">
+<form id="checkoutform" method="post" action="{{ $w.form_handler }}" data-currency="{{ $sym }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}" data-payment-link="{{ $w.payment_link }}/" data-label-cart="{{ i18n "Shopping cart" }}" data-label-total="{{ i18n "Payment total" }}">
     <input type="hidden" name="_next" value="{{ $w.payment_link | absURL }}/">
     <input type="hidden" name="_token" value="">
     <input type="hidden" name="ordernumber" value="">
@@ -72,7 +72,7 @@
             <select id="checkout-shipping" name="shipping" data-always required>
                 <option value=""></option>
                 {{- range $w.shipping.options }}
-                <option value="{{ .title }}" data-title="{{ .title }}" data-price="{{ .price }}">{{ .label }} (+ {{ $sym }} {{ lang.FormatNumber 2 .price }})</option>
+                <option value="{{ .title }}" data-title="{{ .title }}" data-price="{{ .price }}">{{ .label }} (+ {{ partial "money.html" (dict "Page" $.Page "Amount" .price) }})</option>
                 {{- end }}
             </select>
         </div>
@@ -89,7 +89,7 @@
         <select id="checkout-{{ $gid }}" name="{{ $gid }}" required>
             <option value=""></option>
             {{- range .options }}
-            <option value="{{ .value }}" data-title="{{ $group.title }}" data-price="{{ .price }}">{{ .title }}{{ if .price }} (+ {{ $sym }} {{ lang.FormatNumber 2 .price }}){{ end }}</option>
+            <option value="{{ .value }}" data-title="{{ $group.title }}" data-price="{{ .price }}">{{ .title }}{{ if .price }} (+ {{ partial "money.html" (dict "Page" $.Page "Amount" .price) }}){{ end }}</option>
             {{- end }}
         </select>
     </div>
@@ -108,6 +108,6 @@
     </div>
 </form>
 <div class="summary">
-    <p class="calculation"><span>{{ i18n "Shopping cart" }}:</span> {{ $sym }} 0.00</p>
+    <p class="calculation"><span>{{ i18n "Shopping cart" }}:</span> {{ partial "money.html" (dict "Page" .Page "Amount" 0) }}</p>
     {{- with .Inner }}<p>{{ . | markdownify }}</p>{{ end }}
 </div>

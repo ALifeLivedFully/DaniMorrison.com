@@ -2,13 +2,15 @@ cart_link: /cart
 checkout_link: /checkout
 payment_link: /payment
 thankyou_link: /thankyou
-products_link: /webshop
+products_link: /shop
 show_cart_icon: true
 send_order_to_mail: order@danimorrison.com
-form_handler: https://www.usecue.com/hugobricksform.php
-pos_id: 21
+form_handler: http://localhost:8787/
+pos_id: 36
 currency_code: USD
 currency_symbol: $
+currency_position: prefix
+currency_space: false
 shipping:
   active: true
   options:

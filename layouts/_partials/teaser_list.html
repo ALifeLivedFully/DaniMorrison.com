@@ -13,11 +13,11 @@
   a pointer to a page, not a section of this one, and a page of `<h3>`s that
   lead somewhere else makes a confusing outline.
 
-  The summary is the page's first paragraph of prose rather than Hugo's
-  `.Summary`, which counts words from the top of the rendered page and so would
-  open with the breadcrumb trail and the title. `.Content` is cast to a string
-  first: `findRE` is handed `template.HTML` otherwise and quietly matches
-  nothing.
+  The summary is the page's front-matter `description` if it has one, and its
+  first paragraph of prose otherwise — not Hugo's `.Summary`, which counts words
+  from the top of the rendered page and so would open with the breadcrumb trail
+  and the title. `.Content` is cast to a string first: `findRE` is handed
+  `template.HTML` otherwise and quietly matches nothing.
 
   The class on the `<ul>` is also what routes the section: the `posts` rule in
   `params.sections` matches `ul.posts`, and the `products` shortcode passes
@@ -54,6 +54,7 @@
                `&lsquo;` on the card. */ -}}
         {{- $prose := replaceRE `(?is)<p>\s*(?:<a\b[^>]*>\s*)?<img\b[^>]*>\s*(?:</a>\s*)?</p>` "" (string .Content) -}}
         {{- $summary := trim (htmlUnescape (plainify (delimit (first 1 (findRE `(?is)<p>.*?</p>` $prose 1)) ""))) " \n\r\t" -}}
+        {{- $summary = .Params.description | default $summary -}}
         {{- $tags := slice -}}
         {{- range .Params.tags -}}{{- with . -}}{{- $tags = $tags | append . -}}{{- end -}}{{- end -}}
         {{- $range := 0 -}}

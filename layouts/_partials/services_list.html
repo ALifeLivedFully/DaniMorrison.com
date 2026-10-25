@@ -20,17 +20,22 @@
 
   `Limit` caps how many cards show at once — the page size the blog's button
   uses — and unhides a "load more" button below the grid while cards are still
-  held back. `Sort` and `Search` are passed through to `filter.html`; `Tags`
-  decides whether each card carries its own tag chips (default: with the
-  filter).
+  held back. `Sort` and `Search` are passed through to `filter.html`; `ShowTags`
+  decides whether each card carries its own tag chips (off by default — the tag
+  filter narrows the list, but the cards keep their tags to themselves).
+
+  `Class` is the list's own class — `posts` by default, which routes the
+  section to the `posts` brick. A webshop listing passes `products`, which
+  routes to the `webshop` brick instead: the same card, told apart by the list
+  it sits in.
 
   @context {dict} . Dir (string, optional) or Section (string),
                     TagLabel (i18n key), ID (string),
                     Style (string, optional), Dates (bool, optional),
                     Filter (bool, optional — default true),
-                    ShowTags (string, optional — "true"/"false"; default = Filter),
+                    ShowTags (string, optional — "true"/"false"; default false),
                     Limit (int, optional), Sort (string, optional),
-                    Search (bool, optional)
+                    Search (bool, optional), Class (string, optional)
 */ -}}
 {{- $style := .Style | default "cards" -}}
 {{- $dates := .Dates | default false -}}
@@ -38,9 +43,8 @@
 {{- $limit := .Limit | default 0 -}}
 {{- $sort := .Sort | default "" -}}
 {{- $search := .Search | default false -}}
-{{- $showTags := $filter -}}
+{{- $showTags := false -}}
 {{- if eq .ShowTags "true" -}}{{- $showTags = true -}}{{- end -}}
-{{- if eq .ShowTags "false" -}}{{- $showTags = false -}}{{- end -}}
 {{- $dir := .Dir -}}
 {{- $pages := slice -}}
 {{- if $dir -}}
@@ -62,7 +66,7 @@
 {{- partial "filter.html" (dict "Tags" (sort (uniq $tags)) "Label" $.TagLabel "ID" $.ID "Sort" $sort "Search" $search) -}}
 {{- end -}}
 
-{{- partial "teaser_list.html" (dict "Pages" . "Dates" $dates "Style" $style "Tags" $showTags "PageSize" $limit) -}}
+{{- partial "teaser_list.html" (dict "Pages" . "Dates" $dates "Style" $style "Tags" $showTags "PageSize" $limit "Class" $.Class) -}}
 {{- if gt $limit 0 -}}
 <p class="loadmore"><button type="button" class="button secondary ghost smaller" hidden>{{ i18n "Load more" }}…</button></p>
 {{- end -}}

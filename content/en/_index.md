@@ -20,7 +20,7 @@ I'm a hands-on problem solver with interests spanning technology, engineering, c
 
 This site brings together my work, interests, projects, and the things I share with my community.
 
-[More about me](/blog/){:.button.smaller}
+[Read my Blog](/blog/){:.button.smaller}
 
 ![](/uploads/photos/avatars/Dani.jpg){:.float}
 
@@ -41,6 +41,8 @@ Explore my professional background, skills, education, certifications, and proje
 
 I asked people I know who work across different industries to describe me in three words. Their responses reflect a range of perspectives on my character, strengths, and approach to life.
 
+[Looking to add yourself as a reference?](/contact/)
+
 {{< reviews >}}
 
 ---
@@ -55,7 +57,7 @@ My experience spans healthcare, security, technology, education, and hands-on op
 
 ## Support my work
 
-Your support helps me dedicate more time to building projects, sharing knowledge, and creating useful resources. Choose a membership tier that works for you and help make future projects possible.
+Your support helps me dedicate more time to school, building projects, sharing knowledge, and creating useful resources. Choose a membership tier that works for you and help make future projects possible.
 
 {{< pricing >}}
 

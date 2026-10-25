@@ -16,8 +16,10 @@ style: cards
 # Show the tag filter above the grid.
 filter: true
 
-# Show each card's own tag chips. Falls back to the same answer as `filter`.
-show_tags: true
+# Show each card's own tag chips. Off by default: the tag filter narrows the
+# list, but the cards keep their tags to themselves. Set `show-tags="true"` on a
+# call to bring the chips back.
+show_tags: false
 
 # How many cards to show at once; the rest wait behind a "load more" button.
 # 0 shows every card and no button.

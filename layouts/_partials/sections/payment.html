@@ -11,7 +11,7 @@
 */ -}}
 {{- $label := partial "section_label.html" .Content -}}
 {{- $w := (partial "data.html" .Page).webshop -}}
-<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}">
+<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}">
     <div class="container small">
         {{ .Content }}
     </div>

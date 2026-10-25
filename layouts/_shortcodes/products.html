@@ -21,9 +21,8 @@
 {{- $limit := int (or (.Get "limit") (.Get "show")) -}}
 {{- $sort := .Get "sort" -}}
 {{- $search := eq (.Get "search") "true" -}}
-{{- $showTags := $filter -}}
+{{- $showTags := false -}}
 {{- if eq (.Get "show-tags") "true" -}}{{- $showTags = true -}}{{- end -}}
-{{- if eq (.Get "show-tags") "false" -}}{{- $showTags = false -}}{{- end -}}
 {{- with where site.RegularPages "Section" "products" -}}
 
 {{- $tags := slice -}}

@@ -6,4 +6,4 @@ title: Skills
 
 # Skills
 
-{{< listing folder="skills" filter="true" show-tags="true" >}}
+{{< listing folder="skills" filter="true" show-tags="false" >}}

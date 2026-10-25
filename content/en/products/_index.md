@@ -3,6 +3,9 @@ title: Products
 ---
 
 # Products
-This is a demo of the webshop. In ultricies vel enim vel pulvinar. Quisque finibus sem velit, sed consequat mi ullamcorper vitae. Proin finibus tristique sollicitudin.
 
-{{< products >}}
+I make things - some of them useful, some of them just good. Friends and family would occasionally ask to buy the things I bring around, so this is my way of making that easy without turning every visit into a transaction.
+
+{{< products filter="true" show-tags="false" search="true" sort="az" >}}
+
+[Shop all products & services](/shop/)

@@ -19,6 +19,13 @@
 {{- $p := .Page -}}
 {{- $w := (partial "data.html" $p).webshop -}}
 {{- $id := $p.Title | plainify | anchorize -}}
+{{- /* The symbol and its spacing come from the language's `webshop.yaml`; the
+       `.productprice` span holds the number alone, because `webshop.js`
+       rewrites just that when a variant is picked. */ -}}
+{{- $sym := $w.currency_symbol | default "" -}}
+{{- $glue := "" -}}
+{{- if $w.currency_space -}}{{- $glue = "\u00a0" -}}{{- end -}}
+{{- $prefix := ne ($w.currency_position | default "prefix") "suffix" -}}
 {{- /* The photo, its lightbox rendition, and the cart thumbnail stored via
        `data-image` are all webp renditions of the front-matter image; the raw
        path only survives when the resource can't be found. */ -}}
@@ -37,7 +44,7 @@
         </figure>
         <div class="text">
             <h1 id="{{ $id }}">{{ $p.Title | safeHTML }}</h1>
-            <h2>{{ $w.currency_symbol }} <span class="productprice">{{ lang.FormatNumber 2 (index $p.Params.variants 0).price }}</span></h2>
+            <h2>{{ if $prefix }}{{ $sym }}{{ $glue }}{{ end }}<span class="productprice">{{ lang.FormatNumber 2 (index $p.Params.variants 0).price }}</span>{{ if not $prefix }}{{ $glue }}{{ $sym }}{{ end }}</h2>
             <form method="post" action="{{ $w.cart_link }}/"
                 data-url="{{ $p.RelPermalink }}"
                 data-title="{{ $p.Title }}"
@@ -48,7 +55,7 @@
                     <label for="variant">{{ $p.Params.variant_type | humanize }}</label>
                     <select id="variant" name="variant">
                         {{- range $i, $variant := $p.Params.variants }}
-                        <option value="{{ .sku }}" data-sku="{{ .sku }}" data-variantname="{{ .name }}" data-price="{{ .price }}"{{ if not $i }} selected{{ end }}>{{ .name }} — {{ $w.currency_symbol }} {{ lang.FormatNumber 2 .price }}</option>
+                        <option value="{{ .sku }}" data-sku="{{ .sku }}" data-variantname="{{ .name }}" data-price="{{ .price }}"{{ if not $i }} selected{{ end }}>{{ .name }} — {{ partial "money.html" (dict "Page" $p "Amount" .price) }}</option>
                         {{- end }}
                     </select>
                 </div>

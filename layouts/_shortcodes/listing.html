@@ -6,6 +6,8 @@
       {{< listing folder="jobs" dates="true" style="tiles" >}}
       {{< listing folder="projects" limit="3" sort="newest" search="true" >}}
       {{< listing folder="jobs" show-tags="false" >}}
+      {{< listing folder="products" class="products" >}}
+      {{< listing folder="services" style="tiles" show-tags="false" filter="false" >}}
 
   One shortcode for every category: `folder` is the directory under
   `content/<lang>/`, so `education`, `jobs`, `projects` or any other folder is
@@ -38,6 +40,8 @@
   @param {string} show       alias of `limit`
   @param {string} sort       "newest"|"oldest"|"az"|"za"|"longest"|"shortest"|"range"|"range-asc"
   @param {string} search     "true" to add a search box
+  @param {string} class      the list's class — "posts" by default; pass
+                             "products" to route the section to the webshop brick
 */ -}}
 {{- $d := partial "data.html" .Page -}}
 {{- $folder := .Get "folder" -}}
@@ -70,4 +74,5 @@
       "ShowTags" (printf "%v" (or (.Get "show-tags") $cfg.show_tags))
       "Limit" $limit
       "Sort" (or (.Get "sort") $cfg.sort)
-      "Search" $search) -}}
+      "Search" $search
+      "Class" (.Get "class")) -}}

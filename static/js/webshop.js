@@ -41,17 +41,45 @@
             return sum + parseFloat(addon.price);
         }, 0);
     };
-    var money = function (symbol, amount) { return symbol + " " + amount.toFixed(2); };
+    /* The language's money format rides on the section as data- attributes,       written by the bricks from data/<lang>/webshop.yaml: the symbol, whether
+       it leads or trails the number, and whether a space sits between them.
+       Reading them once per section keeps the redraws from re-parsing. */
+    var currency = function (el) {
+        return {
+            symbol: (el && el.getAttribute("data-currency")) || "",
+            suffix: el && el.getAttribute("data-currency-position") === "suffix",
+            space: el && el.getAttribute("data-currency-space") === "true"
+        };
+    };
+    /* The number itself, localised the way Hugo's `lang.FormatNumber` writes
+       it server-side — same decimal mark, same grouping — so a price redrawn
+       here does not disagree with the price in the markup it replaces. The
+       page's `<html lang>` is the locale. If `Intl` is missing or the tag is
+       one it refuses, the plain dot form is what there is; a shop that shows
+       9.95 where the page shows 9,95 is still a shop. */
+    var number = function (n) {
+        try {
+            return new Intl.NumberFormat(document.documentElement.lang,
+                { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+        } catch (error) {
+            return n.toFixed(2);
+        }
+    };
+    var formatMoney = function (c, amount) {
+        var text = number(amount);
+        if (c.suffix) return text + (c.space ? " " : "") + c.symbol;
+        return c.symbol + (c.space ? " " : "") + text;
+    };
     var capitalize = function (text) {
         return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
     };
     /* One order line, as it reads in the cart mail: "2 x Buy me a coffee
-       (Size: grande) = $ 7.00". */
-    var orderLine = function (symbol, item) {
+       (Size: grande) = $7.00". */
+    var orderLine = function (c, item) {
         var variant = item.varianttype
             ? " (" + capitalize(item.varianttype) + ": " + item.variantname + ")" : "";
         return item.quantity + " x " + item.title + variant + " = " +
-            money(symbol, item.quantity * parseFloat(item.price));
+            formatMoney(c, item.quantity * parseFloat(item.price));
     };
 
     /* The banner's cart count — an <output aria-live> that rests hidden, so
@@ -79,7 +107,7 @@
         variants.addEventListener("change", function () {
             var price = parseFloat(chosen().getAttribute("data-price"));
             Array.prototype.forEach.call(document.querySelectorAll(".productprice"), function (el) {
-                el.textContent = price.toFixed(2);
+                el.textContent = number(price);
             });
         });
 
@@ -114,7 +142,7 @@
     var cartSection = document.querySelector("section.cart");
     var cartBody = cartSection && cartSection.querySelector("table tbody");
     if (cartBody) {
-        var symbol = cartSection.getAttribute("data-currency") || "";
+        var cartCurrency = currency(cartSection);
         var emptyRow = cartBody.innerHTML;
 
         var redraw = function () {
@@ -153,7 +181,7 @@
                         capitalize(item.varianttype) + ": " + item.variantname);
                 }
                 product.append(document.createElement("br"),
-                    money(symbol, parseFloat(item.price)));
+                    formatMoney(cartCurrency, parseFloat(item.price)));
                 cell().append(product);
 
                 var label = document.createElement("label");
@@ -170,13 +198,13 @@
                 });
                 cell().append(label, amount);
 
-                cell().textContent = money(symbol, item.quantity * parseFloat(item.price));
+                cell().textContent = formatMoney(cartCurrency, item.quantity * parseFloat(item.price));
 
                 cartBody.append(row);
             });
 
             Array.prototype.forEach.call(cartSection.querySelectorAll(".carttotal"), function (el) {
-                el.textContent = money(symbol, cartTotal());
+                el.textContent = formatMoney(cartCurrency, cartTotal());
             });
             updateCount();
         };
@@ -205,12 +233,12 @@
        control with a data-price is an extra to be summed. */
     var checkout = document.getElementById("checkoutform");
     if (checkout) {
-        var checkoutSymbol = checkout.getAttribute("data-currency") || "";
+        var checkoutCurrency = currency(checkout);
         var calculation = document.querySelector("section.checkout .calculation");
 
         checkout.querySelector("input[name='order']").value =
             read("cart").map(function (item) {
-                return orderLine(checkoutSymbol, item);
+                return orderLine(checkoutCurrency, item);
             }).join(" | ");
 
         var refresh = function () {
@@ -252,7 +280,7 @@
                     var last = index === lines.length - 1;
                     var name = document.createElement("span");
                     name.textContent = line[0];
-                    var value = money(checkoutSymbol, line[1]);
+                    var value = formatMoney(checkoutCurrency, line[1]);
                     if (last) {
                         /* The sum is one block-level line of its own, so its
                            top border rules across the whole summary. */
@@ -271,7 +299,7 @@
 
             checkout.querySelector("input[name='checkout']").value =
                 lines.map(function (line) {
-                    return line[0] + " " + money(checkoutSymbol, line[1]);
+                    return line[0] + " " + formatMoney(checkoutCurrency, line[1]);
                 }).join(" | ");
         };
 
@@ -335,8 +363,7 @@
     var paymentTotal = document.getElementById("paymenttotal");
     if (paymentTotal) {
         var paymentSection = paymentTotal.closest("section.payment");
-        var paymentSymbol = (paymentSection && paymentSection.getAttribute("data-currency")) || "";
-        paymentTotal.textContent = money(paymentSymbol, cartTotal() + addonTotal());
+        paymentTotal.textContent = formatMoney(currency(paymentSection), cartTotal() + addonTotal());
     }
 
     /* -- the payment page: the Usecue POS ----------------------------------

@@ -2,7 +2,7 @@
 title: Wide
 ---
 
-The wide brick is a single column at reading width, used for documentation-style and long-form pages. You can see it in action on [basic page 1](/basic/) and the [privacy policy](/privacy-policy/).
+The wide brick is a single column at reading width, used for documentation-style and long-form pages. You can see it in action on [basic page 1](/basic/) and the [privacy policy](/privacy/).
 
 ## Use this brick
 

@@ -28,7 +28,7 @@
     </tbody>
 </table>
 
-<p class="carttotal">{{ $w.currency_symbol }} 0.00</p>
+<p class="carttotal">{{ partial "money.html" (dict "Page" .Page "Amount" 0) }}</p>
 
 <p class="submitbutton"><a href="{{ $w.products_link }}/">{{ i18n "Continue shopping" }}</a> <a class="button" href="{{ $w.checkout_link }}/">{{ i18n "Continue to checkout" }}</a></p>
 

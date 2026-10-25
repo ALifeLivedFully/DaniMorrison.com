@@ -1,0 +1,30 @@
+{{- /*
+  Formats one amount as money, the way the language's `webshop.yaml` asks for
+  it: `currency_position` puts the symbol before or after the number, and
+  `currency_space` says whether an unbreakable space sits between them. The
+  number itself is localised through `lang.FormatNumber`, so the decimal mark
+  follows the language too.
+
+      {{ partial "money.html" (dict "Page" .Page "Amount" 4.95) }}
+
+  `Amount` may be a number or a numeric string. When it is 0 it still prints
+  an amount — "there is nothing owing" is not the same statement as "no
+  amount known", so formatting an explicit zero is the caller's choice.
+
+  @context {dict} . Page, Amount
+  @returns {string}
+*/ -}}
+{{- $w := (partial "data.html" .Page).webshop -}}
+{{- $symbol := $w.currency_symbol | default "" -}}
+{{- $position := $w.currency_position | default "prefix" -}}
+{{- $space := $w.currency_space | default false -}}
+{{- $number := lang.FormatNumber 2 (float .Amount) -}}
+{{- $glue := "" -}}
+{{- if $space -}}{{- $glue = "\u00a0" -}}{{- end -}}
+{{- $formatted := "" -}}
+{{- if eq $position "suffix" -}}
+    {{- $formatted = printf "%s%s%s" $number $glue $symbol -}}
+{{- else -}}
+    {{- $formatted = printf "%s%s%s" $symbol $glue $number -}}
+{{- end -}}
+{{- return $formatted -}}
