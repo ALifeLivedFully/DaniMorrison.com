@@ -180,6 +180,11 @@ disableKinds:
   - taxonomy
   - term
 
+mediaTypes:
+  application/javascript:
+    suffixes:
+      - js
+
 outputs:
   home:
     - html
@@ -196,6 +201,11 @@ outputs:
 # way of the `index.json` the Usecue CMS reads, and `isPlainText` stops Hugo
 # HTML-escaping the JSON it hands to the browser.
 outputFormats:
+  json:
+    mediaType: application/javascript
+    baseName: index
+    isPlainText: true
+    notAlternative: true
   searchindex:
     mediaType: application/json
     baseName: searchindex
