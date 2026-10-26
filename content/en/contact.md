@@ -22,4 +22,4 @@ Hopefully this covers any questions you have but if not just send me a message!
 {{< contactbuttons >}}
 {{< socialbuttons >}}   
 
----.map
+<!-- ---.map -->
