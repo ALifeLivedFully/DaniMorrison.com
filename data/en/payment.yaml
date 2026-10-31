@@ -3,15 +3,101 @@ shop_id: "danimorrison"
 
 currency:
   shop: USD
-  bank_qr:
-    enabled: true
-    currency: EUR
+  rate_mode: automatic
+  auto_fetch: true
+  fetch_on_site_update: false
+  cache_rates: true
+  cache_ttl: 3600
+  crypto_cache_ttl: 300
+
+  supported:
+    USD:
+      enabled: true
+      fixed_rate: 1.0
+    EUR:
+      enabled: true
+      fixed_rate: 0.8760402979
+      rate_url: "https://api.frankfurter.app/latest?from=USD&to=EUR"
+      rate_json_path: "rates.EUR"
+      invert_rate: false
+      cache_ttl: 3600
+
+  crypto:
+    BTC:
+      enabled: true
+      fixed_rate: 0.000012
+      decimals: 8
+      rate_url: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+      rate_json_path: "bitcoin.usd"
+      invert_rate: true
+    ETH:
+      enabled: true
+      fixed_rate: 0.0003
+      decimals: 8
+      rate_url: "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+      rate_json_path: "ethereum.usd"
+      invert_rate: true
+    LTC:
+      enabled: true
+      fixed_rate: 0.012
+      decimals: 8
+      rate_url: "https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=usd"
+      rate_json_path: "litecoin.usd"
+      invert_rate: true
+    XMR:
+      enabled: true
+      fixed_rate: 0.005
+      decimals: 12
+      rate_url: "https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=usd"
+      rate_json_path: "monero.usd"
+      invert_rate: true
+    DASH:
+      enabled: true
+      fixed_rate: 0.025
+      decimals: 8
+      rate_url: "https://api.coingecko.com/api/v3/simple/price?ids=dash&vs_currencies=usd"
+      rate_json_path: "dash.usd"
+      invert_rate: true
+
+    # Optional providers. Put a provider URL here for coins that do not have
+    # their own rate_url.
+    providers:
+      coinpaprika:
+        enabled: true
+        url_template: "https://api.coinpaprika.com/v1/tickers/{coin_id}"
+        rate_json_path: "quotes.USD.price"
+        invert_rate: true
+        coin_ids:
+          BTC: btc-bitcoin
+          ETH: eth-ethereum
+          LTC: ltc-litecoin
+          XMR: xmr-monero
+          DASH: dash-dash
+      kraken:
+        enabled: true
+        url_template: "https://api.kraken.com/0/public/Ticker?pair={pair}"
+        rate_json_path: "result.{result}.c.0"
+        invert_rate: true
+        pair_map:
+          BTC: XBTUSD
+          ETH: ETHUSD
+          LTC: LTCUSD
+          XMR: XMRUSD
+          DASH: DASHUSD
+        result_map:
+          BTC: XXBTZUSD
+          ETH: XETHZUSD
+          LTC: XLTCZUSD
+          XMR: XXMRZUSD
+          DASH: DASHUSD
+
+  fallback:
     use_fixed_rate: true
-    usd_to_eur_rate: 0.8760402979
-    auto_fetch_rate: false
-    fetch_on_site_update: false
+    fail_if_no_rate: false
+
+  display:
     show_amounts: true
-    include_amount_in_qr: true
+    decimal_places: 2
 
 form:
   provider: worker
@@ -26,50 +112,60 @@ payment_links:
     - name: venmo
       enabled: true
       template: "https://venmo.com/{username}?txn=pay&amount={amount}&note={order}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: paypal
       enabled: true
       template: "https://paypal.me/{username}/{amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: cashapp
       enabled: true
       template: "https://cash.app/${username}/{amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: kofi
       enabled: true
       template: "https://ko-fi.com/{username}/?amount={amount}&note={order}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: revolut
       enabled: true
       template: "https://revolut.me/{username}/{amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: wise
       enabled: true
       template: "https://wise.com/pay/me/{username}?amount={amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: buymeacoffee
       enabled: true
       template: "https://buymeacoffee.com/{username}?amount={amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: liberapay
       enabled: true
       template: "https://liberapay.com/{username}/donate?amount={amount}"
+      currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: patreon
       enabled: true
       template: "https://www.patreon.com/{username}"
+      currency: USD
       qr: false
       username: "ALifeLivedFully"
     - name: crypto
       enabled: true
+      currency: USD
       use_ens: true
       ens_name: "alifelivedfully.eth"
       ens_fallback_to_config: true
@@ -88,19 +184,25 @@ payment_links:
           qr: true
         xmr:
           enabled: true
-          address: "44AFFq5kSiGBoZ...placeholder"
-          template: "{address}"
+          address: ""
+          template: "monero:{address}?tx_amount={amount}"
           qr: true
         dash:
           enabled: true
           address: "XyZ..."
-          template: "dash:{address}"
+          template: "dash:{address}?amount={amount}"
           qr: true
         ltc:
           enabled: true
           address: "ltc1..."
-          template: "litecoin:{address}"
+          template: "litecoin:{address}?amount={amount}"
           qr: true
+
+bank_qr:
+  enabled: true
+  currency: EUR
+  show_amounts: true
+  include_amount_in_qr: true
 
 bank:
   iban: "NL48INGB0006762093"

@@ -9,3 +9,4 @@ Customize the way your website looks by editing the items below.
 - [General](/docs/settings/general/)
 - [Header](/docs/settings/header/)
 - [Footer](/docs/settings/footer/)
+- [Payment](/docs/settings/payment/)

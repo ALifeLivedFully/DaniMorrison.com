@@ -70,6 +70,24 @@ section.payment[data-payment-mode="simple"] > .container > p {
   margin: 0.25rem 0 0 0;
 }
 
+.usecue-payment-status {
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.usecue-payment-status[data-state="error"] {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.usecue-payment-converted {
+  margin: -0.35rem 0 1rem;
+  color: var(--textMedium);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 /* Body */
 .usecue-payment-body {
   padding: 1.75rem;
@@ -562,6 +580,14 @@ html[data-theme="dark"] .usecue-payment-amount {
 
 html[data-theme="dark"] .usecue-payment-order {
   color: rgb(223 230 234 / 0.7) !important;
+}
+
+html[data-theme="dark"] .usecue-payment-converted {
+  color: rgb(223 230 234 / 0.8) !important;
+}
+
+html[data-theme="dark"] .usecue-payment-status[data-state="error"] {
+  color: #fda29b !important;
 }
 
 html[data-theme="dark"] .usecue-payment-body {

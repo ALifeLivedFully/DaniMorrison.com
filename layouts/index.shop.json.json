@@ -1,4 +1,6 @@
 {{- $lang := .Site.Language.Lang -}}
+{{- $currency := "USD" -}}
+{{- with .Site.Data.payment.currency.shop -}}{{- $currency = . -}}{{- end -}}
 {{- $items := slice -}}
 {{- range where .Site.RegularPages "Section" "products" -}}
   {{- $price := 0 -}}
@@ -19,7 +21,7 @@
     "title" .Title
     "url" .Permalink
     "price" $price
-    "currency" "USD"
+    "currency" $currency
     "variants" $variants
     "available" (default true .Params.available)
     "images" (default (slice) .Params.images)
@@ -43,11 +45,11 @@
     "title" .Title
     "url" .Permalink
     "price" $price
-    "currency" "USD"
+    "currency" $currency
     "variants" $variants
     "available" (default true .Params.available)
     "images" (default (slice) .Params.images)
   -}}
   {{- $items = $items | append $item -}}
 {{- end -}}
-{{- dict "version" 1 "lang" $lang "currency" "USD" "generated_at" (now | time.Format "2006-01-02T15:04:05Z07:00") "items" $items | jsonify (dict "indent" "  ") -}}
+{{- dict "version" 1 "lang" $lang "currency" $currency  "generated_at" (now | time.Format "2006-01-02T15:04:05Z07:00") "items" $items | jsonify (dict "indent" "  ") -}}

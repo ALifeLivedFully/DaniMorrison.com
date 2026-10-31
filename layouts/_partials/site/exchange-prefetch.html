@@ -1,0 +1,51 @@
+{{- /*
+  Fetches configured exchange rates while Hugo builds, when
+  `currency.fetch_on_site_update` is enabled. The raw API value is stored;
+  exchange-rates.js validates it and applies `invert_rate` when the page
+  loads, so a build-time fetch and a runtime fetch normalize identically.
+
+  Returns a map keyed by currency code. Failed or malformed responses are
+  skipped and runtime fetching/fallback still applies.
+*/ -}}
+{{- $p := . -}}
+{{- $currency := $p.currency -}}
+{{- $prefetched := dict -}}
+{{- if and $currency $currency.fetch_on_site_update (ne (lower (default "automatic" $currency.rate_mode)) "fixed") -}}
+  {{- $fetchedAt := now.UnixMilli -}}
+  {{- range $section := slice "supported" "crypto" -}}
+    {{- with index $currency $section -}}
+      {{- range $code, $entry := . -}}
+        {{- if and (default true $entry.enabled) $entry.rate_url -}}
+          {{- $remote := try (resources.GetRemote $entry.rate_url (dict "headers" (dict "Accept" "application/json")) ) -}}
+          {{- with $remote.Err -}}
+            {{- warnf "exchange-rate prefetch failed for %s: %s" (upper $code) . -}}
+          {{- else -}}
+            {{- $data := transform.Unmarshal $remote.Value.Content -}}
+            {{- $cursor := $data -}}
+            {{- with $entry.rate_json_path -}}
+              {{- range $segment := split . "." -}}
+                {{- if $cursor -}}
+                  {{- if findRE `^\d+$` $segment -}}
+                    {{- $cursor = index $cursor (int $segment) -}}
+                  {{- else -}}
+                    {{- $cursor = index $cursor $segment -}}
+                  {{- end -}}
+                {{- end -}}
+              {{- end -}}
+            {{- end -}}
+            {{- if $cursor -}}
+              {{- $key := upper $code -}}
+              {{- $prefetched = merge $prefetched (dict $key (dict
+                "currency" $key
+                "api_rate" $cursor
+                "fetched_at" $fetchedAt
+                "rate_url" $entry.rate_url
+              )) -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $prefetched -}}

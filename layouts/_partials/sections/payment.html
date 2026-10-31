@@ -5,7 +5,16 @@
 {{- $w := (partial "data.html" .Page).webshop -}}
 {{- $p := (partial "data.html" .Page).payment -}}
 {{- $pmode := default "simple" $w.payment_mode -}}
-<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}" data-payment-mode="{{ $pmode }}" data-bank-iban="{{ $p.bank.iban }}" data-bank-bic="{{ $p.bank.bic }}" data-bank-name="{{ $p.bank.name }}" data-shop-id="{{ $p.shop_id }}" data-eur-rate="{{ $p.currency.bank_qr.usd_to_eur_rate }}">
+{{- $currency := $p.currency -}}
+{{- $bankQR := $p.bank_qr -}}
+{{- if not $bankQR -}}{{- $bankQR = $currency.bank_qr -}}{{- end -}}
+{{- if not $bankQR -}}{{- $bankQR = dict -}}{{- end -}}
+{{- $bank := $p.bank | default dict -}}
+{{- $bankCurrency := $bankQR.currency | default $currency.shop | default "USD" -}}
+{{- $bankEnabled := and $bank.iban (default true $bankQR.enabled) -}}
+{{- $bankReference := $bank.reference_template | default "Order {ordernumber}" -}}
+{{- $prefetched := partial "site/exchange-prefetch.html" $p -}}
+<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}" data-payment-mode="{{ $pmode }}" data-shop-currency="{{ $currency.shop | default "USD" }}" data-bank-iban="{{ $bank.iban }}" data-bank-bic="{{ $bank.bic }}" data-bank-name="{{ $bank.name }}" data-bank-currency="{{ $bankCurrency }}" data-bank-show-amounts="{{ default true $bankQR.show_amounts }}" data-bank-include-amount="{{ default true $bankQR.include_amount_in_qr }}" data-bank-reference="{{ $bankReference }}" data-order-email="{{ $w.send_order_to_mail }}" data-shop-id="{{ $p.shop_id }}">
     <div class="container small">
         {{ .Content }}
         {{- if eq $pmode "simple" }}
@@ -14,12 +23,13 @@
                 <h2>Payment</h2>
                 <div class="usecue-payment-amount" id="paymenttotal">$0.00</div>
                 <div class="usecue-payment-order">Order: <span id="order-ref"></span></div>
+                <div class="usecue-payment-status" id="payment-status" role="status" aria-live="polite"></div>
             </div>
             <div class="usecue-payment-body">
                 <label class="usecue-payment-methods-label" for="usecue-payment-method">Payment method</label>
                 <select id="usecue-payment-method" class="usecue-payment-select">
                     <option value="">Select a payment method</option>
-                    {{- if and $p.bank $p.bank.iban }}
+                    {{- if $bankEnabled }}
                     <option value="bank">Bank Transfer (SEPA/EPC)</option>
                     {{- end }}
                     {{- range $p.payment_links.links }}
@@ -42,15 +52,16 @@
                     {{- end }}
                 </select>
                 
-                {{- if and $p.bank $p.bank.iban }}
+                {{- if $bankEnabled }}
                 <div id="panel-bank" class="usecue-payment-panel">
                     <h3>Bank Transfer (SEPA)</h3>
+                    <div class="usecue-payment-converted" id="bank-converted-amount"></div>
                     <div class="usecue-bank-info">
-                        <div><strong>Beneficiary:</strong> {{ $p.bank.name }}</div>
-                        <div><strong>IBAN:</strong> {{ $p.bank.iban }}</div>
-                        <div><strong>BIC:</strong> {{ $p.bank.bic }}</div>
-                        <div><strong>Amount:</strong> <span id="bank-eur-amount"></span> EUR</div>
-                        <div><strong>Reference:</strong> Order <span id="bank-order-ref"></span></div>
+                        <div><strong>Beneficiary:</strong> {{ $bank.name }}</div>
+                        <div><strong>IBAN:</strong> {{ $bank.iban }}</div>
+                        <div><strong>BIC:</strong> {{ $bank.bic }}</div>
+                        <div id="bank-amount-row"><strong>Amount:</strong> <span id="bank-amount"></span> <span id="bank-currency-label">{{ $bankCurrency }}</span></div>
+                        <div><strong>Reference:</strong> <span id="bank-reference"></span></div>
                     </div>
                     <div class="usecue-qr-container">
                         <div id="epc-qr"></div>
@@ -61,7 +72,7 @@
                             <li>Open your banking app</li>
                             <li>Select "Pay" or "Transfer"</li>
                             <li>Enter the IBAN above</li>
-                            <li>Enter the amount in EUR</li>
+                            <li>Enter the amount in {{ $bankCurrency }}</li>
                             <li>Add the reference shown above</li>
                         </ol>
                     </div>
@@ -71,8 +82,9 @@
                 {{- range $p.payment_links.links }}
                 {{- if and .enabled (ne .name "crypto") }}
                 {{- if or .url .template }}
-                <div id="panel-{{ .name }}" class="usecue-payment-panel" data-template="{{ .template }}" data-url="{{ .url }}" data-username="{{ .username | default $p.payment_links.default_username }}" data-qr="{{ if isset . "qr" }}{{ .qr }}{{ else }}true{{ end }}">
+                <div id="panel-{{ .name }}" class="usecue-payment-panel" data-template="{{ .template }}" data-url="{{ .url }}" data-currency="{{ .currency | default $currency.shop | default "USD" }}" data-username="{{ .username | default $p.payment_links.default_username }}" data-qr="{{ if isset . "qr" }}{{ .qr }}{{ else }}true{{ end }}">
                     <h3>{{ .name | title }}</h3>
+                    <div class="usecue-payment-converted" data-converted-amount></div>
                     <a href="#" class="usecue-pay-button pay-link-external" target="_blank" rel="noopener">Pay with {{ .name | title }}</a>
                     <div class="usecue-qr-container">
                         <div class="ext-qr"></div>
@@ -91,10 +103,11 @@
                         <option value="">Select coin</option>
                         {{- range $coinName, $coin := .coins }}
                         {{- if and $coin.enabled $coin.address }}
-                        <option value="{{ $coinName }}" data-address="{{ $coin.address }}" data-template="{{ $coin.template }}" data-qr="{{ if isset $coin "qr" }}{{ $coin.qr }}{{ else }}true{{ end }}">{{ $coinName | upper }}</option>
+                        <option value="{{ $coinName }}" data-currency="{{ $coinName | upper }}" data-address="{{ $coin.address }}" data-template="{{ $coin.template }}" data-qr="{{ if isset $coin "qr" }}{{ $coin.qr }}{{ else }}true{{ end }}">{{ $coinName | upper }}</option>
                         {{- end }}
                         {{- end }}
                     </select>
+                    <div class="usecue-payment-converted" id="crypto-converted-amount"></div>
                     <div id="crypto-display" style="display:none">
                         <a href="#" id="crypto-pay-link" class="usecue-pay-button pay-link-external" target="_blank" rel="noopener" style="display:none;margin-bottom:1rem;">Pay with <span id="crypto-pay-coin"></span></a>
                         <div class="crypto-addr-box" id="crypto-addr-text"></div>
@@ -141,4 +154,8 @@
         {{- end }}
     </div>
 </section>
+<script type="application/json" id="payment-config">{{ $currency | jsonify | safeJS }}</script>
+<script type="application/json" id="exchange-prefetched">{{ $prefetched | jsonify | safeJS }}</script>
+<script src="/js/exchange-rates.js"></script>
+<script src="/js/payment-utils.js"></script>
 <script src="/js/payment-simple.js"></script>

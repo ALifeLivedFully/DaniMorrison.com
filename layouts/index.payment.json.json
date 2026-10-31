@@ -1,10 +1,21 @@
 {{- $p := .Site.Data.payment -}}
-{{- $w := .Site.Data.webshop -}}
+{{- $currency := $p.currency -}}
+{{- $bankQR := $p.bank_qr -}}
+{{- if not $bankQR -}}{{- $bankQR = $currency.bank_qr -}}{{- end -}}
+{{- if not $bankQR -}}{{- $bankQR = dict -}}{{- end -}}
+{{- $bankCurrency := $bankQR.currency | default $currency.shop | default "USD" -}}
 {{- dict 
   "shop_id" (default $p.shop_id "")
   "lang" .Site.Language.Lang
   "origin" .Site.BaseURL
-  "currency" (dict "shop" $p.currency.shop "bank_eur" (dict "rate" $p.currency.bank_qr.usd_to_eur_rate "auto_fetch" $p.currency.bank_qr.auto_fetch_rate))
+  "currency" (dict "shop" ($currency.shop | default "USD"))
+  "bank_qr" (dict
+    "enabled" (default true $bankQR.enabled)
+    "currency" $bankCurrency
+    "show_amounts" (default true $bankQR.show_amounts)
+    "include_amount_in_qr" (default true $bankQR.include_amount_in_qr)
+  )
+  "bank" ($p.bank | default dict)
   "catalog_url" (printf "%s%s/shop/index.json" .Site.BaseURL .Site.Language.Lang)
   "payment_methods" $p.payment_links
   "legal_checks" (dict "terms" true "address" true "age" true)
