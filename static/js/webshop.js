@@ -375,7 +375,9 @@
        instead: they came to pay, and losing this site's address beats
        leaving them on "one moment please" forever. */
     var pos = document.getElementById("usecuepayment");
-    if (pos) {
+    var paymentSec = document.querySelector("section.payment");
+    var paymentMode = paymentSec && paymentSec.getAttribute("data-payment-mode");
+    if (pos && paymentMode !== "simple") {
         var owed = cartTotal() + addonTotal();
         var ordernumber = stored("ordernumber");
         var posId = pos.getAttribute("data-id");

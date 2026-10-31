@@ -111,3 +111,5 @@
     <p class="calculation"><span>{{ i18n "Shopping cart" }}:</span> {{ partial "money.html" (dict "Page" .Page "Amount" 0) }}</p>
     {{- with .Inner }}<p>{{ . | markdownify }}</p>{{ end }}
 </div>
+{{- $p := (partial "data.html" .Page).payment -}}
+{{- if $p.shop_id }}<input type="hidden" name="shop_id" value="{{ $p.shop_id }}">{{ end }}

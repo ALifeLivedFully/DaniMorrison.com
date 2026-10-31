@@ -1,0 +1,14 @@
+{{- $p := .Site.Data.payment -}}
+{{- $w := .Site.Data.webshop -}}
+{{- dict 
+  "shop_id" (default $p.shop_id "")
+  "lang" .Site.Language.Lang
+  "origin" .Site.BaseURL
+  "currency" (dict "shop" $p.currency.shop "bank_eur" (dict "rate" $p.currency.bank_qr.usd_to_eur_rate "auto_fetch" $p.currency.bank_qr.auto_fetch_rate))
+  "catalog_url" (printf "%s%s/shop/index.json" .Site.BaseURL .Site.Language.Lang)
+  "payment_methods" $p.payment_links
+  "legal_checks" (dict "terms" true "address" true "age" true)
+  "stripe" (dict "enabled" true "mode" "test")
+  "form" $p.form
+  "features" (dict "fallback_to_simple" $p.fallback.to_simple_if_worker_unreachable)
+| jsonify (dict "indent" "  ") -}}

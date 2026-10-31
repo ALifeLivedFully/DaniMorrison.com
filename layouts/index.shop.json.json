@@ -1,0 +1,53 @@
+{{- $lang := .Site.Language.Lang -}}
+{{- $items := slice -}}
+{{- range where .Site.RegularPages "Section" "products" -}}
+  {{- $price := 0 -}}
+  {{- if .Params.price -}}
+    {{- $price = .Params.price -}}
+  {{- else if .Params.variants -}}
+    {{- $price = (index .Params.variants 0).price -}}
+  {{- end -}}
+  {{- $variants := slice -}}
+  {{- if .Params.variants -}}
+    {{- range .Params.variants -}}
+      {{- $variants = $variants | append (dict "sku" .sku "name" .name "price" .price) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $item := dict 
+    "sku" (default .File.UniqueID .Params.sku)
+    "type" "product"
+    "title" .Title
+    "url" .Permalink
+    "price" $price
+    "currency" "USD"
+    "variants" $variants
+    "available" (default true .Params.available)
+    "images" (default (slice) .Params.images)
+  -}}
+  {{- $items = $items | append $item -}}
+{{- end -}}
+{{- range where .Site.RegularPages "Section" "services" -}}
+  {{- $price := 0 -}}
+  {{- if .Params.price -}}
+    {{- $price = .Params.price -}}
+  {{- end -}}
+  {{- $variants := slice -}}
+  {{- if .Params.variants -}}
+    {{- range .Params.variants -}}
+      {{- $variants = $variants | append (dict "sku" .sku "name" .name "price" .price) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $item := dict 
+    "sku" (default .File.UniqueID .Params.sku)
+    "type" "service"
+    "title" .Title
+    "url" .Permalink
+    "price" $price
+    "currency" "USD"
+    "variants" $variants
+    "available" (default true .Params.available)
+    "images" (default (slice) .Params.images)
+  -}}
+  {{- $items = $items | append $item -}}
+{{- end -}}
+{{- dict "version" 1 "lang" $lang "currency" "USD" "generated_at" (now | time.Format "2006-01-02T15:04:05Z07:00") "items" $items | jsonify (dict "indent" "  ") -}}

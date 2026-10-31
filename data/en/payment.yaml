@@ -1,0 +1,115 @@
+payment_mode: simple
+shop_id: "danimorrison"
+
+currency:
+  shop: USD
+  bank_qr:
+    enabled: true
+    currency: EUR
+    use_fixed_rate: true
+    usd_to_eur_rate: 0.8760402979
+    auto_fetch_rate: false
+    fetch_on_site_update: false
+    show_amounts: true
+    include_amount_in_qr: true
+
+form:
+  provider: worker
+  order_endpoint: ""
+  claim_endpoint: ""
+  use_mailto_fallback: true
+  thank_you_path: /thankyou
+
+payment_links:
+  default_username: "ALifeLivedFully"
+  links:
+    - name: venmo
+      enabled: true
+      template: "https://venmo.com/{username}?txn=pay&amount={amount}&note={order}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: paypal
+      enabled: true
+      template: "https://paypal.me/{username}/{amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: cashapp
+      enabled: true
+      template: "https://cash.app/${username}/{amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: kofi
+      enabled: true
+      template: "https://ko-fi.com/{username}/?amount={amount}&note={order}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: revolut
+      enabled: true
+      template: "https://revolut.me/{username}/{amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: wise
+      enabled: true
+      template: "https://wise.com/pay/me/{username}?amount={amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: buymeacoffee
+      enabled: true
+      template: "https://buymeacoffee.com/{username}?amount={amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: liberapay
+      enabled: true
+      template: "https://liberapay.com/{username}/donate?amount={amount}"
+      qr: true
+      username: "ALifeLivedFully"
+    - name: patreon
+      enabled: true
+      template: "https://www.patreon.com/{username}"
+      qr: false
+      username: "ALifeLivedFully"
+    - name: crypto
+      enabled: true
+      use_ens: true
+      ens_name: "alifelivedfully.eth"
+      ens_fallback_to_config: true
+      populate_from_ens_at_build: true
+      runtime_ens_resolution: false
+      coins:
+        eth:
+          enabled: true
+          address: "0x1234567890123456789012345678901234567890"
+          template: "ethereum:{address}@1?value={amount}"
+          qr: true
+        btc:
+          enabled: true
+          address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+          template: "bitcoin:{address}?amount={amount}"
+          qr: true
+        xmr:
+          enabled: true
+          address: "44AFFq5kSiGBoZ...placeholder"
+          template: "{address}"
+          qr: true
+        dash:
+          enabled: true
+          address: "XyZ..."
+          template: "dash:{address}"
+          qr: true
+        ltc:
+          enabled: true
+          address: "ltc1..."
+          template: "litecoin:{address}"
+          qr: true
+
+bank:
+  iban: "NL48INGB0006762093"
+  bic: "INGBNL2A"
+  name: "Dani Morrison"
+  reference_template: "Order {ordernumber}"
+
+qr:
+  generator: client
+
+fallback:
+  to_simple_if_worker_unreachable: true

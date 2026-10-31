@@ -40,3 +40,4 @@ custom_values:
       - title: Custom engraved
         value: yes
         price: 20
+payment_mode: simple
