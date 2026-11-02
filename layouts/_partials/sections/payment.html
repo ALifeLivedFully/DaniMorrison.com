@@ -4,69 +4,130 @@
 {{- $label := partial "section_label.html" .Content -}}
 {{- $w := (partial "data.html" .Page).webshop -}}
 {{- $p := (partial "data.html" .Page).payment -}}
-{{- $pmode := default "simple" $w.payment_mode -}}
 {{- $currency := $p.currency -}}
 {{- $bankQR := $p.bank_qr -}}
 {{- if not $bankQR -}}{{- $bankQR = $currency.bank_qr -}}{{- end -}}
 {{- if not $bankQR -}}{{- $bankQR = dict -}}{{- end -}}
 {{- $bank := $p.bank | default dict -}}
+{{- $bankLabel := $bank.label | default "European Bank Transfer" -}}
 {{- $bankCurrency := $bankQR.currency | default $currency.shop | default "USD" -}}
 {{- $bankEnabled := and $bank.iban (default true $bankQR.enabled) -}}
 {{- $bankReference := $bank.reference_template | default "Order {ordernumber}" -}}
 {{- $prefetched := partial "site/exchange-prefetch.html" $p -}}
-<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}" data-payment-mode="{{ $pmode }}" data-shop-currency="{{ $currency.shop | default "USD" }}" data-bank-iban="{{ $bank.iban }}" data-bank-bic="{{ $bank.bic }}" data-bank-name="{{ $bank.name }}" data-bank-currency="{{ $bankCurrency }}" data-bank-show-amounts="{{ default true $bankQR.show_amounts }}" data-bank-include-amount="{{ default true $bankQR.include_amount_in_qr }}" data-bank-reference="{{ $bankReference }}" data-order-email="{{ $w.send_order_to_mail }}" data-shop-id="{{ $p.shop_id }}">
+{{- $copyIcon := `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor" aria-hidden="true" focusable="false"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>` -}}
+
+{{- $traditionalLinks := slice -}}
+{{- range $p.payment_links.links -}}
+    {{- if and .enabled (ne .name "crypto") -}}
+        {{- if or .url .template -}}
+            {{- $linkLabel := .label | default (.name | title) -}}
+            {{- $traditionalLinks = $traditionalLinks | append (dict "name" .name "label" $linkLabel "link" .) -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $cryptoLink := false -}}
+{{- range $p.payment_links.links -}}
+    {{- if and .enabled (eq .name "crypto") -}}{{- $cryptoLink = . -}}{{- end -}}
+{{- end -}}
+{{- $coinOptions := slice -}}
+{{- if $cryptoLink -}}
+    {{- $ensWallets := dict -}}
+    {{- if and $cryptoLink.use_ens $cryptoLink.populate_from_ens_at_build $cryptoLink.ens_name -}}
+        {{- $ensWallets = partial "site/ens-addresses.html" (dict "name" $cryptoLink.ens_name "api_url" $cryptoLink.ens_api_url) -}}
+    {{- end -}}
+    {{- $ensFallback := default true $cryptoLink.ens_fallback_to_config -}}
+    {{- $ensRuntime := and $cryptoLink.use_ens $cryptoLink.runtime_ens_resolution $cryptoLink.ens_name -}}
+    {{- $coinNames := $cryptoLink.coin_order -}}
+    {{- if not $coinNames -}}
+        {{- $coinNames = slice -}}
+        {{- range $coinName, $coin := $cryptoLink.coins -}}{{- $coinNames = $coinNames | append $coinName -}}{{- end -}}
+    {{- end -}}
+    {{- range $coinName := $coinNames -}}
+        {{- $coin := index $cryptoLink.coins $coinName -}}
+        {{- if $coin -}}
+            {{- $address := "" -}}
+            {{- with index $ensWallets (lower $coinName) -}}{{- $address = . -}}{{- end -}}
+            {{- if and (not $address) $ensFallback -}}{{- $address = $coin.address -}}{{- end -}}
+            {{- if and $coin.enabled (or $address $ensRuntime) -}}
+                {{- $coinLabel := $coin.label | default (upper $coinName) -}}
+                {{- $qr := true -}}
+                {{- if isset $coin "qr" -}}{{- $qr = $coin.qr -}}{{- end -}}
+                {{- $coinOptions = $coinOptions | append (dict "name" $coinName "label" $coinLabel "address" ($address | default "") "configAddress" ($coin.address | default "") "template" ($coin.template | default "") "qr" $qr) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+<section class="payment"{{ with $label }} aria-labelledby="{{ . }}"{{ end }} data-currency="{{ $w.currency_symbol }}" data-currency-position="{{ $w.currency_position | default "prefix" }}" data-currency-space="{{ $w.currency_space | default false }}" data-payment-mode="simple" data-shop-currency="{{ $currency.shop | default "USD" }}" data-bank-iban="{{ $bank.iban }}" data-bank-bic="{{ $bank.bic }}" data-bank-name="{{ $bank.name }}" data-bank-currency="{{ $bankCurrency }}" data-bank-show-amounts="{{ default true $bankQR.show_amounts }}" data-bank-include-amount="{{ default true $bankQR.include_amount_in_qr }}" data-bank-reference="{{ $bankReference }}" data-order-email="{{ $w.send_order_to_mail }}" data-shop-id="{{ $p.shop_id }}">
     <div class="container small">
         {{ .Content }}
-        {{- if eq $pmode "simple" }}
-        <div class="usecue-payment-container">
-            <div class="usecue-payment-header">
+        <div class="static-payment-container">
+            <div class="static-payment-header">
                 <h2>Payment</h2>
-                <div class="usecue-payment-amount" id="paymenttotal">$0.00</div>
-                <div class="usecue-payment-order">Order: <span id="order-ref"></span></div>
-                <div class="usecue-payment-status" id="payment-status" role="status" aria-live="polite"></div>
+                <div class="static-payment-amount" id="paymenttotal">$0.00</div>
+                <div class="static-payment-order">Order: <span id="order-ref"></span></div>
+                <div class="static-payment-status" id="payment-status" role="status" aria-live="polite"></div>
             </div>
-            <div class="usecue-payment-body">
-                <label class="usecue-payment-methods-label" for="usecue-payment-method">Payment method</label>
-                <select id="usecue-payment-method" class="usecue-payment-select">
+            <div class="static-payment-body">
+                <label class="static-payment-methods-label" for="static-payment-method">Payment method</label>
+                <select id="static-payment-method" class="static-payment-select">
                     <option value="">Select a payment method</option>
-                    {{- if $bankEnabled }}
-                    <option value="bank">Bank Transfer (SEPA/EPC)</option>
+                    {{- if or $bankEnabled (gt (len $traditionalLinks) 0) }}
+                    <optgroup label="Traditional Payments">
+                        {{- if $bankEnabled }}
+                        <option value="bank">{{ $bankLabel }}</option>
+                        {{- end }}
+                        {{- range $traditionalLinks }}
+                        <option value="{{ .name }}">{{ .label }}</option>
+                        {{- end }}
+                    </optgroup>
                     {{- end }}
-                    {{- range $p.payment_links.links }}
-                    {{- if and .enabled (ne .name "crypto") }}
-                    {{- if or .url .template }}
-                    <option value="{{ .name }}">{{ .name | title }}</option>
-                    {{- end }}
-                    {{- end }}
-                    {{- end }}
-                    {{- range $p.payment_links.links }}
-                    {{- if and .enabled (eq .name "crypto") }}
-                    {{- $hasCoin := false -}}
-                    {{- range $coinName, $coin := .coins }}
-                    {{- if and $coin.enabled $coin.address }}{{- $hasCoin = true -}}{{- end -}}
-                    {{- end }}
-                    {{- if $hasCoin }}
-                    <option value="crypto">Cryptocurrency</option>
-                    {{- end }}
-                    {{- end }}
+                    {{- if gt (len $coinOptions) 0 }}
+                    <optgroup label="Cryptocurrency">
+                        {{- range $coinOptions }}
+                        <option value="crypto:{{ .name }}" data-coin="{{ .name }}" data-currency="{{ upper .name }}" data-address="{{ .address }}" data-config-address="{{ .configAddress }}" data-template="{{ .template }}" data-qr="{{ .qr }}">{{ .label }}</option>
+                        {{- end }}
+                    </optgroup>
                     {{- end }}
                 </select>
                 
                 {{- if $bankEnabled }}
-                <div id="panel-bank" class="usecue-payment-panel">
-                    <h3>Bank Transfer (SEPA)</h3>
-                    <div class="usecue-payment-converted" id="bank-converted-amount"></div>
-                    <div class="usecue-bank-info">
-                        <div><strong>Beneficiary:</strong> {{ $bank.name }}</div>
-                        <div><strong>IBAN:</strong> {{ $bank.iban }}</div>
-                        <div><strong>BIC:</strong> {{ $bank.bic }}</div>
-                        <div id="bank-amount-row"><strong>Amount:</strong> <span id="bank-amount"></span> <span id="bank-currency-label">{{ $bankCurrency }}</span></div>
-                        <div><strong>Reference:</strong> <span id="bank-reference"></span></div>
+                <div id="panel-bank" class="static-payment-panel">
+                    <h3 class="static-payment-panel-title">{{ $bankLabel }}</h3>
+                    <div class="static-payment-bank-info">
+                        <div class="static-payment-row">
+                            <span class="static-payment-row-label">Beneficiary</span>
+                            <span class="static-payment-row-value"><span class="static-payment-value-inner" id="bank-beneficiary">{{ $bank.name }}</span></span>
+                            <button type="button" class="static-payment-copy-inline" data-copy-target="bank-beneficiary" aria-label="Copy beneficiary" title="Copy beneficiary">{{ $copyIcon | safeHTML }}</button>
+                        </div>
+                        <div class="static-payment-row">
+                            <span class="static-payment-row-label">IBAN</span>
+                            <span class="static-payment-row-value"><span class="static-payment-value-inner" id="bank-iban">{{ $bank.iban }}</span></span>
+                            <button type="button" class="static-payment-copy-inline" data-copy-target="bank-iban" aria-label="Copy IBAN" title="Copy IBAN">{{ $copyIcon | safeHTML }}</button>
+                        </div>
+                        {{- if $bank.bic }}
+                        <div class="static-payment-row">
+                            <span class="static-payment-row-label">BIC</span>
+                            <span class="static-payment-row-value"><span class="static-payment-value-inner" id="bank-bic">{{ $bank.bic }}</span></span>
+                            <button type="button" class="static-payment-copy-inline" data-copy-target="bank-bic" aria-label="Copy BIC" title="Copy BIC">{{ $copyIcon | safeHTML }}</button>
+                        </div>
+                        {{- end }}
+                        <div class="static-payment-row" id="bank-amount-row">
+                            <span class="static-payment-row-label">Amount</span>
+                            <span class="static-payment-row-value"><span class="static-payment-value-inner" id="bank-amount-value"><span id="bank-amount"></span> <span id="bank-currency-label">{{ $bankCurrency }}</span></span></span>
+                            <button type="button" class="static-payment-copy-inline" data-copy-target="bank-amount" aria-label="Copy amount" title="Copy amount">{{ $copyIcon | safeHTML }}</button>
+                        </div>
+                        <div class="static-payment-row">
+                            <span class="static-payment-row-label">Reference</span>
+                            <span class="static-payment-row-value"><span class="static-payment-value-inner" id="bank-reference"></span></span>
+                            <button type="button" class="static-payment-copy-inline" data-copy-target="bank-reference" aria-label="Copy reference" title="Copy reference">{{ $copyIcon | safeHTML }}</button>
+                        </div>
                     </div>
-                    <div class="usecue-qr-container">
+                    <div class="static-payment-qr-container">
                         <div id="epc-qr"></div>
                     </div>
-                    <div class="usecue-bank-instructions">
+                    <div class="static-payment-bank-instructions">
                         <strong>Instructions:</strong>
                         <ol>
                             <li>Open your banking app</li>
@@ -79,79 +140,93 @@
                 </div>
                 {{- end }}
                 
-                {{- range $p.payment_links.links }}
-                {{- if and .enabled (ne .name "crypto") }}
-                {{- if or .url .template }}
-                <div id="panel-{{ .name }}" class="usecue-payment-panel" data-template="{{ .template }}" data-url="{{ .url }}" data-currency="{{ .currency | default $currency.shop | default "USD" }}" data-username="{{ .username | default $p.payment_links.default_username }}" data-qr="{{ if isset . "qr" }}{{ .qr }}{{ else }}true{{ end }}">
-                    <h3>{{ .name | title }}</h3>
-                    <div class="usecue-payment-converted" data-converted-amount></div>
-                    <a href="#" class="usecue-pay-button pay-link-external" target="_blank" rel="noopener">Pay with {{ .name | title }}</a>
-                    <div class="usecue-qr-container">
+                {{- range $traditionalLinks }}
+                <div id="panel-{{ .name }}" class="static-payment-panel" data-template="{{ .link.template }}" data-url="{{ .link.url }}" data-currency="{{ .link.currency | default $currency.shop | default "USD" }}" data-username="{{ .link.username | default $p.payment_links.default_username }}" data-qr="{{ if isset .link "qr" }}{{ .link.qr }}{{ else }}true{{ end }}">
+                    <h3 class="static-payment-panel-title">{{ .label }}</h3>
+                    <div class="static-payment-converted" data-converted-amount></div>
+                    <div class="static-payment-qr-container">
                         <div class="ext-qr"></div>
                     </div>
-                    <button type="button" class="usecue-copy-button copy-ext-link">Copy link</button>
+                    <a href="#" class="static-payment-pay-button pay-link-external" target="_blank" rel="noopener">Pay with {{ .label }}</a>
+                    <button type="button" class="static-payment-copy-button copy-ext-link">Copy link</button>
                 </div>
                 {{- end }}
-                {{- end }}
-                {{- end }}
                 
-                {{- range $p.payment_links.links }}
-                {{- if and .enabled (eq .name "crypto") }}
-                <div id="panel-crypto" class="usecue-payment-panel">
-                    <h3>Cryptocurrency</h3>
-                    <select id="crypto-coin-select" class="usecue-payment-select">
-                        <option value="">Select coin</option>
-                        {{- range $coinName, $coin := .coins }}
-                        {{- if and $coin.enabled $coin.address }}
-                        <option value="{{ $coinName }}" data-currency="{{ $coinName | upper }}" data-address="{{ $coin.address }}" data-template="{{ $coin.template }}" data-qr="{{ if isset $coin "qr" }}{{ $coin.qr }}{{ else }}true{{ end }}">{{ $coinName | upper }}</option>
-                        {{- end }}
-                        {{- end }}
-                    </select>
-                    <div class="usecue-payment-converted" id="crypto-converted-amount"></div>
-                    <div id="crypto-display" style="display:none">
-                        <a href="#" id="crypto-pay-link" class="usecue-pay-button pay-link-external" target="_blank" rel="noopener" style="display:none;margin-bottom:1rem;">Pay with <span id="crypto-pay-coin"></span></a>
-                        <div class="crypto-addr-box" id="crypto-addr-text"></div>
-                        <div class="usecue-qr-container">
+                {{- if gt (len $coinOptions) 0 }}
+                {{- $ensFallback := default true $cryptoLink.ens_fallback_to_config -}}
+                {{- $ensRuntime := and $cryptoLink.use_ens $cryptoLink.runtime_ens_resolution $cryptoLink.ens_name -}}
+                <div id="panel-crypto" class="static-payment-panel" data-ens-runtime="{{ if $ensRuntime }}true{{ else }}false{{ end }}" data-ens-name="{{ $cryptoLink.ens_name }}" data-ens-api="{{ $cryptoLink.ens_api_url | default "https://api.ensdata.net/{name}" }}" data-ens-fallback="{{ if $ensFallback }}true{{ else }}false{{ end }}">
+                    <h3 class="static-payment-panel-title" id="crypto-title">Cryptocurrency</h3>
+                    <div id="crypto-display">
+                        <div class="static-payment-bank-info">
+                            <div class="static-payment-row">
+                                <span class="static-payment-row-label">ENS</span>
+                                <span class="static-payment-row-value"><span class="static-payment-value-inner" id="crypto-ens"></span></span>
+                                <button type="button" class="static-payment-copy-inline" data-copy-target="crypto-ens" aria-label="Copy ENS" title="Copy ENS">{{ $copyIcon | safeHTML }}</button>
+                            </div>
+                            <div class="static-payment-row">
+                                <span class="static-payment-row-label">Address</span>
+                                <span class="static-payment-row-value"><span class="static-payment-value-inner" id="crypto-address"></span></span>
+                                <button type="button" class="static-payment-copy-inline" data-copy-target="crypto-address" aria-label="Copy address" title="Copy address">{{ $copyIcon | safeHTML }}</button>
+                            </div>
+                            <div class="static-payment-row">
+                                <span class="static-payment-row-label">Amount</span>
+                                <span class="static-payment-row-value"><span class="static-payment-value-inner" id="crypto-amount"></span></span>
+                                <button type="button" class="static-payment-copy-inline" data-copy-target="crypto-amount" aria-label="Copy amount" title="Copy amount">{{ $copyIcon | safeHTML }}</button>
+                            </div>
+                        </div>
+                        <div class="static-payment-qr-container">
                             <div id="crypto-qr-box"></div>
                         </div>
-                        <button type="button" id="copy-crypto-addr-btn" class="usecue-copy-button">Copy address</button>
-                        <button type="button" id="copy-crypto-uri-btn" class="usecue-copy-button" style="display:none;margin-top:0.5rem;">Copy link</button>
+                        <a href="#" id="crypto-pay-link" class="static-payment-pay-button pay-link-external" target="_blank" rel="noopener" style="display:none;">Pay with <span id="crypto-pay-coin"></span></a>
+                        <div class="static-payment-bank-instructions">
+                            <strong>Instructions:</strong>
+                            <ol>
+                                <li>Open your crypto wallet app</li>
+                                <li>Select "Send", "Pay" or "Transfer"</li>
+                                <li>Enter the address/ENS name above</li>
+                                <li>Enter the amount in <span id="crypto-instruction-currency"></span></li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
                 {{- end }}
-                {{- end }}
                 
-                <div class="usecue-claim-section">
-                    <button type="button" class="usecue-claim-toggle" id="claim-toggle">I have paid</button>
-                    <form id="claim-form" method="post" action="{{ $w.form_handler }}" class="usecue-claim-form">
+                {{- $form := $p.form | default dict -}}
+                {{- $claimEndpoint := $form.claim_endpoint | default $w.form_handler -}}
+                {{- $claimProvider := $form.provider | default "worker" -}}
+                {{- $mailFallback := and (default true $form.use_mailto_fallback) $w.send_order_to_mail -}}
+                {{- $claimMode := "none" -}}
+                {{- if and $claimEndpoint (ne $claimProvider "mailto") -}}
+                    {{- $claimMode = "worker" -}}
+                {{- else if $mailFallback -}}
+                    {{- $claimMode = "mailto" -}}
+                {{- end -}}
+                {{- if ne $claimMode "none" }}
+                <div class="static-payment-claim-section" data-claim-mode="{{ $claimMode }}">
+                    <p class="static-payment-claim-title"><strong>Already made your payment?</strong></p>
+                    <p class="static-payment-claim-copy">Click below to notify us that you've paid. We'll verify your payment and begin fulfilment.</p>
+                    {{- if eq $claimMode "worker" }}
+                    <form id="claim-form" method="post" action="{{ $claimEndpoint }}" class="static-payment-claim-form" hidden>
                         <input type="hidden" name="form_type" value="claim">
                         <input type="hidden" name="shop_id" value="{{ $p.shop_id }}">
-                        <input type="hidden" name="_next" value="{{ $w.thankyou_link | absURL }}/">
-                        <div class="usecue-claim-row">
-                            <label>Order number</label>
-                            <input type="text" name="ordernumber" id="claim-order" required>
-                        </div>
-                        <div class="usecue-claim-row">
-                            <label>Email</label>
-                            <input type="email" name="email" required>
-                        </div>
-                        <div class="usecue-claim-row">
-                            <label>Payment method</label>
-                            <input type="text" name="payment_method">
-                        </div>
-                        <div class="usecue-claim-row">
-                            <label>Message</label>
-                            <textarea name="message" rows="3"></textarea>
-                        </div>
-                        <div class="usecue-claim-actions">
-                            <button type="submit" class="usecue-claim-submit">Submit</button>
-                            <a href="mailto:{{ $w.send_order_to_mail }}" class="usecue-mailto-link">Email</a>
-                        </div>
+                        <input type="hidden" name="_next" value="{{ $w.thankyou_link }}/">
+                        <input type="hidden" name="_gotcha" value="">
+                        <input type="hidden" name="ordernumber" id="claim-order" value="">
+                        <input type="hidden" name="email" id="claim-email" value="">
+                        <input type="hidden" name="payment_method" id="claim-payment-method" value="">
+                        <input type="hidden" name="message" id="claim-message" value="">
                     </form>
+                    <button type="submit" form="claim-form" id="claim-action" class="static-payment-claim-submit">Confirm payment &amp; complete order</button>
+                    {{- else }}
+                    <a id="claim-action" class="static-payment-claim-submit" href="mailto:{{ $w.send_order_to_mail }}">Send payment confirmation email</a>
+                    {{- end }}
+                    <p class="static-payment-claim-hint">Your confirmation will be sent securely to our order system. This does not itself process or verify your payment.</p>
+                    <p class="static-payment-claim-hint">Having trouble? <a id="claim-email-fallback" href="mailto:{{ $w.send_order_to_mail }}">Contact us by email.</a></p>
                 </div>
+                {{- end }}
             </div>
         </div>
-        {{- end }}
     </div>
 </section>
 <script type="application/json" id="payment-config">{{ $currency | jsonify | safeJS }}</script>

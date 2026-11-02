@@ -112,6 +112,39 @@ coins:
 
 The same calculated amount is shown in the payment panel, placed in the payment URI and rendered in its QR code. If no fresh rate is available, the payment URI and QR code are not offered.
 
+## ENS crypto addresses
+
+A crypto link can fill wallet addresses from an ENS name instead of maintaining every coin address by hand:
+
+```yaml
+payment_links:
+  links:
+    - name: crypto
+      enabled: true
+      use_ens: true
+      ens_name: "alifelivedfully.eth"
+      populate_from_ens_at_build: true
+      ens_fallback_to_config: true
+      runtime_ens_resolution: false
+      # ens_api_url: "https://api.ensdata.net/{name}"
+      coins:
+        eth:
+          enabled: true
+          address: "0x70B5901f6cFEFb514dBe1656c08fA1b875F28E96"
+          template: "ethereum:{address}@1?value={amount}"
+```
+
+| Key | Meaning |
+| --- | --- |
+| `use_ens` | Resolve wallet addresses from ENS for this crypto link. |
+| `ens_name` | ENS name to resolve, such as `alifelivedfully.eth`. |
+| `ens_api_url` | Optional lookup URL template, default `https://api.ensdata.net/{name}`. The response must contain a `wallets` object keyed by coin code. |
+| `populate_from_ens_at_build` | Fetch the ENS record during the Hugo build. A resolved address overrides the matching `coins.*.address`. |
+| `ens_fallback_to_config` | Use `coins.*.address` when the ENS response omits that coin or the lookup fails. With `false`, the coin is hidden unless an ENS address is available. |
+| `runtime_ens_resolution` | Let the browser fetch the ENS record when a coin has no build-time address. Build-time values still take priority. |
+
+Coin codes are matched case-insensitively against the ENS response, so `eth`, `btc`, `dash`, `ltc` and `xmr` use the corresponding `wallets` entries. Keep valid configured addresses even when ENS is enabled: they are the offline fallback. Build-time lookup failures are logged and the build continues with configured addresses when fallback is enabled.
+
 ## Alternative providers
 
 CoinPaprika and Kraken can be configured as shared providers. A coin uses its own `rate_url` first; these settings are there for coins without one or for installations that prefer another provider.
@@ -206,6 +239,38 @@ payment_links:
 ```
 
 The amount is converted once, then used for both the displayed amount and the generated URL or QR code. Supported placeholders are `{username}`, `{amount}`, `{order}`, `{ordernumber}` and `{address}`.
+
+## Labels and selector order
+
+The payment selector shows two groups: **Traditional Payments** and **Cryptocurrency**. The bank transfer is listed first, then each enabled non-crypto link in the order it appears under `payment_links.links`. Use `label` to control the visible name:
+
+```yaml
+bank:
+  label: "European Bank Transfer"
+
+payment_links:
+  links:
+    - name: paypal
+      enabled: true
+      label: "PayPal"
+      template: "https://paypal.me/{username}/{amount}"
+```
+
+Cryptocurrency coins are individual options in the same selector. Set `coin_order` on the crypto link to choose their order; labels come from each coin's `label`:
+
+```yaml
+    - name: crypto
+      enabled: true
+      coin_order: [xmr, eth, btc, dash, ltc]
+      coins:
+        xmr:
+          enabled: true
+          label: "Monero (XMR)"
+          address: "44..."
+          template: "monero:{address}?tx_amount={amount}"
+```
+
+Without `coin_order`, coins are listed in alphabetical order by their key.
 
 ## Bank transfer and QR
 

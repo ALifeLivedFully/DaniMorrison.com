@@ -1,6 +1,12 @@
 {{- $lang := .Site.Language.Lang -}}
 {{- $currency := "USD" -}}
-{{- with .Site.Data.payment.currency.shop -}}{{- $currency = . -}}{{- end -}}
+{{- with (partial "data.html" .).payment -}}
+  {{- /* Same environment-agnostic lookup the payment brick uses; the
+         nested `with`s keep it silent when data is thinner elsewhere. */ -}}
+  {{- with .currency -}}
+    {{- with .shop -}}{{- $currency = . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
 {{- $items := slice -}}
 {{- range where .Site.RegularPages "Section" "products" -}}
   {{- $price := 0 -}}

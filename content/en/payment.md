@@ -6,4 +6,4 @@ title: Payment
 
 One moment please, we are loading the payment page.
 
-{{< usecue-payment >}}
+{{< static-payment >}}

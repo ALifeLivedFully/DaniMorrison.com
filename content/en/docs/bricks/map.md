@@ -13,10 +13,7 @@ To use this brick you only need an image with a Kramdown-style custom class 'map
 
 ## Contact us
 
-Usecue BV\
-Soetendaal 7\
-1081BL Amsterdam\
-The Netherlands
+Dani Morrison
 
 {{</* contactbuttons */>}}
 ```

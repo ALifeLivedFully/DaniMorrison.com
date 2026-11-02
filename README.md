@@ -97,9 +97,4 @@ hugo.yaml       Hugo configuration, languages and output formats
 
 HugoBricks v2 was created by Joost van der Schee and is released under the MIT licence. See [LICENSE](LICENSE) and the [upstream repository](https://github.com/jhvanderschee/hugobricks_v2).
 
-Upstream documentation and demo:
-
-- <https://www.hugobricks2.preview.usecue.com/>
-- <https://www.hugobricks2.preview.usecue.com/docs/>
-
 Bundled assets keep their original licences. Fonts and icons come from [Google Fonts](https://fonts.google.com) and [Google Material Symbols](https://fonts.google.com/icons); illustrations from [Storyset](https://storyset.com/terms); avatars from [Pravatar](https://www.pravatar.cc/images); other photos from [Unsplash](https://unsplash.com/license). The Flyspot photographs remain the property of [Flyspot Airsports & Travel Agency](https://flyspot.com.tr/) and may not be reused without written permission. Social-media icons belong to their respective networks.

@@ -235,6 +235,9 @@
     if (checkout) {
         var checkoutCurrency = currency(checkout);
         var calculation = document.querySelector("section.checkout .calculation");
+        var emailInput = checkout.querySelector("input[name='email']");
+        var savedEmail = stored("email");
+        if (emailInput && !emailInput.value && savedEmail) emailInput.value = savedEmail;
 
         checkout.querySelector("input[name='order']").value =
             read("cart").map(function (item) {
@@ -328,6 +331,10 @@
             var ordernumber = Math.round(Date.now() / 100) % 6307200000;
             checkout.querySelector("input[name='ordernumber']").value = ordernumber;
             write("ordernumber", ordernumber);
+            if (emailInput) {
+                try { localStorage.setItem("email", emailInput.value.trim()); }
+                catch (error) { /* storage is optional */ }
+            }
 
             var paymentlink = checkout.getAttribute("data-payment-link");
             if (!paymentlink || !window.fetch) return;
@@ -366,61 +373,4 @@
         paymentTotal.textContent = formatMoney(currency(paymentSection), cartTotal() + addonTotal());
     }
 
-    /* -- the payment page: the Usecue POS ----------------------------------
-       The `usecue-payment` shortcode marked the spot and carries the account
-       id and the language; the amount owed and the order number come from
-       the cart kept here. pay.js turns this very page into the payment page.
-       Every way that can fail — blocked, lost, arrived but declined to run —
-       ends with the visitor on the POS's payment page on its own domain
-       instead: they came to pay, and losing this site's address beats
-       leaving them on "one moment please" forever. */
-    var pos = document.getElementById("usecuepayment");
-    var paymentSec = document.querySelector("section.payment");
-    var paymentMode = paymentSec && paymentSec.getAttribute("data-payment-mode");
-    if (pos && paymentMode !== "simple") {
-        var owed = cartTotal() + addonTotal();
-        var ordernumber = stored("ordernumber");
-        var posId = pos.getAttribute("data-id");
-        var posLang = pos.getAttribute("data-lang");
-
-        /* pay.js takes its parameters from its own script tag, because the
-           address bar is not ours to count on: Safari refuses a replaceState
-           that comes around too often, and the frame would then be built
-           from an address that never got the amount in it. */
-        var query = "id=" + encodeURIComponent(posId);
-        if (owed > 0) query += "&amount=" + encodeURIComponent(owed.toFixed(2));
-        if (ordernumber) query += "&specification=" + encodeURIComponent("Order number " + ordernumber);
-        if (posLang) query += "&lang=" + encodeURIComponent(posLang);
-
-        /* The same parameters laid over the ones the page was opened with,
-           so an amount that came in through the link survives an empty
-           cart — and the address bar, a nicety, still tries to show them. */
-        var url = new URL(window.location.href);
-        url.searchParams.set("id", posId);
-        if (owed > 0) url.searchParams.set("amount", owed.toFixed(2));
-        if (ordernumber) url.searchParams.set("specification", "Order number " + ordernumber);
-        if (posLang) url.searchParams.set("lang", posLang);
-        var paypage = "https://pos.usecue.com/pay/" + url.search;
-        try {
-            window.history.replaceState(window.history.state, "", url.toString());
-        } catch (error) { /* the script tag carries the parameters anyway */ }
-
-        /* pay.js watches its own frame once it runs; these watch the case
-           where it never got that far. */
-        var frameless = function () {
-            return !document.querySelector('iframe[src*="pos.usecue.com"]');
-        };
-        var script = document.createElement("script");
-        script.src = "https://pos.usecue.com/p/js/pay.js?" + query;
-        script.onerror = function () { window.location.replace(paypage); };
-        script.onload = function () {
-            window.setTimeout(function () {
-                if (frameless()) window.location.replace(paypage);
-            }, 100);
-        };
-        window.setTimeout(function () {
-            if (frameless()) window.location.replace(paypage);
-        }, 8000);
-        document.body.appendChild(script);
-    }
 })();

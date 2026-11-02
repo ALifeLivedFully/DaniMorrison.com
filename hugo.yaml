@@ -70,7 +70,7 @@ params:
       is:
       not_is:
     - title: payment
-      has: div#usecuepayment
+      has: div#static-payment
       not_has:
       is:
       not_is:
@@ -189,18 +189,34 @@ outputs:
   home:
     - html
     - rss
-    # `json` renders layouts/home.json, the page lookup the Usecue CMS uses
+    # `json` renders layouts/home.json, the page lookup the CMS uses
     # for instant publishing.
     - json
     # `searchindex` renders layouts/home.searchindex.json: one flat JSON
     # array per language, which `js/search.js` fetches on the first keystroke
     # and filters in the browser. No service, no build step, no tracking.
     - searchindex
+    # `payment` renders layouts/home.payment.json: the shop settings JSON
+    # the checkout worker reads (`shops.site_config_url`). The product
+    # catalog itself rides on the `/shop/` page instead.
+    - payment
 
 # The index format behind client-side search. `baseName` keeps it out of the
-# way of the `index.json` the Usecue CMS reads, and `isPlainText` stops Hugo
+# way of the `index.json` the CMS reads, and `isPlainText` stops Hugo
 # HTML-escaping the JSON it hands to the browser.
 outputFormats:
+  payment:
+    mediaType: application/json
+    baseName: payment
+    isPlainText: true
+    notAlternative: true
+  # The shop catalog, rendered from the `/shop/` page (`shop.outputFormats`
+  # in `content/en/shop.md`) as `shop/index.json`. The default `baseName`
+  # (`index`) is what puts it there.
+  shop:
+    mediaType: application/json
+    isPlainText: true
+    notAlternative: true
   json:
     mediaType: application/javascript
     baseName: index

@@ -1,4 +1,3 @@
-payment_mode: simple
 shop_id: "danimorrison"
 
 currency:
@@ -101,7 +100,7 @@ currency:
 
 form:
   provider: worker
-  order_endpoint: ""
+  order_endpoint: "http://localhost:8787/"
   claim_endpoint: ""
   use_mailto_fallback: true
   thank_you_path: /thankyou
@@ -109,62 +108,86 @@ form:
 payment_links:
   default_username: "ALifeLivedFully"
   links:
-    - name: venmo
-      enabled: true
-      template: "https://venmo.com/{username}?txn=pay&amount={amount}&note={order}"
+    # Stripe placeholder: add a payment-link URL and set enabled: true.
+    - name: card
+      enabled: false
+      label: "Credit / Debit Card (Stripe)"
+      url: ""
+      template: ""
       currency: USD
-      qr: true
-      username: "ALifeLivedFully"
+      qr: false
     - name: paypal
       enabled: true
+      label: "PayPal"
       template: "https://paypal.me/{username}/{amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
-    - name: cashapp
+    - name: venmo
       enabled: true
+      label: "Venmo"
+      template: "https://venmo.com/{username}?txn=pay&amount={amount}&note={order}"
+      currency: USD
+      qr: true
+      username: "ALifeLivedFully"
+    - name: cashapp
+      enabled: false
+      label: "Cash App"
       template: "https://cash.app/${username}/{amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
-    - name: kofi
-      enabled: true
-      template: "https://ko-fi.com/{username}/?amount={amount}&note={order}"
-      currency: USD
-      qr: true
-      username: "ALifeLivedFully"
     - name: revolut
-      enabled: true
+      enabled: false
+      label: "Revolut"
       template: "https://revolut.me/{username}/{amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: wise
-      enabled: true
+      enabled: false
+      label: "Wise"
       template: "https://wise.com/pay/me/{username}?amount={amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
+    - name: kofi
+      enabled: false
+      label: "Ko-fi"
+      template: "https://ko-fi.com/{username}/?amount={amount}&note={order}"
+      currency: USD
+      qr: true
+      username: "ALifeLivedFully"
     - name: buymeacoffee
-      enabled: true
+      enabled: false
+      label: "Buy Me a Coffee"
       template: "https://buymeacoffee.com/{username}?amount={amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: liberapay
-      enabled: true
+      enabled: false
+      label: "Liberapay"
       template: "https://liberapay.com/{username}/donate?amount={amount}"
       currency: USD
       qr: true
       username: "ALifeLivedFully"
     - name: patreon
-      enabled: true
+      enabled: false
+      label: "Patreon"
       template: "https://www.patreon.com/{username}"
       currency: USD
       qr: false
       username: "ALifeLivedFully"
     - name: crypto
       enabled: true
+      label: "Cryptocurrency"
+      coin_order:
+        - xmr
+        - eth
+        - btc
+        - dash
+        - ltc
       currency: USD
       use_ens: true
       ens_name: "alifelivedfully.eth"
@@ -172,39 +195,45 @@ payment_links:
       populate_from_ens_at_build: true
       runtime_ens_resolution: false
       coins:
+        xmr:
+          enabled: true
+          label: "Monero (XMR)"
+          address: "42xLdAuN1u9aJjNs1oNKSG8e7hk6edhJ7Tzi58af2knmJmoGH29K7rrSDTo1cZFRYoFY4gYVNoPRz34LrwkE1aTt7oqdGZs"
+          template: "monero:{address}?tx_amount={amount}"
+          qr: true
         eth:
           enabled: true
-          address: "0x1234567890123456789012345678901234567890"
+          label: "Ethereum (ETH)"
+          address: "0x70B5901f6cFEFb514dBe1656c08fA1b875F28E96"
           template: "ethereum:{address}@1?value={amount}"
           qr: true
         btc:
           enabled: true
-          address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+          label: "Bitcoin (BTC)"
+          address: "bc1q064d8az3zdcx0jzn60ry5g2ugk9gah70f3e5tw"
           template: "bitcoin:{address}?amount={amount}"
-          qr: true
-        xmr:
-          enabled: true
-          address: ""
-          template: "monero:{address}?tx_amount={amount}"
           qr: true
         dash:
           enabled: true
-          address: "XyZ..."
+          label: "Dash (DASH)"
+          address: "XtAaLWJXPMGYXhJo5GExEohZDg3K8x1xv8"
           template: "dash:{address}?amount={amount}"
           qr: true
         ltc:
           enabled: true
-          address: "ltc1..."
+          label: "Litecoin (LTC)"
+          address: "LN77jgN3176PuAH1Upboz3zxGdthSyNfWw"
           template: "litecoin:{address}?amount={amount}"
           qr: true
 
 bank_qr:
-  enabled: true
+  enabled: false
   currency: EUR
   show_amounts: true
   include_amount_in_qr: true
 
 bank:
+  label: "European Bank Transfer"
   iban: "NL48INGB0006762093"
   bic: "INGBNL2A"
   name: "Dani Morrison"

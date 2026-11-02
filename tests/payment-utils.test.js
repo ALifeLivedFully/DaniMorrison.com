@@ -73,3 +73,13 @@ test("bank QR can omit the amount", () => {
   });
   assert.equal(payload.split("\n")[7], "");
 });
+
+test("ENS API URLs and wallet records resolve by coin code", () => {
+  assert.equal(Utils.ensApiUrl("https://api.ensdata.net/{name}", "alifelivedfully.eth"),
+    "https://api.ensdata.net/alifelivedfully.eth");
+  const wallets = { eth: "0xabc", btc: "bc1qtest", xmr: "4test" };
+  assert.equal(Utils.ensAddress(wallets, "ETH"), "0xabc");
+  assert.equal(Utils.ensAddress(wallets, "btc"), "bc1qtest");
+  assert.equal(Utils.ensAddress(wallets, "dash"), "");
+  assert.equal(Utils.ensAddress({}, "eth"), "");
+});

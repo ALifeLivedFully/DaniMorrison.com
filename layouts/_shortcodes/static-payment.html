@@ -1,0 +1,11 @@
+{{- /*
+  Marks the spot where the static payment page takes over.
+
+      {{< static-payment >}}
+
+  The payment brick fills this page with the payment methods from
+  `data/<lang>/payment.yaml`; the browser script keeps the cart total, order
+  number and selected method in step. The `div#static-payment` marker is also
+  what routes the section: a `payment` rule in `params.sections` matches it.
+*/ -}}
+<div id="static-payment"></div>

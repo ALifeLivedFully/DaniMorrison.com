@@ -275,7 +275,6 @@ collections:
           - { label: Show cart icon, name: show_cart_icon, widget: boolean }
           - { label: Send order to mail, name: send_order_to_mail, widget: string, required: false }
           - { label: Form handler, name: form_handler, widget: string, required: false }
-          - { label: POS id, name: pos_id, widget: number, value_type: int, required: false }
           - { label: Currency code, name: currency_code, widget: string, required: false }
           - { label: Currency symbol, name: currency_symbol, widget: string, required: false }
           - label: Currency position

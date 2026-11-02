@@ -23,7 +23,7 @@ section.payment[data-payment-mode="simple"] > .container > p {
    Payment Container Card (Light Mode - Default)
    ========================================================================== */
 
-.usecue-payment-container {
+.static-payment-container {
   max-width: 520px;
   margin: 2rem auto;
   font-family: var(--fontBody);
@@ -36,15 +36,15 @@ section.payment[data-payment-mode="simple"] > .container > p {
 }
 
 /* Header */
-.usecue-payment-header {
+.static-payment-header {
   background: var(--light, #f8fafc);
   padding: 2rem 1.5rem 1.75rem;
   border-bottom: 1px solid var(--borderLight, #e2e8f0);
   text-align: center;
 }
 
-.usecue-payment-header h1,
-.usecue-payment-header h2 {
+.static-payment-header h1,
+.static-payment-header h2 {
   margin: 0 0 0.5rem 0;
   font-family: var(--fontTitles);
   font-size: 1.5rem;
@@ -53,7 +53,7 @@ section.payment[data-payment-mode="simple"] > .container > p {
   line-height: 1.2;
 }
 
-.usecue-payment-amount {
+.static-payment-amount {
   font-family: var(--fontTitles);
   font-size: 2.25rem;
   font-weight: 700;
@@ -63,38 +63,39 @@ section.payment[data-payment-mode="simple"] > .container > p {
   line-height: 1.1;
 }
 
-.usecue-payment-order {
+.static-payment-order {
   color: var(--textMedium);
   font-size: 0.9rem;
   font-weight: 500;
   margin: 0.25rem 0 0 0;
 }
 
-.usecue-payment-status {
+.static-payment-status {
   margin-top: 0.75rem;
   font-size: 0.88rem;
   line-height: 1.4;
 }
 
-.usecue-payment-status[data-state="error"] {
+.static-payment-status[data-state="error"] {
   color: #b42318;
   font-weight: 600;
 }
 
-.usecue-payment-converted {
+.static-payment-converted {
   margin: -0.35rem 0 1rem;
   color: var(--textMedium);
   font-size: 0.92rem;
   font-weight: 600;
+  text-align: center;
 }
 
 /* Body */
-.usecue-payment-body {
+.static-payment-body {
   padding: 1.75rem;
   background: #ffffff;
 }
 
-.usecue-payment-methods-label {
+.static-payment-methods-label {
   display: block;
   font-weight: 600;
   color: var(--textDark);
@@ -103,7 +104,7 @@ section.payment[data-payment-mode="simple"] > .container > p {
 }
 
 /* Method Selector */
-.usecue-payment-select {
+.static-payment-select {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
@@ -124,14 +125,14 @@ section.payment[data-payment-mode="simple"] > .container > p {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.usecue-payment-select:focus {
+.static-payment-select:focus {
   outline: 0.15rem solid var(--accentDarker);
   outline-offset: 2px;
   border-color: var(--accent);
 }
 
 /* Panels */
-.usecue-payment-panel {
+.static-payment-panel {
   display: none;
   padding: 1.5rem;
   background: var(--light, #f8fafc);
@@ -140,26 +141,32 @@ section.payment[data-payment-mode="simple"] > .container > p {
   margin-top: 1rem;
 }
 
-.usecue-payment-panel.active {
+.static-payment-panel.active {
   display: block;
-  animation: usecueFadeIn 0.2s ease-in-out;
+  animation: staticPaymentFadeIn 0.2s ease-in-out;
 }
 
-@keyframes usecueFadeIn {
+@keyframes staticPaymentFadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.usecue-payment-panel h3 {
+.static-payment-panel h3,
+.static-payment-panel-title {
   margin: 0 0 1rem 0;
   font-family: var(--fontTitles);
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--textDarker);
+  text-align: center;
 }
 
-/* Bank Info */
-.usecue-bank-info {
+.static-payment-panel {
+  text-align: center;
+}
+
+/* Bank / Crypto Info */
+.static-payment-bank-info {
   margin-bottom: 1.25rem;
   background: #ffffff;
   border: 1px solid var(--borderLight, #e2e8f0);
@@ -167,28 +174,78 @@ section.payment[data-payment-mode="simple"] > .container > p {
   padding: 0.5rem 1rem;
 }
 
-.usecue-bank-info > div {
+.static-payment-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.55rem 0;
   border-bottom: 1px solid var(--borderLight, #e2e8f0);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   font-size: 0.92rem;
   color: var(--textDark);
 }
 
-.usecue-bank-info > div:last-child {
+.static-payment-row:last-child {
   border-bottom: none;
 }
 
-.usecue-bank-info strong {
+.static-payment-row-label {
   color: var(--textDarker);
   font-weight: 600;
+  text-align: left;
 }
 
-.usecue-bank-instructions {
+.static-payment-row-value {
+  color: var(--textDarker);
+  font-weight: 600;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.static-payment-value-inner {
+  display: inline-block;
+  min-width: 100%;
+  text-align: center;
+}
+
+.static-payment-copy-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: #ffffff;
+  color: var(--textDark);
+  border: 1px solid var(--borderMedium);
+  border-radius: var(--radius-s, 0.4rem);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.static-payment-copy-inline svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.static-payment-copy-inline:hover {
+  background: var(--light, #f8fafc);
+  border-color: var(--textDark);
+}
+
+.static-payment-copy-inline.copied {
+  color: #067647;
+  border-color: #067647;
+}
+
+.static-payment-bank-instructions {
   background: #ffffff;
   padding: 1rem 1.25rem;
   border: 1px solid var(--borderLight, #e2e8f0);
@@ -196,26 +253,27 @@ section.payment[data-payment-mode="simple"] > .container > p {
   margin-top: 1.25rem;
   font-size: 0.88rem;
   color: var(--textMedium);
+  text-align: left;
 }
 
-.usecue-bank-instructions strong {
+.static-payment-bank-instructions strong {
   display: block;
   color: var(--textDarker);
   margin-bottom: 0.5rem;
   font-size: 0.92rem;
 }
 
-.usecue-bank-instructions ol {
+.static-payment-bank-instructions ol {
   margin: 0;
   padding-left: 1.25rem;
 }
 
-.usecue-bank-instructions li {
+.static-payment-bank-instructions li {
   margin: 0.3rem 0;
 }
 
 /* QR Code Display */
-.usecue-qr-container {
+.static-payment-qr-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -223,7 +281,11 @@ section.payment[data-payment-mode="simple"] > .container > p {
   text-align: center;
 }
 
-.usecue-qr-container > div,
+.static-payment-qr-container + .static-payment-pay-button {
+  margin-top: 0.75rem;
+}
+
+.static-payment-qr-container > div,
 .qr-themed {
   display: inline-flex !important;
   justify-content: center;
@@ -236,8 +298,8 @@ section.payment[data-payment-mode="simple"] > .container > p {
   line-height: 0 !important;
 }
 
-.usecue-qr-container canvas,
-.usecue-qr-container img {
+.static-payment-qr-container canvas,
+.static-payment-qr-container img {
   max-width: 180px !important;
   height: auto !important;
   border-radius: 4px;
@@ -245,13 +307,13 @@ section.payment[data-payment-mode="simple"] > .container > p {
 
 /* QRCode.js creates both a <canvas> and an <img>, hiding one of them.
    Respect the display:none style so the QR code is never doubled. */
-.usecue-qr-container canvas[style*="none"],
-.usecue-qr-container img[style*="none"] {
+.static-payment-qr-container canvas[style*="none"],
+.static-payment-qr-container img[style*="none"] {
   display: none !important;
 }
 
 /* Buttons */
-.usecue-pay-button {
+.static-payment-pay-button {
   display: block;
   width: 100%;
   padding: 0.8rem 1.5rem;
@@ -269,13 +331,13 @@ section.payment[data-payment-mode="simple"] > .container > p {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.usecue-pay-button:hover {
+.static-payment-pay-button:hover {
   background: var(--accentDarker);
   text-decoration: none;
   transform: translateY(-1px);
 }
 
-.usecue-copy-button {
+.static-payment-copy-button {
   display: block;
   width: 100%;
   padding: 0.65rem 1rem;
@@ -291,14 +353,14 @@ section.payment[data-payment-mode="simple"] > .container > p {
   transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
-.usecue-copy-button:hover {
+.static-payment-copy-button:hover {
   background: var(--light, #f8fafc);
   border-color: var(--textDark);
 }
 
 /* Crypto Address */
 .crypto-addr-box,
-.usecue-crypto-address {
+.static-payment-crypto-address {
   background: #ffffff;
   padding: 0.75rem 1rem;
   border: 1px solid var(--borderLight, #e2e8f0);
@@ -312,206 +374,161 @@ section.payment[data-payment-mode="simple"] > .container > p {
 }
 
 /* Claim / I Have Paid Section */
-.usecue-claim-section {
-  margin-top: 1.5rem;
+.static-payment-claim-section {
+  max-width: 32rem;
+  margin: 1.5rem auto 0;
   padding-top: 1.5rem;
   border-top: 1px solid var(--borderLight, #e2e8f0);
+  text-align: center;
 }
 
-.usecue-claim-toggle {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: var(--light, #f1f5f9);
-  border: 1px solid var(--borderLight, #e2e8f0);
-  border-radius: var(--radius-s, 0.4rem);
-  text-align: left;
-  cursor: pointer;
+.static-payment-claim-section > * {
+  text-align: center;
+}
+
+.static-payment-claim-title {
+  margin: 0 0 0.5rem;
+  color: var(--textDarker);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.static-payment-claim-copy {
+  margin: 0 0 0.9rem;
+  color: var(--textDark);
   font-size: 0.92rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--textDark);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.15s ease-in-out;
+  line-height: 1.45;
+  text-align: center;
 }
 
-.usecue-claim-toggle:hover {
-  background: var(--borderLight, #e2e8f0);
-}
-
-.usecue-claim-toggle::after {
-  content: "";
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  border: 0.12rem solid currentcolor;
-  border-inline-start: 0;
-  border-block-start: 0;
-  transform: rotate(45deg);
-  transition: transform 0.2s ease-in-out;
-}
-
-.usecue-claim-form {
+.static-payment-claim-form[hidden] {
   display: none;
-  padding: 1.25rem;
-  background: var(--light, #f8fafc);
-  border: 1px solid var(--borderLight, #e2e8f0);
-  border-top: none;
-  border-radius: 0 0 var(--radius-s, 0.4rem) var(--radius-s, 0.4rem);
 }
 
-.usecue-claim-form.active {
+.static-payment-claim-submit {
   display: block;
-}
-
-.usecue-claim-row {
-  margin-bottom: 0.85rem;
-}
-
-.usecue-claim-row label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--textDark);
-}
-
-.usecue-claim-row input,
-.usecue-claim-row textarea {
   width: 100%;
-  padding: 0.55rem 0.75rem;
-  background: #ffffff;
-  border: 1px solid var(--borderMedium);
-  border-radius: var(--radius-s, 0.4rem);
-  font-size: 0.9rem;
-  font-family: inherit;
-  color: var(--textDark);
   box-sizing: border-box;
-}
-
-.usecue-claim-row input:focus,
-.usecue-claim-row textarea:focus {
-  outline: 0.15rem solid var(--accentDarker);
-  outline-offset: 2px;
-  border-color: var(--accent);
-}
-
-.usecue-claim-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.usecue-claim-submit {
-  padding: 0.65rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   background: var(--accent);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-s, 0.4rem);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   font-family: inherit;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
   transition: background-color 0.15s ease-in-out, transform 0.08s ease-in-out;
 }
 
-.usecue-claim-submit:hover {
+.static-payment-claim-submit:hover {
   background: var(--accentDarker);
   transform: translateY(-1px);
-}
-
-.usecue-mailto-link {
-  color: var(--accentDarker);
-  font-size: 0.9rem;
-  font-weight: 600;
   text-decoration: none;
 }
 
-.usecue-mailto-link:hover {
-  text-decoration: underline;
+.static-payment-claim-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
 }
+
+.static-payment-claim-hint {
+  margin: 0.65rem 0 0;
+  color: var(--textMedium, #64748b);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.static-payment-claim-hint a {
+  color: var(--accentDarker);
+  font-weight: 600;
+}
+
 
 /* ==========================================================================
    Explicit Light Mode Enforcement (html[data-theme="light"])
    Guarantees light mode looks pristine regardless of OS preferences
    ========================================================================== */
 
-html[data-theme="light"] .usecue-payment-container {
+html[data-theme="light"] .static-payment-container {
   background: #ffffff !important;
   border-color: var(--borderLight, #e2e8f0) !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03) !important;
 }
 
-html[data-theme="light"] .usecue-payment-header {
+html[data-theme="light"] .static-payment-header {
   background: var(--light, #f8fafc) !important;
   border-bottom-color: var(--borderLight, #e2e8f0) !important;
 }
 
-html[data-theme="light"] .usecue-payment-header h1,
-html[data-theme="light"] .usecue-payment-header h2 {
+html[data-theme="light"] .static-payment-header h1,
+html[data-theme="light"] .static-payment-header h2 {
   color: var(--textDarker) !important;
 }
 
-html[data-theme="light"] .usecue-payment-amount {
+html[data-theme="light"] .static-payment-amount {
   color: var(--accentDarker, #e6ac00) !important;
 }
 
-html[data-theme="light"] .usecue-payment-order {
+html[data-theme="light"] .static-payment-order {
   color: var(--textMedium) !important;
 }
 
-html[data-theme="light"] .usecue-payment-body {
+html[data-theme="light"] .static-payment-body {
   background: #ffffff !important;
 }
 
-html[data-theme="light"] .usecue-payment-methods-label {
+html[data-theme="light"] .static-payment-methods-label {
   color: var(--textDark) !important;
 }
 
-html[data-theme="light"] .usecue-payment-select {
+html[data-theme="light"] .static-payment-select {
   background-color: #ffffff !important;
   border-color: var(--borderMedium) !important;
   color: var(--textDark) !important;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23263238' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
 }
 
-html[data-theme="light"] .usecue-payment-panel {
+html[data-theme="light"] .static-payment-panel {
   background: var(--light, #f8fafc) !important;
   border-color: var(--borderLight, #e2e8f0) !important;
   color: var(--textDark) !important;
 }
 
-html[data-theme="light"] .usecue-payment-panel h3 {
+html[data-theme="light"] .static-payment-panel h3 {
   color: var(--textDarker) !important;
 }
 
-html[data-theme="light"] .usecue-bank-info {
+html[data-theme="light"] .static-payment-bank-info {
   background: #ffffff !important;
   border-color: var(--borderLight, #e2e8f0) !important;
 }
 
-html[data-theme="light"] .usecue-bank-info > div {
+html[data-theme="light"] .static-payment-bank-info > div {
   color: var(--textDark) !important;
   border-bottom-color: var(--borderLight, #e2e8f0) !important;
 }
 
-html[data-theme="light"] .usecue-bank-info strong {
+html[data-theme="light"] .static-payment-bank-info strong {
   color: var(--textDarker) !important;
 }
 
-html[data-theme="light"] .usecue-bank-instructions {
+html[data-theme="light"] .static-payment-bank-instructions {
   background: #ffffff !important;
   border-color: var(--borderLight, #e2e8f0) !important;
   color: var(--textMedium) !important;
 }
 
-html[data-theme="light"] .usecue-bank-instructions strong {
+html[data-theme="light"] .static-payment-bank-instructions strong {
   color: var(--textDarker) !important;
 }
 
-html[data-theme="light"] .usecue-qr-container > div,
+html[data-theme="light"] .static-payment-qr-container > div,
 html[data-theme="light"] .qr-themed {
   background: #ffffff !important;
   border: 1px solid var(--borderMedium, #cbd5e1) !important;
@@ -519,35 +536,13 @@ html[data-theme="light"] .qr-themed {
 }
 
 html[data-theme="light"] .crypto-addr-box,
-html[data-theme="light"] .usecue-crypto-address {
+html[data-theme="light"] .static-payment-crypto-address {
   background: #ffffff !important;
   border-color: var(--borderLight, #e2e8f0) !important;
   color: var(--textDarker) !important;
 }
 
-html[data-theme="light"] .usecue-copy-button {
-  background: #ffffff !important;
-  border-color: var(--borderMedium) !important;
-  color: var(--textDark) !important;
-}
-
-html[data-theme="light"] .usecue-claim-toggle {
-  background: var(--light, #f1f5f9) !important;
-  border-color: var(--borderLight, #e2e8f0) !important;
-  color: var(--textDark) !important;
-}
-
-html[data-theme="light"] .usecue-claim-form {
-  background: var(--light, #f8fafc) !important;
-  border-color: var(--borderLight, #e2e8f0) !important;
-}
-
-html[data-theme="light"] .usecue-claim-row label {
-  color: var(--textDark) !important;
-}
-
-html[data-theme="light"] .usecue-claim-row input,
-html[data-theme="light"] .usecue-claim-row textarea {
+html[data-theme="light"] .static-payment-copy-button {
   background: #ffffff !important;
   border-color: var(--borderMedium) !important;
   color: var(--textDark) !important;
@@ -558,88 +553,107 @@ html[data-theme="light"] .usecue-claim-row textarea {
    Strictly scoped to data-theme="dark"
    ========================================================================== */
 
-html[data-theme="dark"] .usecue-payment-container {
+html[data-theme="dark"] .static-payment-container {
   background: #1a2228 !important;
   border-color: rgb(255 255 255 / 0.12) !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
 }
 
-html[data-theme="dark"] .usecue-payment-header {
+html[data-theme="dark"] .static-payment-header {
   background: #141c21 !important;
   border-bottom-color: rgb(255 255 255 / 0.08) !important;
 }
 
-html[data-theme="dark"] .usecue-payment-header h1,
-html[data-theme="dark"] .usecue-payment-header h2 {
+html[data-theme="dark"] .static-payment-header h1,
+html[data-theme="dark"] .static-payment-header h2 {
   color: #e9eef1 !important;
 }
 
-html[data-theme="dark"] .usecue-payment-amount {
+html[data-theme="dark"] .static-payment-amount {
   color: var(--accent) !important;
 }
 
-html[data-theme="dark"] .usecue-payment-order {
+html[data-theme="dark"] .static-payment-order {
   color: rgb(223 230 234 / 0.7) !important;
 }
 
-html[data-theme="dark"] .usecue-payment-converted {
+html[data-theme="dark"] .static-payment-converted {
   color: rgb(223 230 234 / 0.8) !important;
 }
 
-html[data-theme="dark"] .usecue-payment-status[data-state="error"] {
+html[data-theme="dark"] .static-payment-status[data-state="error"] {
   color: #fda29b !important;
 }
 
-html[data-theme="dark"] .usecue-payment-body {
+html[data-theme="dark"] .static-payment-body {
   background: #1a2228 !important;
 }
 
-html[data-theme="dark"] .usecue-payment-methods-label {
+html[data-theme="dark"] .static-payment-methods-label {
   color: #dfe6ea !important;
 }
 
-html[data-theme="dark"] .usecue-payment-select {
+html[data-theme="dark"] .static-payment-select {
   background-color: #161d22 !important;
   border-color: rgb(255 255 255 / 0.2) !important;
   color: #dfe6ea !important;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dfe6ea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
 }
 
-html[data-theme="dark"] .usecue-payment-panel {
+html[data-theme="dark"] .static-payment-panel {
   background: #161d22 !important;
   border-color: rgb(255 255 255 / 0.1) !important;
   color: #dfe6ea !important;
 }
 
-html[data-theme="dark"] .usecue-payment-panel h3 {
+html[data-theme="dark"] .static-payment-panel h3 {
   color: #e9eef1 !important;
 }
 
-html[data-theme="dark"] .usecue-bank-info {
+html[data-theme="dark"] .static-payment-bank-info {
   background: #12181c !important;
   border-color: rgb(255 255 255 / 0.1) !important;
 }
 
-html[data-theme="dark"] .usecue-bank-info > div {
+html[data-theme="dark"] .static-payment-bank-info > div,
+html[data-theme="dark"] .static-payment-row {
   color: #cbd5e1 !important;
   border-bottom-color: rgb(255 255 255 / 0.08) !important;
 }
 
-html[data-theme="dark"] .usecue-bank-info strong {
+html[data-theme="dark"] .static-payment-bank-info strong,
+html[data-theme="dark"] .static-payment-row-label,
+html[data-theme="dark"] .static-payment-row-value {
   color: #e9eef1 !important;
 }
 
-html[data-theme="dark"] .usecue-bank-instructions {
+html[data-theme="dark"] .static-payment-copy-inline {
+  background: #161d22 !important;
+  border-color: rgb(255 255 255 / 0.2) !important;
+  color: #dfe6ea !important;
+}
+
+html[data-theme="dark"] .static-payment-copy-inline:hover {
+  background: #1e282d !important;
+  border-color: rgb(255 255 255 / 0.35) !important;
+}
+
+html[data-theme="dark"] .static-payment-copy-inline.copied {
+  color: #6ce9a6 !important;
+  border-color: #6ce9a6 !important;
+}
+
+html[data-theme="dark"] .static-payment-bank-instructions {
   background: #12181c !important;
   border-color: rgb(255 255 255 / 0.1) !important;
   color: #cbd5e1 !important;
 }
 
-html[data-theme="dark"] .usecue-bank-instructions strong {
+html[data-theme="dark"] .static-payment-bank-instructions strong {
   color: #e9eef1 !important;
 }
 
-html[data-theme="dark"] .usecue-qr-container > div,
+html[data-theme="dark"] .static-payment-qr-container > div,
 html[data-theme="dark"] .qr-themed {
   background: #ffffff !important;
   border: 2px solid #38454c !important;
@@ -647,64 +661,50 @@ html[data-theme="dark"] .qr-themed {
 }
 
 html[data-theme="dark"] .crypto-addr-box,
-html[data-theme="dark"] .usecue-crypto-address {
+html[data-theme="dark"] .static-payment-crypto-address {
   background: #12181c !important;
   border-color: rgb(255 255 255 / 0.15) !important;
   color: #e9eef1 !important;
 }
 
-html[data-theme="dark"] .usecue-copy-button {
+html[data-theme="dark"] .static-payment-copy-button {
   background: #161d22 !important;
   border-color: rgb(255 255 255 / 0.2) !important;
   color: #dfe6ea !important;
 }
 
-html[data-theme="dark"] .usecue-copy-button:hover {
+html[data-theme="dark"] .static-payment-copy-button:hover {
   background: #1e282d !important;
   border-color: rgb(255 255 255 / 0.35) !important;
 }
 
-html[data-theme="dark"] .usecue-claim-section {
+html[data-theme="dark"] .static-payment-claim-section {
   border-top-color: rgb(255 255 255 / 0.1) !important;
 }
 
-html[data-theme="dark"] .usecue-claim-toggle {
-  background: #161d22 !important;
-  border-color: rgb(255 255 255 / 0.15) !important;
-  color: #dfe6ea !important;
-}
-
-html[data-theme="dark"] .usecue-claim-toggle:hover {
-  background: #1e282d !important;
-}
-
-html[data-theme="dark"] .usecue-claim-form {
-  background: #161d22 !important;
-  border-color: rgb(255 255 255 / 0.1) !important;
-}
-
-html[data-theme="dark"] .usecue-claim-row label {
-  color: #dfe6ea !important;
-}
-
-html[data-theme="dark"] .usecue-claim-row input,
-html[data-theme="dark"] .usecue-claim-row textarea {
-  background: #12181c !important;
-  border-color: rgb(255 255 255 / 0.2) !important;
-  color: #e9eef1 !important;
-}
-
-html[data-theme="dark"] .usecue-pay-button,
-html[data-theme="dark"] .usecue-claim-submit {
+html[data-theme="dark"] .static-payment-pay-button,
+html[data-theme="dark"] .static-payment-claim-submit {
   background: var(--accent) !important;
   color: #ffffff !important;
 }
 
-html[data-theme="dark"] .usecue-pay-button:hover,
-html[data-theme="dark"] .usecue-claim-submit:hover {
+html[data-theme="dark"] .static-payment-pay-button:hover,
+html[data-theme="dark"] .static-payment-claim-submit:hover {
   background: var(--accentDarker) !important;
 }
 
-html[data-theme="dark"] .usecue-mailto-link {
+html[data-theme="dark"] .static-payment-claim-title {
+  color: #e9eef1 !important;
+}
+
+html[data-theme="dark"] .static-payment-claim-copy {
+  color: #dfe6ea !important;
+}
+
+html[data-theme="dark"] .static-payment-claim-hint {
+  color: #9fb0ba !important;
+}
+
+html[data-theme="dark"] .static-payment-claim-hint a {
   color: var(--accent) !important;
 }

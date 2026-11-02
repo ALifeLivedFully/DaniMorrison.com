@@ -1,5 +1,8 @@
 ---
 title: Shop
+# `shop` renders the page's catalog JSON, layouts/page.shop.json, as
+# shop/index.json — the URL the checkout worker validates orders against.
+outputs: [html, shop]
 ---
 
 # Shop

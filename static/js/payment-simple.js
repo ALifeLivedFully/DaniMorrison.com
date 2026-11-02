@@ -177,13 +177,12 @@
       var conversion = await conversionFor(bankCurrency);
       if (requestId !== activeRequest) return;
       var reference = bankReference();
-      setConverted(document.getElementById('bank-converted-amount'), conversion, bankShowAmounts);
       var amount = document.getElementById('bank-amount');
       if (amount) amount.textContent = bankShowAmounts ? conversion.formattedAmount : '';
       var amountRow = document.getElementById('bank-amount-row');
       if (amountRow) amountRow.style.display = bankShowAmounts ? '' : 'none';
       var currencyLabel = document.getElementById('bank-currency-label');
-      if (currencyLabel) currencyLabel.textContent = conversion.currency;
+      if (currencyLabel) currencyLabel.textContent = bankShowAmounts ? conversion.currency : '';
       var referenceEl = document.getElementById('bank-reference');
       if (referenceEl) referenceEl.textContent = reference;
       var epc = PU.buildEpcPayload({
@@ -221,7 +220,7 @@
       }, conversion, order);
       if (link) link.href = url || '#';
       var showQr = panel.getAttribute('data-qr') !== 'false';
-      var qrContainer = panel.querySelector('.usecue-qr-container');
+      var qrContainer = panel.querySelector('.static-payment-qr-container');
       if (qrContainer) qrContainer.style.display = showQr ? '' : 'none';
       if (showQr && url) {
         setTimeout(function() {
@@ -233,61 +232,103 @@
       if (requestId !== activeRequest) return;
       setStatus(errorText(error, currency), 'error');
       if (link) link.href = '#';
-      var qrContainer = panel.querySelector('.usecue-qr-container');
+      var qrContainer = panel.querySelector('.static-payment-qr-container');
       if (qrContainer) qrContainer.style.display = 'none';
     }
   }
 
   var cryptoRequestId = 0;
+  var ensWalletsCache = {};
 
-  async function renderCrypto(select, requestId) {
-    var option = select && select.options[select.selectedIndex];
+  function ensApiUrl(template, name) {
+    if (PU && PU.ensApiUrl) return PU.ensApiUrl(template, name);
+    return String(template || "").replace(/\{name\}/g, encodeURIComponent(name || ""));
+  }
+
+  function ensAddress(wallets, coin) {
+    if (PU && PU.ensAddress) return PU.ensAddress(wallets, coin);
+    if (!wallets || !coin) return "";
+    var address = wallets[String(coin).toLowerCase()];
+    return typeof address === "string" ? address.trim() : "";
+  }
+
+  async function resolveEnsAddress(panel, coin) {
+    if (!panel || panel.getAttribute('data-ens-runtime') !== 'true') return '';
+    var name = panel.getAttribute('data-ens-name') || '';
+    if (!name) return '';
+    var url = ensApiUrl(panel.getAttribute('data-ens-api'), name);
+    if (!ensWalletsCache[url]) {
+      ensWalletsCache[url] = Promise.resolve().then(function() {
+        if (!window.fetch) throw new Error('fetch unavailable');
+        return window.fetch(url, { headers: { Accept: 'application/json' } });
+      }).then(function(response) {
+        if (!response || !response.ok) throw new Error('ENS lookup failed');
+        return response.json();
+      }).then(function(data) {
+        return data && data.wallets && typeof data.wallets === 'object' ? data.wallets : {};
+      });
+    }
+    try {
+      return ensAddress(await ensWalletsCache[url], coin);
+    } catch (error) {
+      return '';
+    }
+  }
+
+  async function renderCrypto(option, requestId) {
+    var panel = document.getElementById('panel-crypto');
+    if (!option || !panel) return;
     var display = document.getElementById('crypto-display');
-    var addressText = document.getElementById('crypto-addr-text');
+    var title = document.getElementById('crypto-title');
+    var ensName = document.getElementById('crypto-ens');
+    var addressText = document.getElementById('crypto-address');
+    var amountEl = document.getElementById('crypto-amount');
+    var instructionCurrency = document.getElementById('crypto-instruction-currency');
     var payButton = document.getElementById('crypto-pay-link');
     var payCoin = document.getElementById('crypto-pay-coin');
-    var copyUri = document.getElementById('copy-crypto-uri-btn');
     var qrBox = document.getElementById('crypto-qr-box');
-    var converted = document.getElementById('crypto-converted-amount');
-    var qrContainer = display ? display.querySelector('.usecue-qr-container') : null;
+    var qrContainer = qrBox && qrBox.closest ? qrBox.closest('.static-payment-qr-container') : null;
 
-    if (!option) return;
     var address = option.getAttribute('data-address') || '';
     var template = option.getAttribute('data-template') || '';
-    var currency = (option.getAttribute('data-currency') || option.value || '').toUpperCase();
+    var coin = option.getAttribute('data-coin') || '';
+    var currency = (option.getAttribute('data-currency') || coin || '').toUpperCase();
     var showQr = option.getAttribute('data-qr') !== 'false';
-    var coinName = option.textContent || currency;
+    var coinName = (option.textContent || currency || '').trim();
 
     if (!address) {
+      address = await resolveEnsAddress(panel, coin);
+      if (requestId !== cryptoRequestId) return;
+      if (!address && panel.getAttribute('data-ens-fallback') !== 'false') {
+        address = option.getAttribute('data-config-address') || '';
+      }
+      if (address) option.setAttribute('data-address', address);
+    }
+    if (!address) {
       if (display) display.style.display = 'none';
-      setConverted(converted, null, false);
       return;
     }
-    if (display) display.style.display = 'block';
+    if (display) display.style.display = '';
+    if (title) title.textContent = coinName || 'Cryptocurrency';
+    if (ensName) ensName.textContent = panel.getAttribute('data-ens-name') || '';
     if (addressText) addressText.textContent = address;
+    if (qrBox) qrBox.innerHTML = '';
     if (payButton) payButton.style.display = 'none';
-    if (copyUri) copyUri.style.display = 'none';
 
     try {
       var conversion = await conversionFor(currency);
       if (requestId !== cryptoRequestId) return;
-      setConverted(converted, conversion, currencyConfig.display ? currencyConfig.display.show_amounts !== false : true);
+      if (amountEl) amountEl.textContent = conversion.amount;
+      if (instructionCurrency) instructionCurrency.textContent = conversion.currency;
+
       var uri = PU.buildPaymentUrl({ template: template, address: address }, conversion, order);
       if (payButton) {
         if (uri && uri.indexOf(':') !== -1) {
           payButton.href = uri;
           if (payCoin) payCoin.textContent = coinName;
-          payButton.style.display = 'block';
+          payButton.style.display = '';
         } else {
           payButton.style.display = 'none';
-        }
-      }
-      if (copyUri) {
-        if (uri) {
-          copyUri.setAttribute('data-uri', uri);
-          copyUri.style.display = 'block';
-        } else {
-          copyUri.style.display = 'none';
         }
       }
       if (qrContainer) qrContainer.style.display = showQr ? '' : 'none';
@@ -302,32 +343,47 @@
       setStatus(errorText(error, currency), 'error');
       if (qrBox) qrBox.innerHTML = '';
       if (qrContainer) qrContainer.style.display = 'none';
-      setConverted(converted, null, false);
+      if (amountEl) amountEl.textContent = '';
     }
   }
 
+  function copyText(text, button, iconOnly) {
+    if (!text || !button || !navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(function() {
+      if (iconOnly) {
+        button.classList.add('copied');
+        setTimeout(function() { button.classList.remove('copied'); }, 1200);
+        return;
+      }
+      var original = button.textContent;
+      button.textContent = 'Copied!';
+      setTimeout(function() { button.textContent = original; }, 1200);
+    });
+  }
+
   var activeRequest = 0;
-  var methodSelect = document.getElementById('usecue-payment-method');
+  var methodSelect = document.getElementById('static-payment-method');
   if (methodSelect) {
     methodSelect.addEventListener('change', function() {
       activeRequest += 1;
       cryptoRequestId += 1;
       var requestId = activeRequest;
-      document.querySelectorAll('.usecue-payment-panel').forEach(function(panel) {
+      document.querySelectorAll('.static-payment-panel').forEach(function(panel) {
         panel.classList.remove('active');
       });
       setStatus('', '');
       var value = this.value;
       if (!value) return;
+      var option = this.options ? this.options[this.selectedIndex] : null;
+      var coin = option && option.getAttribute ? option.getAttribute('data-coin') : '';
       if (value === 'bank') {
         var bankPanel = document.getElementById('panel-bank');
         if (bankPanel) bankPanel.classList.add('active');
         renderBank(requestId);
-      } else if (value === 'crypto') {
+      } else if (coin) {
         var cryptoPanel = document.getElementById('panel-crypto');
         if (cryptoPanel) cryptoPanel.classList.add('active');
-        var coinSelect = document.getElementById('crypto-coin-select');
-        if (coinSelect && coinSelect.value) renderCrypto(coinSelect, ++cryptoRequestId);
+        renderCrypto(option, ++cryptoRequestId);
       } else {
         var panel = document.getElementById('panel-' + value);
         if (panel) {
@@ -338,77 +394,121 @@
     });
   }
 
-  var cryptoSelect = document.getElementById('crypto-coin-select');
-  if (cryptoSelect) {
-    cryptoSelect.addEventListener('change', function() {
-      renderCrypto(this, ++cryptoRequestId);
+  document.querySelectorAll('[data-copy-target]').forEach(function(button) {
+    button.addEventListener('click', function() {
+      var target = document.getElementById(this.getAttribute('data-copy-target'));
+      if (!target) return;
+      copyText(target.textContent.trim(), this, true);
     });
-  }
-
-  var copyAddress = document.getElementById('copy-crypto-addr-btn');
-  if (copyAddress) {
-    copyAddress.addEventListener('click', function() {
-      var address = document.getElementById('crypto-addr-text');
-      if (!address) return;
-      navigator.clipboard.writeText(address.textContent).then(function() {
-        var original = copyAddress.textContent;
-        copyAddress.textContent = 'Copied!';
-        setTimeout(function() { copyAddress.textContent = original; }, 1200);
-      });
-    });
-  }
-
-  var copyCryptoUriBtn = document.getElementById('copy-crypto-uri-btn');
-  if (copyCryptoUriBtn) {
-    copyCryptoUriBtn.addEventListener('click', function() {
-      var uri = this.getAttribute('data-uri');
-      if (!uri) return;
-      navigator.clipboard.writeText(uri).then(function() {
-        var original = copyCryptoUriBtn.textContent;
-        copyCryptoUriBtn.textContent = 'Copied!';
-        setTimeout(function() { copyCryptoUriBtn.textContent = original; }, 1200);
-      });
-    });
-  }
+  });
 
   document.querySelectorAll('.copy-ext-link').forEach(function(button) {
     button.addEventListener('click', function() {
-      var panel = document.querySelector('.usecue-payment-panel.active');
+      var panel = document.querySelector('.static-payment-panel.active');
       if (!panel) return;
       var link = panel.querySelector('.pay-link-external');
       if (link && link.href && link.href !== '#') {
-        navigator.clipboard.writeText(link.href).then(function() {
-          var original = button.textContent;
-          button.textContent = 'Copied!';
-          setTimeout(function() { button.textContent = original; }, 1200);
-        });
+        copyText(link.href, button);
       }
     });
   });
 
-  var claimToggle = document.getElementById('claim-toggle');
-  if (claimToggle) {
-    claimToggle.addEventListener('click', function() {
-      var form = document.getElementById('claim-form');
-      if (form) form.classList.toggle('active');
-    });
+  var claimSection = document.querySelector('.static-payment-claim-section');
+  var claimForm = document.getElementById('claim-form');
+  var claimAction = document.getElementById('claim-action');
+  var claimOrder = document.getElementById('claim-order');
+  var claimEmail = document.getElementById('claim-email');
+  var claimMethod = document.getElementById('claim-payment-method');
+  var claimMessage = document.getElementById('claim-message');
+  var claimEmailFallback = document.getElementById('claim-email-fallback');
+  var orderEmail = (section.getAttribute('data-order-email') || '').trim();
+  var savedEmail = '';
+  try { savedEmail = (localStorage.getItem('email') || '').trim(); } catch (error) { savedEmail = ''; }
+
+  function selectedClaimMethod() {
+    var method = document.getElementById('static-payment-method');
+    if (!method || !method.value) return '';
+    var option = method.options ? method.options[method.selectedIndex] : null;
+    var label = option ? (option.textContent || '') : '';
+    return (label || method.value).trim();
   }
 
-  var claimForm = document.getElementById('claim-form');
+  function claimMessageText(method) {
+    var lines = ['I have paid for this order.'];
+    var details = [];
+    if (order) details.push('Order number: ' + order);
+    if (method) details.push('Payment method: ' + method);
+    if (total && total !== '0') details.push('Amount: ' + formatShop(total));
+    if (details.length) lines.push('', details.join('\n'));
+    return lines.join('\n');
+  }
+
+  function claimMailto(method) {
+    var subject = 'Payment Claim' + (order ? ' ' + order : '');
+    var url = 'mailto:' + orderEmail + '?subject=' + encodeURIComponent(subject);
+    var body = claimMessageText(method);
+    if (body) url += '&body=' + encodeURIComponent(body);
+    return url;
+  }
+
+  function syncClaim() {
+    var method = selectedClaimMethod();
+    if (claimOrder) claimOrder.value = order || '';
+    if (claimEmail) claimEmail.value = savedEmail;
+    if (claimMethod) claimMethod.value = method;
+    if (claimMessage) claimMessage.value = claimMessageText(method);
+    if (claimAction && claimSection && claimSection.getAttribute('data-claim-mode') === 'mailto' && orderEmail) {
+      claimAction.href = claimMailto(method);
+    }
+    if (claimEmailFallback && orderEmail) claimEmailFallback.href = claimMailto(method);
+  }
+
+  syncClaim();
+  if (methodSelect) methodSelect.addEventListener('change', syncClaim);
+
   if (claimForm) {
     claimForm.addEventListener('submit', function(event) {
-      if (window.fetch) {
-        event.preventDefault();
-        fetch(this.action, { method: 'POST', body: new FormData(this), mode: 'no-cors', keepalive: true }).catch(function() {});
-        window.location.href = this.querySelector('input[name="_next"]').value;
-      }
-    });
-  }
+      if (!window.fetch) return;
+      event.preventDefault();
 
-  var mailto = document.querySelector('.usecue-mailto-link');
-  var orderEmail = (section.getAttribute('data-order-email') || '').trim();
-  if (mailto && order && orderEmail) {
-    mailto.href = 'mailto:' + orderEmail + '?subject=' + encodeURIComponent('Payment Claim ' + order);
+      var email = savedEmail;
+      if (!email && typeof window.prompt === 'function') {
+        email = (window.prompt('Email address used for this order:', '') || '').trim();
+      }
+      if (!email) {
+        setStatus('Enter the email address used at checkout to complete your order.', 'error');
+        return;
+      }
+      savedEmail = email;
+      try { localStorage.setItem('email', savedEmail); } catch (error) { /* storage is optional */ }
+      syncClaim();
+
+      var nextInput = claimForm.querySelector('input[name="_next"]');
+      var nextUrl = nextInput ? nextInput.value : '';
+      var original = claimAction ? claimAction.textContent : '';
+      if (claimAction) {
+        claimAction.disabled = true;
+        claimAction.textContent = 'Sending...';
+      }
+      var restore = function() {
+        if (!claimAction) return;
+        claimAction.disabled = false;
+        claimAction.textContent = original;
+      };
+
+      fetch(claimForm.action, {
+        method: 'POST',
+        body: new FormData(claimForm),
+        mode: 'no-cors',
+        keepalive: true
+      }).then(function() {
+        if (nextUrl) window.location.href = nextUrl;
+        else restore();
+      }).catch(function() {
+        restore();
+        setStatus('Could not send the payment confirmation. Please use the email link and try again.', 'error');
+      });
+    });
   }
 
   if (!resolver) setStatus('Currency conversion is unavailable on this page.', 'error');

@@ -57,7 +57,7 @@ class Element {
   }
 }
 
-function createPage() {
+function createPage(options = {}) {
   const section = new Element({
     "data-payment-mode": "simple",
     "data-shop-currency": "USD",
@@ -75,11 +75,27 @@ function createPage() {
   });
   const select = new Element();
   const bankPanel = new Element();
-  bankPanel.classList.add("usecue-payment-panel");
+  bankPanel.classList.add("static-payment-panel");
+  const claimSection = new Element({ "data-claim-mode": options.claimMode || "mailto" });
+  const claimAction = new Element();
+  const claimForm = new Element();
+  const claimOrder = new Element();
+  const claimEmail = new Element();
+  const claimMethod = new Element();
+  const claimMessage = new Element();
+  const claimNext = new Element();
+  claimNext.value = "https://example.com/thankyou/";
+  claimForm.action = "https://worker.example/claim";
+  claimForm.querySelector = (selector) => {
+    const match = /input\[name="([^"]+)"\]/.exec(selector);
+    if (!match) return null;
+    if (match[1] === "_next") return claimNext;
+    return null;
+  };
   const elements = {
     "paymenttotal": new Element(),
     "payment-status": new Element(),
-    "usecue-payment-method": select,
+    "static-payment-method": select,
     "panel-bank": bankPanel,
     "bank-converted-amount": new Element(),
     "bank-amount": new Element(),
@@ -88,29 +104,42 @@ function createPage() {
     "bank-reference": new Element(),
     "epc-qr": new Element(),
     "payment-config": new Element(),
-    "exchange-prefetched": new Element()
+    "exchange-prefetched": new Element(),
+    "claim-action": claimAction,
+    "claim-form": claimForm,
+    "claim-order": claimOrder,
+    "claim-email": claimEmail,
+    "claim-payment-method": claimMethod,
+    "claim-message": claimMessage
   };
   elements["payment-config"].textContent = JSON.stringify(config);
   elements["exchange-prefetched"].textContent = "{}";
 
+  const store = options.store || {};
   const document = {
     documentElement: { lang: "en" },
     head: { appendChild() {} },
     getElementById: (id) => elements[id] || null,
-    querySelector: (selector) => selector === "section.payment" ? section : null,
-    querySelectorAll: (selector) => selector === ".usecue-payment-panel" ? [bankPanel] : [],
+    querySelector: (selector) => {
+      if (selector === "section.payment") return section;
+      if (selector === ".static-payment-claim-section") return claimSection;
+      return null;
+    },
+    querySelectorAll: (selector) => selector === ".static-payment-panel" ? [bankPanel] : [],
     createElement: () => new Element()
   };
   const page = {
     document,
     location: { search: "" },
     localStorage: {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {}
+      getItem: (key) => Object.prototype.hasOwnProperty.call(store, key) ? String(store[key]) : null,
+      setItem: (key, value) => { store[key] = String(value); },
+      removeItem: (key) => { delete store[key]; }
     },
     navigator: { clipboard: { writeText: async () => {} } },
-    fetch: async () => { throw new Error("offline"); },
+    fetch: options.fetch || (async () => { throw new Error("offline"); }),
+    prompt: options.prompt,
+    FormData: options.FormData,
     URLSearchParams,
     Intl,
     setTimeout,
@@ -120,7 +149,7 @@ function createPage() {
   page.window = page;
   vm.createContext(page);
   sources.forEach((source) => vm.runInContext(source, page));
-  return { page, select, bankPanel };
+  return { page, select, bankPanel, claimSection, claimAction, claimForm, claimOrder, claimEmail, claimMethod, claimMessage, store };
 }
 
 test("selecting a payment method activates its panel in the browser", async () => {
@@ -138,4 +167,63 @@ test("selecting a payment method activates its panel in the browser", async () =
   assert.equal(bankPanel.classList.contains("active"), false);
 
   assert.equal(page.document.getElementById("payment-status").textContent, "");
+});
+
+test("the paid button is pre-addressed as a mailto fallback with order details", async () => {
+  const { select, claimAction, claimOrder, claimEmail, claimMethod, claimMessage } = createPage({
+    claimMode: "mailto",
+    store: { ordernumber: "12345", email: "buyer@example.com" }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+
+  const href = decodeURIComponent(claimAction.href);
+  assert.match(href, /^mailto:test@example\.com\?/);
+  assert.match(href, /subject=Payment Claim 12345/);
+  assert.match(href, /Order number: 12345/);
+  assert.match(href, /Payment method: Bank Transfer \(SEPA\/EPC\)/);
+  assert.doesNotMatch(href, /Email: buyer@example\.com/);
+  assert.equal(claimOrder.value, "12345");
+  assert.equal(claimEmail.value, "buyer@example.com");
+  assert.equal(claimMethod.value, "Bank Transfer (SEPA/EPC)");
+  assert.match(claimMessage.value, /Order number: 12345/);
+});
+
+test("the paid button submits the hidden claim form when a worker is connected", async () => {
+  const posted = [];
+  class FakeFormData {
+    constructor(form) { this.form = form; }
+  }
+  const { page, select, claimForm, claimOrder, claimEmail, claimMethod, claimMessage } = createPage({
+    claimMode: "worker",
+    store: { ordernumber: "12345", email: "buyer@example.com" },
+    FormData: FakeFormData,
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+
+  let prevented = false;
+  claimForm.listeners.submit[0]({ preventDefault: () => { prevented = true; } });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(prevented, true);
+  assert.equal(claimOrder.value, "12345");
+  assert.equal(claimEmail.value, "buyer@example.com");
+  assert.equal(claimMethod.value, "Bank Transfer (SEPA/EPC)");
+  assert.match(claimMessage.value, /Payment method: Bank Transfer \(SEPA\/EPC\)/);
+  assert.equal(posted.length, 1);
+  assert.equal(posted[0].url, "https://worker.example/claim");
+  assert.equal(posted[0].options.method, "POST");
+  assert.equal(posted[0].options.mode, "no-cors");
+  assert.equal(posted[0].options.keepalive, true);
+  assert.ok(posted[0].options.body instanceof FakeFormData);
+  assert.equal(page.location.href, "https://example.com/thankyou/");
 });

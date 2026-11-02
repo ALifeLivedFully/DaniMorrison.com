@@ -1,4 +1,7 @@
-{{- $p := .Site.Data.payment -}}
+{{- $bundle := (partial "data.html" .) -}}
+{{- /* Only `en` carries a `payment.yaml`; other languages fall back to it. */ -}}
+{{- if not $bundle.payment -}}{{- $bundle = hugo.Data.en -}}{{- end -}}
+{{- $p := $bundle.payment -}}
 {{- $currency := $p.currency -}}
 {{- $bankQR := $p.bank_qr -}}
 {{- if not $bankQR -}}{{- $bankQR = $currency.bank_qr -}}{{- end -}}
@@ -16,7 +19,7 @@
     "include_amount_in_qr" (default true $bankQR.include_amount_in_qr)
   )
   "bank" ($p.bank | default dict)
-  "catalog_url" (printf "%s%s/shop/index.json" .Site.BaseURL .Site.Language.Lang)
+  "catalog_url" (printf "%s/shop/index.json" (strings.TrimSuffix "/" .Site.BaseURL))
   "payment_methods" $p.payment_links
   "legal_checks" (dict "terms" true "address" true "age" true)
   "stripe" (dict "enabled" true "mode" "test")

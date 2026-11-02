@@ -29,7 +29,7 @@ Below you find a list of all shortcodes in this project:
 - [socialbuttons](/docs/shortcodes/socialbuttons/) — the social links from `data/<lang>/footer.yaml`
 - [tabs](/docs/shortcodes/tabs/) — runs of markdown behind a tablist, one tab per `## Heading`
 - [team](/docs/shortcodes/team/) — the grid of people from `data/<lang>/people.yaml`
-- [usecue-payment](/docs/shortcodes/usecue-payment/) — the embedded Usecue payment page
+- [static-payment](/docs/shortcodes/static-payment/) — the static payment page
 - [video](/docs/shortcodes/video/) — a self-hosted HTML5 video
 - [vimeo](/docs/shortcodes/vimeo/) — a Vimeo poster linking out, no iframe and no cookies
 - [youtube](/docs/shortcodes/youtube/) — a YouTube poster linking out, no iframe and no cookies

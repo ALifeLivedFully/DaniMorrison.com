@@ -1,0 +1,40 @@
+{{- /*
+  Resolves multichain wallet records for an ENS name at build time.
+
+  Input: dict with `name` and optional `api_url` (use `{name}` as the
+  placeholder). The default provider is ensdata.net. Returns a map keyed by
+  lower-case coin code, for example `eth`, `btc`, `ltc`, `xmr`, `dash`.
+  A failed or malformed lookup returns an empty map; the caller decides
+  whether to fall back to configured addresses.
+*/ -}}
+{{- $name := .name | default "" -}}
+{{- $wallets := dict -}}
+{{- if $name -}}
+  {{- $api := .api_url | default (getenv "HUGO_ENS_API_URL") | default "https://api.ensdata.net/{name}" -}}
+  {{- $url := replace $api "{name}" (urlquery $name) -}}
+  {{- $remote := try (resources.GetRemote $url (dict "headers" (dict "Accept" "application/json"))) -}}
+  {{- with $remote.Err -}}
+    {{- warnf "ENS lookup failed for %s: %s" $name . -}}
+  {{- else -}}
+    {{- $data := dict -}}
+    {{- $parsed := try (transform.Unmarshal $remote.Value.Content) -}}
+    {{- with $parsed.Err -}}
+      {{- warnf "ENS lookup returned malformed JSON for %s: %s" $name . -}}
+    {{- else -}}
+      {{- $data = $parsed.Value -}}
+    {{- end -}}
+    {{- with $data.wallets -}}
+      {{- range $coin, $address := . -}}
+        {{- with $address -}}
+          {{- $wallets = merge $wallets (dict (lower $coin) (printf "%v" .)) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- with $data.address -}}
+      {{- if not (index $wallets "eth") -}}
+        {{- $wallets = merge $wallets (dict "eth" (printf "%v" .)) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $wallets -}}

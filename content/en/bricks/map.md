@@ -6,9 +6,6 @@ title: map
 
 ## Contact us
 
-Usecue BV\
-Soetendaal 7\
-1081BL Amsterdam\
-The Netherlands
+Dani Morrison
 
 {{< contactbuttons >}}

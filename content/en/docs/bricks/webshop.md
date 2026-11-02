@@ -22,8 +22,8 @@ You can force the use of this block by writing:
 
 ## Cart, checkout and payment
 
-The rest of the shop is settled in `data/<lang>/webshop.yaml`: the currency, the page links, the shipping options, the custom values (gift wrapping, engraving), the form handler the order is posted to (`form_handler`), the order email (`send_order_to_mail`) used by the checkout and payment mail links, and the Usecue POS account (`pos_id`) that takes the payment. `show_cart_icon` puts the cart in the banner and loads the javascript.
+The rest of the shop is settled in `data/<lang>/webshop.yaml`: the currency, the page links, the shipping options, the custom values (gift wrapping, engraving), the form handler the order is posted to (`form_handler`), the order email (`send_order_to_mail`) used by the checkout and payment mail links, and the payment methods. `show_cart_icon` puts the cart in the banner and loads the javascript.
 
 Product prices stay in the shop currency. Exchange rates, provider-currency overrides, cryptocurrency amounts and the bank QR currency are configured in `data/<lang>/payment.yaml`; see [Payment settings](/docs/settings/payment/). Keep `webshop.yaml`'s `currency_code` and `currency_symbol` in step with `payment.yaml`'s `currency.shop`.
 
-The cart, checkout and payment pages each have a brick of their own, picked by what the [cart](/docs/shortcodes/cart/), [checkout](/docs/shortcodes/checkout/) and [usecue-payment](/docs/shortcodes/usecue-payment/) shortcodes render.
+The cart, checkout and payment pages each have a brick of their own, picked by what the [cart](/docs/shortcodes/cart/), [checkout](/docs/shortcodes/checkout/) and [static-payment](/docs/shortcodes/static-payment/) shortcodes render.

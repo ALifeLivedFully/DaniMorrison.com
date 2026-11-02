@@ -58,6 +58,17 @@
         });
     }
 
+    function ensApiUrl(template, name) {
+        template = template || "https://api.ensdata.net/{name}";
+        return String(template).replace(/\{name\}/g, encodeURIComponent(name || ""));
+    }
+
+    function ensAddress(wallets, coin) {
+        if (!wallets || !coin) return "";
+        var address = wallets[String(coin).toLowerCase()];
+        return typeof address === "string" ? address.trim() : "";
+    }
+
     function buildEpcPayload(options) {
         options = options || {};
         var bic = String(options.bic || "").replace(/\s/g, "");
@@ -87,6 +98,8 @@
         paymentAmount: paymentAmount,
         displayAmount: displayAmount,
         buildPaymentUrl: buildPaymentUrl,
-        buildEpcPayload: buildEpcPayload
+        buildEpcPayload: buildEpcPayload,
+        ensApiUrl: ensApiUrl,
+        ensAddress: ensAddress
     };
 }));

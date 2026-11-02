@@ -7,6 +7,7 @@
 	"name": "shop",
 	"main": "src/index.js",
 	"compatibility_date": "2026-05-28",
+	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
 	},
@@ -22,11 +23,12 @@
 	 * databases, object storage, AI inference, real-time communication and more.
 	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
 	 */
-	"d1_databases": [
+  "d1_databases": [
           {
             "binding": "orders",
             "database_name": "orders",
-            "database_id": "034ada32-5980-48c3-a981-f9bf3bdcdb33"
+            "database_id": "034ada32-5980-48c3-a981-f9bf3bdcdb33",
+            "migrations_dir": "migrations"
           }
         ]
 	/**

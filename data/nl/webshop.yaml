@@ -5,8 +5,7 @@ thankyou_link: /thankyou
 products_link: /shop
 show_cart_icon: true
 send_order_to_mail: joost@vdschee.nl
-form_handler: https://www.usecue.com/hugobricksform.php
-pos_id: 21
+form_handler: http://localhost:8787/
 currency_code: EUR
 currency_symbol: €
 currency_position: prefix
