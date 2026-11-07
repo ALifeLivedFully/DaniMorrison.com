@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "workers/shop/**"
-      - ".github/workflows/deploy-shop.yml"
+      - ".github/workflows/deploy-shop-worker.yml"
   workflow_dispatch:
 
 jobs:
@@ -13,6 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/shop
+          command: d1 migrations apply orders --remote
 
       - uses: cloudflare/wrangler-action@v4
         with:

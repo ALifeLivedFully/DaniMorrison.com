@@ -165,3 +165,8 @@ dist
 .env*
 !.env.example
 .wrangler/
+
+# node:sqlite local database
+shop.sqlite
+shop.sqlite-shm
+shop.sqlite-wal

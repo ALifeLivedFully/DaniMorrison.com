@@ -2,10 +2,14 @@
   "name": "shop",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "npm run migrate:local && wrangler dev",
+    "start": "npm run migrate:local && wrangler dev",
+    "start:node": "node src/node.js",
+    "migrate:local": "wrangler d1 migrations apply orders --local",
+    "migrate:remote": "wrangler d1 migrations apply orders --remote",
     "test": "vitest"
   },
   "devDependencies": {

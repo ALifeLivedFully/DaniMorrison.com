@@ -2,6 +2,7 @@
 {{- /* Only `en` carries a `payment.yaml`; other languages fall back to it. */ -}}
 {{- if not $bundle.payment -}}{{- $bundle = hugo.Data.en -}}{{- end -}}
 {{- $p := $bundle.payment -}}
+{{- $w := $bundle.webshop -}}
 {{- $currency := $p.currency -}}
 {{- $bankQR := $p.bank_qr -}}
 {{- if not $bankQR -}}{{- $bankQR = $currency.bank_qr -}}{{- end -}}
@@ -11,7 +12,15 @@
   "shop_id" (default $p.shop_id "")
   "lang" .Site.Language.Lang
   "origin" .Site.BaseURL
-  "currency" (dict "shop" ($currency.shop | default "USD"))
+  "currency" (dict
+    "shop" ($currency.shop | default "USD")
+    "code" ($w.currency_code | default ($currency.shop | default "USD"))
+    "symbol" ($w.currency_symbol | default "$")
+    "position" ($w.currency_position | default "prefix")
+    "space" ($w.currency_space | default false)
+  )
+  "shipping" ($w.shipping | default dict)
+  "custom_values" ($w.custom_values | default slice)
   "bank_qr" (dict
     "enabled" (default true $bankQR.enabled)
     "currency" $bankCurrency

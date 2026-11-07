@@ -73,15 +73,6 @@
     var capitalize = function (text) {
         return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
     };
-    /* One order line, as it reads in the cart mail: "2 x Buy me a coffee
-       (Size: grande) = $7.00". */
-    var orderLine = function (c, item) {
-        var variant = item.varianttype
-            ? " (" + capitalize(item.varianttype) + ": " + item.variantname + ")" : "";
-        return item.quantity + " x " + item.title + variant + " = " +
-            formatMoney(c, item.quantity * parseFloat(item.price));
-    };
-
     /* The banner's cart count — an <output aria-live> that rests hidden, so
        an empty cart announces nothing. On every page. */
     var updateCount = function () {
@@ -228,9 +219,9 @@
 
     /* -- the checkout page ---------------------------------------------------
        The shortcode wrote the form; this fills its hidden inputs — `order`
-       with the cart's lines, `checkout` with the totals, `ordernumber` on
-       submit — and keeps the summary beside it true to what is chosen: every
-       control with a data-price is an extra to be summed. */
+       with the cart's sku and quantity lines, `checkout` with the totals,
+       `ordernumber` on submit — and keeps the summary beside it true to what
+       is chosen: every control with a data-price is an extra to be summed. */
     var checkout = document.getElementById("checkoutform");
     if (checkout) {
         var checkoutCurrency = currency(checkout);
@@ -240,9 +231,9 @@
         if (emailInput && !emailInput.value && savedEmail) emailInput.value = savedEmail;
 
         checkout.querySelector("input[name='order']").value =
-            read("cart").map(function (item) {
-                return orderLine(checkoutCurrency, item);
-            }).join(" | ");
+            JSON.stringify(read("cart").map(function (item) {
+                return { sku: item.sku, quantity: item.quantity };
+            }));
 
         var refresh = function () {
             /* The priced extras as chosen right now: the selects with a
@@ -257,6 +248,8 @@
                 function (input) {
                     if (parseFloat(input.getAttribute("data-price"))) addons.push({
                         title: input.getAttribute("data-title"),
+                        group: input.getAttribute("data-group") || input.getAttribute("data-title"),
+                        value: input.value,
                         price: input.getAttribute("data-price")
                     });
                 });
@@ -265,6 +258,8 @@
                 if (!select.value || !option || !option.hasAttribute("data-price")) return;
                 if (parseFloat(option.getAttribute("data-price")) || select.hasAttribute("data-always")) addons.push({
                     title: option.getAttribute("data-title"),
+                    group: option.getAttribute("data-group") || option.getAttribute("data-title"),
+                    value: option.value,
                     price: option.getAttribute("data-price")
                 });
             });
@@ -317,16 +312,24 @@
             country.value = shipping.value === "Shipping NL" ? "The Netherlands" : "";
         });
 
-        /* The order number: the moment of submission in tenths of a second,
-           folded to 30 years' worth of digits — the original theme's scheme.
-           Stored for the payment page to reference.
+        /* The order is submitted as structured JSON: the line items are sku
+           and quantity only, and the worker checks those against the shop
+           catalog, prices the shipping and options, and records whether the
+           order validated. The visitor only moves to the payment page when
+           the worker says the order is valid; without fetch the plain form
+           still posts, and the worker answers with the same validation. */
+        var errorBox = checkout.querySelector(".checkout-error");
+        var submitButton = checkout.querySelector("button[type='submit']");
+        var showError = function (message) {
+            if (!errorBox) return;
+            errorBox.textContent = message;
+            errorBox.hidden = false;
+        };
+        var fieldValue = function (name) {
+            var field = checkout.querySelector("[name='" + name + "']");
+            return field ? String(field.value || "").trim() : "";
+        };
 
-           The order is posted from here and the visitor is walked to this
-           site's own payment page, where the POS embeds. Letting the form
-           navigate would hand the visitor to the handler's redirect, which
-           only honours a `_next` on its own domain and strands them there.
-           Without fetch the form posts the normal way, and that redirect is
-           what there is — the order still arrives. */
         checkout.addEventListener("submit", function (event) {
             var ordernumber = Math.round(Date.now() / 100) % 6307200000;
             checkout.querySelector("input[name='ordernumber']").value = ordernumber;
@@ -336,34 +339,99 @@
                 catch (error) { /* storage is optional */ }
             }
 
+            var items = read("cart").filter(function (item) {
+                return item.sku;
+            }).map(function (item) {
+                return { sku: item.sku, quantity: item.quantity };
+            });
+            var addons = [];
+            Array.prototype.forEach.call(checkout.querySelectorAll("select[name]"), function (select) {
+                if (select.name === "shipping" || !select.value) return;
+                var option = select.options[select.selectedIndex];
+                if (!option) return;
+                addons.push({
+                    group: select.getAttribute("data-group") ||
+                        option.getAttribute("data-group") ||
+                        option.getAttribute("data-title") || select.name,
+                    value: select.value
+                });
+            });
+            Array.prototype.forEach.call(
+                checkout.querySelectorAll("input[data-price]:checked"),
+                function (input) {
+                    addons.push({
+                        group: input.getAttribute("data-group") || input.getAttribute("data-title"),
+                        value: input.value
+                    });
+                });
+
+            var shipping = checkout.querySelector("select[name='shipping']");
+            var payload = {
+                schema_version: 1,
+                shop_id: fieldValue("shop_id"),
+                ordernumber: String(ordernumber),
+                customer: {
+                    firstname: fieldValue("firstname"),
+                    lastname: fieldValue("lastname"),
+                    email: fieldValue("email"),
+                    address: fieldValue("address"),
+                    zipcode: fieldValue("zipcode"),
+                    city: fieldValue("city"),
+                    country: fieldValue("country")
+                },
+                items: items,
+                shipping: shipping ? { title: shipping.value } : null,
+                addons: addons,
+                message: fieldValue("message"),
+                currency: checkout.getAttribute("data-currency-code") || "",
+                _next: fieldValue("_next") || "/payment/"
+            };
+
+            checkout.querySelector("input[name='order']").value = JSON.stringify(items);
+
             var paymentlink = checkout.getAttribute("data-payment-link");
             if (!paymentlink || !window.fetch) return;
             event.preventDefault();
-            /* keepalive lets the post outlive this page; the response is
-               opaque (no-cors) and beside the point — the payment page is
-               not going to wait for a mail server. */
+            if (errorBox) {
+                errorBox.hidden = true;
+                errorBox.textContent = "";
+            }
+            if (submitButton) submitButton.disabled = true;
+
             fetch(checkout.action, {
                 method: "POST",
-                body: new FormData(checkout),
-                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+                mode: "cors",
                 keepalive: true
-            }).catch(function () { /* nothing to do from here */ });
-            window.location.href = paymentlink;
+            }).then(function (response) {
+                return response.text().then(function (body) {
+                    var result = {};
+                    try { result = JSON.parse(body); }
+                    catch (error) { result = { error: body }; }
+                    return { ok: response.ok, status: response.status, result: result };
+                });
+            }).then(function (outcome) {
+                if (!outcome.ok || !outcome.result.success) {
+                    if (submitButton) submitButton.disabled = false;
+                    var messages = (outcome.result.checks || [])
+                        .filter(function (check) { return !check.passed; })
+                        .map(function (check) { return check.message; });
+                    var detail = outcome.result.error;
+                    if (typeof detail !== "string" || /<[^>]*>/.test(detail)) detail = "";
+                    var fallback = detail ||
+                        "We could not validate this order. Please check your details and try again.";
+                    showError(messages.length
+                        ? messages.join(" ")
+                        : (outcome.status ? fallback + " (" + outcome.status + ")" : fallback));
+                    return;
+                }
+                window.location.href = paymentlink;
+            }).catch(function () {
+                if (submitButton) submitButton.disabled = false;
+                showError("We could not reach the order service. Please try again.");
+            });
         });
-
-        /* The spam timer: the form handler hands out a token and will not
-           take a form younger than a few seconds — filling in a checkout
-           takes well over that, a bot does not. Fetched the moment the page
-           opens, so the clock starts now. A fetch that fails leaves the
-           token empty and the handler refuses the post; there is nothing
-           better to do about it from here. */
-        var token = checkout.querySelector("input[name='_token']");
-        if (token && window.fetch) {
-            fetch(checkout.action)
-                .then(function (response) { return response.ok ? response.text() : ""; })
-                .then(function (value) { token.value = value; })
-                .catch(function () { /* the empty token stays */ });
-        }
     }
 
     /* -- the payment page ------------------------------------------------- */
