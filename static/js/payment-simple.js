@@ -548,6 +548,11 @@
         mode: 'no-cors',
         keepalive: true
       }).then(function() {
+        try {
+          localStorage.removeItem('cart');
+          localStorage.removeItem('addons');
+          localStorage.removeItem('ordernumber');
+        } catch (error) { /* storage is optional */ }
         if (nextUrl) window.location.href = nextUrl;
         else restore();
       }).catch(function() {

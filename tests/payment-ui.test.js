@@ -337,3 +337,62 @@ test("skips the intent when no order endpoint is configured", async () => {
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(posted.length, 0);
 });
+
+test("a successful claim clears the cart but keeps the email", async () => {
+  class FakeFormData {
+    constructor(form) { this.form = form; }
+  }
+  const { page, select, claimForm } = createPage({
+    claimMode: "worker",
+    orderEndpoint: "https://worker.example/",
+    store: {
+      ordernumber: "12345",
+      email: "buyer@example.com",
+      cart: JSON.stringify([{ sku: "coffee", price: 3.5, quantity: 2 }]),
+      addons: JSON.stringify([{ price: 2 }])
+    },
+    FormData: FakeFormData,
+    fetch: async () => ({})
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+
+  claimForm.listeners.submit[0]({ preventDefault: () => {} });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(page.location.href, "https://example.com/thankyou/");
+  assert.equal(page.localStorage.getItem("cart"), null);
+  assert.equal(page.localStorage.getItem("addons"), null);
+  assert.equal(page.localStorage.getItem("ordernumber"), null);
+  assert.equal(page.localStorage.getItem("email"), "buyer@example.com");
+});
+
+test("a failed claim keeps the cart for a retry", async () => {
+  class FakeFormData {
+    constructor(form) { this.form = form; }
+  }
+  const { select, claimForm, store } = createPage({
+    claimMode: "worker",
+    orderEndpoint: "https://worker.example/",
+    store: {
+      ordernumber: "12345",
+      email: "buyer@example.com",
+      cart: JSON.stringify([{ sku: "coffee", price: 3.5, quantity: 2 }])
+    },
+    FormData: FakeFormData,
+    fetch: async () => { throw new Error("offline"); }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+
+  claimForm.listeners.submit[0]({ preventDefault: () => {} });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.ok(JSON.parse(store.cart).length > 0);
+  assert.equal(store.ordernumber, "12345");
+  assert.equal(store.email, "buyer@example.com");
+});
