@@ -46,6 +46,15 @@ fi
 sql_file="$(mktemp)"
 trap 'rm -f "$sql_file"' EXIT
 
+key_mode="unset"
+if [ -n "${STRIPE_SECRET_KEY:-}" ]; then
+  key_mode="unknown format"
+  case "$STRIPE_SECRET_KEY" in
+    sk_test_*) key_mode="test" ;;
+    sk_live_*) key_mode="live" ;;
+  esac
+fi
+
 {
   printf "UPDATE shops SET updated_at = datetime('now')"
   if [ -n "${STRIPE_SECRET_KEY:-}" ]; then
@@ -61,5 +70,11 @@ wrangler d1 execute "$DB_NAME" --remote --file "$sql_file"
 
 echo
 echo "Shop '$SHOP_ID' is now configured with:"
+echo "  Stripe API key mode: $key_mode"
+if [ "$key_mode" = "test" ]; then
+  echo "  NOTE: a test key cannot charge real cards. Before accepting real"
+  echo "  payments, set the live key (secretspec set STRIPE_SECRET_KEY) and"
+  echo "  re-run this script."
+fi
 wrangler d1 execute "$DB_NAME" --remote \
   --command "SELECT id, active, stripe_secret_key IS NOT NULL AS stripe_key_set, stripe_webhook_secret IS NOT NULL AS webhook_secret_set FROM shops WHERE id = '$(escape_sql "$SHOP_ID")'"
