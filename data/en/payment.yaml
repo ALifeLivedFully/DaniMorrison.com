@@ -100,7 +100,7 @@ currency:
 
 form:
   provider: worker
-  order_endpoint: "http://localhost:8787/"
+  order_endpoint: "https://shop.dani-40a.workers.dev/"
   claim_endpoint: ""
   use_mailto_fallback: true
   thank_you_path: /thankyou
