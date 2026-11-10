@@ -98,6 +98,44 @@
   var order = localStorage.getItem('ordernumber') || (params ? (params.get('order') || params.get('ordernumber') || '') : '') || '';
   var or = document.getElementById('order-ref');
   if (or) or.textContent = order || '';
+
+  function intentCurrency() {
+    var panel = document.querySelector('.static-payment-panel.active');
+    if (panel && panel.getAttribute('data-currency')) return panel.getAttribute('data-currency');
+    if (panel && panel.id === 'panel-bank') return section.getAttribute('data-bank-currency') || shopCurrency;
+    var method = document.getElementById('static-payment-method');
+    var option = method && method.options ? method.options[method.selectedIndex] : null;
+    if (option && option.getAttribute && option.getAttribute('data-currency')) return option.getAttribute('data-currency');
+    return shopCurrency;
+  }
+
+  function sendIntent(source) {
+    var endpoint = (section.getAttribute('data-order-endpoint') || '').replace(/\/+$/, '');
+    if (!order || !/^https?:/i.test(endpoint)) return;
+    var method = document.getElementById('static-payment-method');
+    var value = method ? method.value : '';
+    if (!value) return;
+    var payload = JSON.stringify({
+      shop_id: section.getAttribute('data-shop-id') || '',
+      ordernumber: order,
+      payment_method: value,
+      method_label: selectedClaimMethod(),
+      source: source,
+      currency: intentCurrency()
+    });
+    var url = endpoint + '/payment-intent';
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(url, payload)) return;
+    } catch (error) { /* fall back to fetch below */ }
+    try {
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload,
+        keepalive: true
+      }).catch(function() { /* tracking is best effort */ });
+    } catch (error) { /* tracking is best effort */ }
+  }
   var cor = document.getElementById('claim-order');
   if (cor) cor.value = order;
   if (document.getElementById('bank-order-ref')) {
@@ -391,6 +429,7 @@
           renderLink(panel, requestId);
         }
       }
+      sendIntent('select');
     });
   }
 
@@ -410,6 +449,13 @@
       if (link && link.href && link.href !== '#') {
         copyText(link.href, button);
       }
+    });
+  });
+
+  document.querySelectorAll('.pay-link-external').forEach(function(link) {
+    link.addEventListener('click', function() {
+      var href = link.getAttribute('href') || '';
+      if (href && href !== '#') sendIntent('link');
     });
   });
 

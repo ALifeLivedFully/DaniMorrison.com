@@ -71,11 +71,17 @@ function createPage(options = {}) {
     "data-bank-show-amounts": "true",
     "data-bank-include-amount": "true",
     "data-bank-reference": "Order {ordernumber}",
-    "data-order-email": "test@example.com"
+    "data-order-email": "test@example.com",
+    "data-shop-id": "danimorrison"
   });
+  if (options.orderEndpoint) {
+    section.setAttribute("data-order-endpoint", options.orderEndpoint);
+  }
   const select = new Element();
   const bankPanel = new Element();
   bankPanel.classList.add("static-payment-panel");
+  bankPanel.id = "panel-bank";
+  const payLink = new Element({ href: options.payLinkHref || "#" });
   const claimSection = new Element({ "data-claim-mode": options.claimMode || "mailto" });
   const claimAction = new Element();
   const claimForm = new Element();
@@ -123,9 +129,16 @@ function createPage(options = {}) {
     querySelector: (selector) => {
       if (selector === "section.payment") return section;
       if (selector === ".static-payment-claim-section") return claimSection;
+      if (selector === ".static-payment-panel.active") {
+        return bankPanel.classList.contains("active") ? bankPanel : null;
+      }
       return null;
     },
-    querySelectorAll: (selector) => selector === ".static-payment-panel" ? [bankPanel] : [],
+    querySelectorAll: (selector) => {
+      if (selector === ".static-payment-panel") return [bankPanel];
+      if (selector === ".pay-link-external") return [payLink];
+      return [];
+    },
     createElement: () => new Element()
   };
   const page = {
@@ -149,7 +162,7 @@ function createPage(options = {}) {
   page.window = page;
   vm.createContext(page);
   sources.forEach((source) => vm.runInContext(source, page));
-  return { page, select, bankPanel, claimSection, claimAction, claimForm, claimOrder, claimEmail, claimMethod, claimMessage, store };
+  return { page, select, bankPanel, payLink, claimSection, claimAction, claimForm, claimOrder, claimEmail, claimMethod, claimMessage, store };
 }
 
 test("selecting a payment method activates its panel in the browser", async () => {
@@ -226,4 +239,101 @@ test("the paid button submits the hidden claim form when a worker is connected",
   assert.equal(posted[0].options.keepalive, true);
   assert.ok(posted[0].options.body instanceof FakeFormData);
   assert.equal(page.location.href, "https://example.com/thankyou/");
+});
+
+test("clicking a pay link reports the payment intent", async () => {
+  const posted = [];
+  const { payLink, select } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    payLinkHref: "https://paypal.me/dani/25",
+    store: { ordernumber: "12345" },
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  const option = new Element({ "data-currency": "EUR" });
+  option.textContent = "PayPal";
+  option.value = "paypal";
+  select.options = [option];
+  select.selectedIndex = 0;
+  select.value = "paypal";
+
+  payLink.listeners.click.forEach((handler) => handler.call(payLink));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  assert.equal(posted.length, 1);
+  assert.equal(posted[0].url, "https://worker.example/payment-intent");
+  assert.equal(posted[0].options.method, "POST");
+  assert.equal(posted[0].options.keepalive, true);
+  assert.deepEqual(JSON.parse(posted[0].options.body), {
+    shop_id: "danimorrison",
+    ordernumber: "12345",
+    payment_method: "paypal",
+    method_label: "PayPal",
+    source: "link",
+    currency: "EUR"
+  });
+});
+
+test("ignores pay link clicks while the link is still a placeholder", async () => {
+  const posted = [];
+  const { payLink } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  payLink.listeners.click.forEach((handler) => handler.call(payLink));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(posted.length, 0);
+});
+
+test("selecting a payment method reports the intent", async () => {
+  const posted = [];
+  const { select, bankPanel } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.ok(bankPanel.classList.contains("active"));
+  assert.equal(posted.length, 1);
+  assert.equal(posted[0].url, "https://worker.example/payment-intent");
+  const payload = JSON.parse(posted[0].options.body);
+  assert.equal(payload.source, "select");
+  assert.equal(payload.payment_method, "bank");
+  assert.equal(payload.method_label, "Bank Transfer (SEPA/EPC)");
+  assert.equal(payload.currency, "EUR");
+});
+
+test("skips the intent when no order endpoint is configured", async () => {
+  const posted = [];
+  const { select } = createPage({
+    claimMode: "mailto",
+    store: { ordernumber: "12345" },
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(posted.length, 0);
 });

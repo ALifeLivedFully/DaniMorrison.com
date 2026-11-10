@@ -162,6 +162,33 @@ export class OrderService {
     }
   }
 
+  async recordIntent({
+    shopId,
+    ordernumber,
+    paymentMethod,
+    methodLabel,
+    source,
+    currency,
+    ipHash,
+    uaHash
+  }) {
+    if (!ordernumber || !paymentMethod) {
+      throw new OrderValidationError("Missing required fields", "missing_intent_fields");
+    }
+    const order = await this.repository.findByOrderNumber(shopId, ordernumber);
+    if (!order) throw new OrderNotFoundError();
+
+    return this.repository.recordIntent(order, {
+      shopId,
+      paymentMethod,
+      methodLabel,
+      source,
+      currency,
+      ipHash,
+      uaHash
+    });
+  }
+
   async handleWebhook({ provider = "stripe", event }) {
     const eventId = String(event?.id || "");
     if (!eventId) {

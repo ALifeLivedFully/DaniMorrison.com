@@ -225,6 +225,7 @@ beforeEach(async () => {
   await env.orders.prepare("DELETE FROM order_items").run();
   await env.orders.prepare("DELETE FROM order_status_history").run();
   await env.orders.prepare("DELETE FROM order_submissions").run();
+  await env.orders.prepare("DELETE FROM payment_intents").run();
   await env.orders.prepare("DELETE FROM orders").run();
   await env.orders.prepare("DELETE FROM claims").run();
   await env.orders.prepare("DELETE FROM webhook_events").run();
@@ -709,5 +710,130 @@ describe("payment gates", () => {
     expect(duplicate.status).toBe(409);
     const claims = await env.orders.prepare("SELECT * FROM claims").all();
     expect(claims.results).toHaveLength(1);
+  });
+});
+
+describe("payment intents", () => {
+  const intent = (overrides = {}) => ({
+    shop_id: "danimorrison",
+    ordernumber: "1234567890",
+    payment_method: "paypal",
+    method_label: "PayPal",
+    source: "link",
+    currency: "USD",
+    ...overrides
+  });
+
+  async function readIntents() {
+    const ctx = createExecutionContext();
+    const rows = await env.orders.prepare(
+      "SELECT * FROM payment_intents ORDER BY id"
+    ).all();
+    await waitOnExecutionContext(ctx);
+    return rows.results;
+  }
+
+  it("records a payment intent for a validated order and sets its payment method", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    const { respond } = postJson(intent(), ORIGIN, "/payment-intent");
+    const response = await respond();
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(body.paymentMethod).toBe("paypal");
+    expect((await readOrder()).payment_method).toBe("paypal");
+
+    const intents = await readIntents();
+    expect(intents).toHaveLength(1);
+    expect(intents[0].shop_id).toBe("danimorrison");
+    expect(intents[0].ordernumber).toBe("1234567890");
+    expect(intents[0].payment_method).toBe("paypal");
+    expect(intents[0].method_label).toBe("PayPal");
+    expect(intents[0].source).toBe("link");
+    expect(intents[0].currency).toBe("USD");
+    expect(intents[0].order_id).toBeGreaterThan(0);
+    expect(intents[0].ip_hash).toBeNull();
+    expect(intents[0].ua_hash).toBeNull();
+  });
+
+  it("hashes the requester ip and user agent", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    const request = new Request("http://localhost:8787/payment-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "CF-Connecting-IP": "203.0.113.7",
+        "User-Agent": "test-agent/1.0"
+      },
+      body: JSON.stringify(intent())
+    });
+    const response = await worker.fetch(request, env, createExecutionContext());
+
+    expect(response.status).toBe(201);
+    const intents = await readIntents();
+    expect(intents[0].ip_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(intents[0].ua_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(intents[0].ip_hash).not.toBe(intents[0].ua_hash);
+  });
+
+  it("records every intent and keeps the latest payment method on the order", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    await postJson(intent(), ORIGIN, "/payment-intent").respond();
+    await postJson(intent({
+      payment_method: "crypto:xmr",
+      method_label: "Monero (XMR)",
+      source: "select",
+      currency: "XMR"
+    }), ORIGIN, "/payment-intent").respond();
+
+    expect((await readIntents())).toHaveLength(2);
+    expect((await readOrder()).payment_method).toBe("crypto:xmr");
+  });
+
+  it("rejects an intent for an unknown order", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const { respond } = postJson(
+      intent({ ordernumber: "does-not-exist" }),
+      ORIGIN,
+      "/payment-intent"
+    );
+    const response = await respond();
+
+    expect(response.status).toBe(404);
+    expect(await readIntents()).toHaveLength(0);
+  });
+
+  it("rejects an intent missing required fields", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    const missingNumber = await postJson(
+      intent({ ordernumber: "" }),
+      ORIGIN,
+      "/payment-intent"
+    ).respond();
+    expect(missingNumber.status).toBe(400);
+
+    const missingMethod = await postJson(
+      intent({ payment_method: "" }),
+      ORIGIN,
+      "/payment-intent"
+    ).respond();
+    expect(missingMethod.status).toBe(400);
+
+    expect(await readIntents()).toHaveLength(0);
+    expect((await readOrder()).payment_method).toBeNull();
   });
 });

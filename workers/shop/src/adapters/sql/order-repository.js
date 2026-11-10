@@ -398,6 +398,34 @@ export class SqlOrderRepository {
     return this.findById(orderId);
   }
 
+  async recordIntent(order, intent) {
+    await this.executor.execute([
+      statement(`
+        INSERT INTO payment_intents (
+          shop_id, order_id, ordernumber, payment_method,
+          method_label, source, currency, ip_hash, ua_hash
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        intent.shopId,
+        order.id,
+        order.ordernumber,
+        intent.paymentMethod,
+        intent.methodLabel || null,
+        intent.source || "link",
+        intent.currency || null,
+        intent.ipHash || null,
+        intent.uaHash || null
+      ]),
+      statement(`
+        UPDATE orders
+        SET payment_method = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `, [intent.paymentMethod, order.id])
+    ]);
+    return this.findById(order.id);
+  }
+
   async recordWebhook({
     provider,
     eventId,

@@ -366,6 +366,40 @@ export function createHandler({ orderService, shopStore }) {
     return text(request, "Claim submitted successfully", 201);
   }
 
+  async function handlePaymentIntent(request) {
+    const data = await readBody(request);
+    if (!data) return text(request, "Invalid data", 400);
+
+    const shopId = String(data.shop_id ?? data.shopId ?? "").trim();
+
+    async function hash(value) {
+      if (!value) return null;
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+      return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    try {
+      const order = await orderService.recordIntent({
+        shopId,
+        ordernumber: String(data.ordernumber ?? "").trim(),
+        paymentMethod: String(data.payment_method ?? "").trim(),
+        methodLabel: String(data.method_label ?? "").trim() || null,
+        source: String(data.source ?? "").trim() || "link",
+        currency: String(data.currency ?? "").trim() || null,
+        ipHash: await hash(request.headers.get("CF-Connecting-IP")),
+        uaHash: await hash(request.headers.get("User-Agent"))
+      });
+      return json(request, {
+        orderId: order.id,
+        ordernumber: order.ordernumber,
+        status: order.status,
+        paymentMethod: order.payment_method
+      }, 201);
+    } catch (error) {
+      return serviceError(request, error) || databaseError(request, error);
+    }
+  }
+
   return async function handle(request) {
     try {
       const url = new URL(request.url);
@@ -401,6 +435,10 @@ export function createHandler({ orderService, shopStore }) {
 
       if (method === "POST" && url.pathname === "/claim") {
         return await handleClaim(request);
+      }
+
+      if (method === "POST" && url.pathname === "/payment-intent") {
+        return await handlePaymentIntent(request);
       }
 
       if (method !== "POST") {
