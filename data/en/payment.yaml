@@ -227,7 +227,7 @@ payment_links:
           qr: true
 
 bank_qr:
-  enabled: true
+  enabled: false
   currency: EUR
   show_amounts: true
   include_amount_in_qr: true

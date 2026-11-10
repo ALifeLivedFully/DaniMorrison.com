@@ -22,7 +22,9 @@ test("the payment config parses and passes currency validation", () => {
 });
 
 test("bank QR and bank details use the new top-level shape", () => {
-  assert.equal(payment.bank_qr.enabled, true);
+  // The bank details are placeholder data kept for forks of this site, so the
+  // bank transfer option stays disabled until real account data replaces it.
+  assert.equal(payment.bank_qr.enabled, false);
   assert.equal(payment.bank_qr.currency, "EUR");
   assert.equal(payment.bank.iban, "NL48INGB0006762093");
   assert.equal(payment.bank.reference_template, "Order {ordernumber}");
