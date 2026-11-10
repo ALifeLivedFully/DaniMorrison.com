@@ -55,6 +55,15 @@ class Element {
   addEventListener(type, handler) {
     (this.listeners[type] = this.listeners[type] || []).push(handler);
   }
+  closest(selector) {
+    const cls = selector.replace(/^\./, "");
+    let node = this.parentElement || null;
+    while (node) {
+      if (node.classList && node.classList.contains(cls)) return node;
+      node = node.parentElement || null;
+    }
+    return null;
+  }
 }
 
 function createPage(options = {}) {
@@ -82,6 +91,12 @@ function createPage(options = {}) {
   bankPanel.classList.add("static-payment-panel");
   bankPanel.id = "panel-bank";
   const payLink = new Element({ href: options.payLinkHref || "#" });
+  if (options.checkout) {
+    const checkoutPanel = new Element();
+    checkoutPanel.classList.add("static-payment-panel");
+    checkoutPanel.setAttribute("data-checkout", options.checkout);
+    payLink.parentElement = checkoutPanel;
+  }
   const claimSection = new Element({ "data-claim-mode": options.claimMode || "mailto" });
   const claimAction = new Element();
   const claimForm = new Element();
@@ -291,6 +306,92 @@ test("ignores pay link clicks while the link is still a placeholder", async () =
   payLink.listeners.click.forEach((handler) => handler.call(payLink));
   await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(posted.length, 0);
+});
+
+test("clicking a card pay button opens a Stripe checkout session", async () => {
+  const posted = [];
+  let prevented = false;
+  const { page, payLink } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    checkout: "stripe",
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {
+        ok: true,
+        json: async () => ({ url: "https://checkout.stripe.com/pay/cs_test_1", sessionId: "cs_test_1" })
+      };
+    }
+  });
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => { prevented = true; } }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(prevented, true);
+  assert.equal(posted.length, 1);
+  assert.equal(posted[0].url, "https://worker.example/create-checkout-session");
+  assert.equal(posted[0].options.method, "POST");
+  assert.deepEqual(JSON.parse(posted[0].options.body), {
+    shop_id: "danimorrison",
+    ordernumber: "12345"
+  });
+  assert.equal(page.location.href, "https://checkout.stripe.com/pay/cs_test_1");
+});
+
+test("a failed card checkout shows an error and keeps the button usable", async () => {
+  const posted = [];
+  const { page, payLink } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    checkout: "stripe",
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return { ok: false, json: async () => ({ error: "stripe is not configured" }) };
+    }
+  });
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(posted.length, 1);
+  assert.equal(page.location.href, undefined);
+  assert.equal(payLink.classList.contains("busy"), false);
+  assert.match(
+    page.document.getElementById("payment-status").textContent,
+    /could not start the card payment/i
+  );
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(posted.length, 2);
+});
+
+test("a card checkout without an order or endpoint is refused gracefully", async () => {
+  const posted = [];
+  const { page, payLink } = createPage({
+    claimMode: "mailto",
+    checkout: "stripe",
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return { ok: true, json: async () => ({}) };
+    }
+  });
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(posted.length, 0);
+  assert.equal(page.location.href, undefined);
+  assert.match(
+    page.document.getElementById("payment-status").textContent,
+    /card checkout is not available/i
+  );
 });
 
 test("selecting a payment method reports the intent", async () => {

@@ -101,7 +101,7 @@ export class OrderService {
     return this.repository.findStatus(shopId, ordernumber);
   }
 
-  async createCheckout({ shopId, orderId, ordernumber }) {
+  async prepareCheckout({ shopId, orderId, ordernumber }) {
     const order = orderId
       ? await this.repository.findById(orderId)
       : await this.repository.findByOrderNumber(shopId, ordernumber);
@@ -109,8 +109,7 @@ export class OrderService {
       throw new OrderNotFoundError();
     }
 
-    if (order.status === ORDER_STATUS.PAYMENT_PENDING) return order;
-    if (order.status !== ORDER_STATUS.VALIDATED) {
+    if (![ORDER_STATUS.VALIDATED, ORDER_STATUS.PAYMENT_PENDING].includes(order.status)) {
       const error = new OrderConflictError(
         "Only validated orders can create a checkout",
         "order_not_payable"
@@ -118,7 +117,16 @@ export class OrderService {
       error.orderStatus = order.status;
       throw error;
     }
-    return this.repository.beginPayment(order.id, { source: "checkout" });
+
+    const [items, addons] = await Promise.all([
+      this.repository.findItemsByOrderId(order.id),
+      this.repository.findAddonsByOrderId(order.id)
+    ]);
+    return { order, items, addons };
+  }
+
+  async beginCheckout(orderId, sessionId) {
+    return this.repository.beginPayment(orderId, { sessionId, source: "checkout" });
   }
 
   async claim({ shopId, ordernumber, email, message, paymentMethod }) {

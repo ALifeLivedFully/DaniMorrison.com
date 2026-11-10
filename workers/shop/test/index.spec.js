@@ -78,8 +78,8 @@ const order = (overrides = {}) => ({
 
 async function seedShop(overrides = {}) {
   await env.orders.prepare(`
-    INSERT INTO shops (id, origin, site_config_url, catalog_url, active, config_cache, stripe_webhook_secret)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO shops (id, origin, site_config_url, catalog_url, active, config_cache, stripe_secret_key, stripe_webhook_secret)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     overrides.id ?? "danimorrison",
     overrides.origin ?? ORIGIN,
@@ -87,6 +87,7 @@ async function seedShop(overrides = {}) {
     overrides.catalog_url ?? CATALOG_URL,
     overrides.active ?? 1,
     JSON.stringify(overrides.config ?? config),
+    overrides.stripeSecretKey ?? null,
     overrides.stripeWebhookSecret ?? null
   ).run();
 }
@@ -120,6 +121,45 @@ function mockSite() {
     }
     return new Response("not found", { status: 404 });
   }));
+}
+
+const STRIPE_SESSIONS_URL = "https://api.stripe.com/v1/checkout/sessions";
+
+function mockSiteWithStripe({ sessions = [], status = 200, error = "Stripe error" } = {}) {
+  const calls = [];
+  vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+    const url = String(input);
+    if (url === STRIPE_SESSIONS_URL) {
+      calls.push({ url, init });
+      if (status !== 200) {
+        return new Response(JSON.stringify({ error: { message: error } }), {
+          status,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+      const session = sessions.length
+        ? sessions[Math.min(calls.length - 1, sessions.length - 1)]
+        : { id: "cs_test_session", url: "https://checkout.stripe.com/test" };
+      return new Response(JSON.stringify(session), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    if (url === `${ORIGIN}/payment.json`) {
+      return new Response(JSON.stringify(config), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    if (url === CATALOG_URL) {
+      return new Response(JSON.stringify(catalog), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response("not found", { status: 404 });
+  }));
+  return calls;
 }
 
 const WEBHOOK_SECRET = "whsec_test_secret";
@@ -246,6 +286,23 @@ function postForm(body, origin = ORIGIN) {
       ...(origin ? { Origin: origin } : {})
     },
     body
+  });
+  const ctx = createExecutionContext();
+  return {
+    request,
+    respond: async () => {
+      const response = await worker.fetch(request, env, ctx);
+      await waitOnExecutionContext(ctx);
+      return response;
+    }
+  };
+}
+
+function checkoutRequest(body) {
+  const request = new Request("http://localhost:8787/create-checkout-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
   });
   const ctx = createExecutionContext();
   return {
@@ -586,68 +643,187 @@ describe("submission providers", () => {
 });
 
 describe("payment gates", () => {
-  it("creates a checkout session only for a validated order", async () => {
-    await seedShop();
-    mockCatalog();
+  it("creates a Stripe checkout session with itemized lines and marks the order payment pending", async () => {
+    await seedShop({ stripeSecretKey: "sk_test_key" });
+    const stripeCalls = mockSiteWithStripe();
 
     const valid = await (await postJson(order()).respond()).json();
-    const accepted = await worker.fetch(new Request(
-      "http://localhost:8787/create-checkout-session",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shop_id: "danimorrison",
-          order_id: valid.orderId
-        })
-      }
-    ), env, createExecutionContext());
+    const response = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
+    const body = await response.json();
 
-    expect(accepted.status).toBe(200);
-    expect((await accepted.json()).status).toBe("payment_pending");
+    expect(response.status).toBe(200);
+    expect(body.url).toBe("https://checkout.stripe.com/test");
+    expect(body.sessionId).toBe("cs_test_session");
+    expect(body.status).toBe("payment_pending");
+    expect(body.total).toBe(24);
+
+    const saved = await readOrder();
+    expect(saved.status).toBe("payment_pending");
+    expect(saved.stripe_session_id).toBe("cs_test_session");
+
+    expect(stripeCalls).toHaveLength(1);
+    expect(stripeCalls[0].init.headers.Authorization).toBe("Bearer sk_test_key");
+    const form = new URLSearchParams(stripeCalls[0].init.body);
+    expect(form.get("mode")).toBe("payment");
+    expect(form.get("client_reference_id")).toBe(String(valid.orderId));
+    expect(form.get("customer_email")).toBe("test@example.com");
+    expect(form.get("success_url")).toBe(`${ORIGIN}/thankyou/`);
+    expect(form.get("cancel_url")).toBe(`${ORIGIN}/payment/`);
+    expect(form.get("metadata[order_id]")).toBe(String(valid.orderId));
+    expect(form.get("metadata[ordernumber]")).toBe("1234567890");
+    expect(form.get("metadata[shop_id]")).toBe("danimorrison");
+    expect(form.get("line_items[0][price_data][currency]")).toBe("usd");
+    expect(form.get("line_items[0][price_data][unit_amount]")).toBe("350");
+    expect(form.get("line_items[0][price_data][product_data][name]")).toBe("Buy me a coffee (grande)");
+    expect(form.get("line_items[0][quantity]")).toBe("2");
+    expect(form.get("line_items[1][price_data][unit_amount]")).toBe("200");
+    expect(form.get("line_items[1][price_data][product_data][name]")).toBe("Gift wrapped");
+    expect(form.get("line_items[1][quantity]")).toBe("1");
+    expect(form.get("line_items[2][price_data][unit_amount]")).toBe("1500");
+    expect(form.get("line_items[2][price_data][product_data][name]")).toBe("Shipping (Rest of the world)");
+    expect(form.get("line_items[2][quantity]")).toBe("1");
+    expect(form.get("line_items[3][price_data][unit_amount]")).toBe(null);
+  });
+
+  it("refuses a checkout session for an order that did not validate", async () => {
+    await seedShop({ stripeSecretKey: "sk_test_key" });
+    mockCatalog();
 
     await postJson(order({
       ordernumber: "invalid1",
       items: [{ sku: "does-not-exist", quantity: 1 }]
     })).respond();
-    const rejected = await worker.fetch(new Request(
-      "http://localhost:8787/create-checkout-session",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shop_id: "danimorrison",
-          ordernumber: "invalid1"
-        })
-      }
-    ), env, createExecutionContext());
+    const rejected = await checkoutRequest({
+      shop_id: "danimorrison",
+      ordernumber: "invalid1"
+    }).respond();
 
     expect(rejected.status).toBe(409);
     expect((await rejected.json()).status).toBe("invalid");
   });
 
-  it("keeps checkout creation idempotent", async () => {
+  it("refuses a checkout session when card payments are not configured", async () => {
     await seedShop();
     mockCatalog();
 
     const valid = await (await postJson(order()).respond()).json();
-    const request = () => new Request(
-      "http://localhost:8787/create-checkout-session",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shop_id: "danimorrison",
-          order_id: valid.orderId
-        })
-      }
-    );
-    await worker.fetch(request(), env, createExecutionContext());
-    const second = await worker.fetch(request(), env, createExecutionContext());
-    const body = await second.json();
+    const response = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
 
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("stripe_not_configured");
+    expect((await readOrder()).status).toBe("validated");
+  });
+
+  it("leaves the order validated when Stripe rejects the session", async () => {
+    await seedShop({ stripeSecretKey: "sk_test_key" });
+    mockSiteWithStripe({ status: 402, error: "Card payments are unavailable" });
+
+    const valid = await (await postJson(order()).respond()).json();
+    const response = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
+
+    expect(response.status).toBe(502);
+    expect((await response.json()).code).toBe("stripe_unavailable");
+
+    const saved = await readOrder();
+    expect(saved.status).toBe("validated");
+    expect(saved.stripe_session_id).toBeNull();
+
+    const history = await env.orders.prepare(
+      "SELECT * FROM order_status_history WHERE order_id = ?"
+    ).bind(saved.id).all();
+    expect(history.results.map((entry) => entry.to_status)).toEqual([
+      "submitted",
+      "validated"
+    ]);
+  });
+
+  it("creates a fresh session when checkout is repeated", async () => {
+    await seedShop({ stripeSecretKey: "sk_test_key" });
+    mockSiteWithStripe({
+      sessions: [
+        { id: "cs_test_one", url: "https://checkout.stripe.com/one" },
+        { id: "cs_test_two", url: "https://checkout.stripe.com/two" }
+      ]
+    });
+
+    const valid = await (await postJson(order()).respond()).json();
+    const first = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
+    const second = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
+
+    expect((await first.json()).sessionId).toBe("cs_test_one");
+    const body = await second.json();
     expect(second.status).toBe(200);
+    expect(body.sessionId).toBe("cs_test_two");
+    expect(body.url).toBe("https://checkout.stripe.com/two");
     expect(body.status).toBe("payment_pending");
+
+    const saved = await readOrder();
+    expect(saved.status).toBe("payment_pending");
+    expect(saved.stripe_session_id).toBe("cs_test_two");
+
+    const history = await env.orders.prepare(
+      "SELECT * FROM order_status_history WHERE order_id = ? AND status_type = 'order'"
+    ).bind(saved.id).all();
+    expect(history.results.map((entry) => entry.to_status)).toEqual([
+      "submitted",
+      "validated",
+      "payment_pending"
+    ]);
+  });
+
+  it("completes a card payment from a checkout session to a paid webhook", async () => {
+    await seedShop({ stripeSecretKey: "sk_test_key", stripeWebhookSecret: WEBHOOK_SECRET });
+    mockSiteWithStripe();
+
+    const valid = await (await postJson(order()).respond()).json();
+    const session = await checkoutRequest({
+      shop_id: "danimorrison",
+      order_id: valid.orderId
+    }).respond();
+    expect((await session.json()).status).toBe("payment_pending");
+
+    const paidEvent = {
+      id: "evt_card_paid",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_test_session",
+          currency: "usd",
+          amount_total: 2400,
+          client_reference_id: String(valid.orderId),
+          metadata: { order_id: String(valid.orderId), shop_id: "danimorrison" }
+        }
+      }
+    };
+    const paid = await worker.fetch(
+      await signedWebhookRequest(paidEvent),
+      env,
+      createExecutionContext()
+    );
+    expect(await paid.text()).toBe("ok");
+
+    const saved = await readOrder();
+    expect(saved.status).toBe("paid");
+    expect(saved.payment_method).toBe("card");
+    expect(saved.stripe_session_id).toBe("cs_test_session");
+    expect(saved.paid_amount).toBe(24);
+    expect(saved.paid_currency).toBe("USD");
   });
 
   it("marks an order paid from a webhook only after validation", async () => {

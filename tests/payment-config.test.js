@@ -36,6 +36,14 @@ test("payment links can override the shop currency", () => {
   }
 });
 
+test("the card link uses the worker-backed Stripe checkout", () => {
+  const card = payment.payment_links.links.find((link) => link.name === "card");
+  assert.equal(card.enabled, true);
+  assert.equal(card.checkout, "stripe");
+  assert.equal(card.qr, false);
+  assert.equal(card.currency, "USD");
+});
+
 test("normalized rates convert once for fiat and crypto", async () => {
   const resolver = ER.createResolver(payment.currency, {
     fetch: async () => { throw new Error("tests must not call live services"); }

@@ -108,10 +108,13 @@ form:
 payment_links:
   default_username: "ALifeLivedFully"
   links:
-    # Stripe placeholder: add a payment-link URL and set enabled: true.
+    # Stripe Checkout handled by the shop worker (/create-checkout-session).
+    # The API key and webhook secret live in the worker's shops table row,
+    # managed with secretspec (see workers/shop/scripts/set-stripe-secrets.sh).
     - name: card
-      enabled: false
+      enabled: true
       label: "Credit / Debit Card (Stripe)"
+      checkout: stripe
       url: ""
       template: ""
       currency: USD

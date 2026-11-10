@@ -339,7 +339,7 @@ export class SqlOrderRepository {
         SET status = 'payment_pending',
             stripe_session_id = COALESCE(?, stripe_session_id),
             updated_at = datetime('now')
-        WHERE id = ? AND status = 'validated'
+        WHERE id = ? AND status IN ('validated', 'payment_pending')
       `, [sessionId, orderId]),
       statement(`
         INSERT INTO order_status_history (
@@ -503,6 +503,20 @@ export class SqlOrderRepository {
 
   async findById(orderId) {
     return this.executor.first("SELECT * FROM orders WHERE id = ?", [orderId]);
+  }
+
+  async findItemsByOrderId(orderId) {
+    return this.executor.all(
+      "SELECT * FROM order_items WHERE order_id = ? ORDER BY position",
+      [orderId]
+    );
+  }
+
+  async findAddonsByOrderId(orderId) {
+    return this.executor.all(
+      "SELECT * FROM order_addons WHERE order_id = ? ORDER BY position",
+      [orderId]
+    );
   }
 
   async findByPublicId(publicId) {

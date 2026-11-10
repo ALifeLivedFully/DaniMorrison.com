@@ -156,6 +156,98 @@ async function shopCatalog(shop, config) {
   return catalog;
 }
 
+const STRIPE_SESSIONS_URL = "https://api.stripe.com/v1/checkout/sessions";
+
+function stripeCents(amount) {
+  return Math.round(Number(amount || 0) * 100);
+}
+
+function itemLineName(item) {
+  const title = String(item.title || "").trim();
+  const variant = String(item.variant || "").trim();
+  if (title && variant) return `${title} (${variant})`;
+  return title || variant || "Item";
+}
+
+function checkoutLines(order, items, addons) {
+  const lines = [];
+  for (const item of Array.isArray(items) ? items : []) {
+    const amount = stripeCents(item.unit_price);
+    const quantity = Math.trunc(Number(item.quantity) || 0);
+    if (!(amount > 0) || !(quantity > 0)) continue;
+    lines.push({ name: itemLineName(item), amount, quantity });
+  }
+  for (const addon of Array.isArray(addons) ? addons : []) {
+    const amount = stripeCents(addon.price);
+    if (!(amount > 0)) continue;
+    const name = String(addon.title || addon.group || "Option").trim() || "Option";
+    lines.push({ name, amount, quantity: 1 });
+  }
+  const shipping = stripeCents(order.shipping_cost);
+  if (shipping > 0) {
+    const label = String(order.shipping_label || order.shipping_title || "").trim();
+    lines.push({ name: label ? `Shipping (${label})` : "Shipping", amount: shipping, quantity: 1 });
+  }
+  return lines;
+}
+
+function stripeCheckoutForm(shop, order, items, addons) {
+  const base = String(shop.origin || "").replace(/\/+$/, "");
+  const fields = [
+    ["mode", "payment"],
+    ["success_url", `${base}/thankyou/`],
+    ["cancel_url", `${base}/payment/`],
+    ["client_reference_id", String(order.id)],
+    ["metadata[order_id]", String(order.id)],
+    ["metadata[ordernumber]", String(order.ordernumber || "")],
+    ["metadata[shop_id]", String(order.shop_id || "")]
+  ];
+  if (order.email) fields.push(["customer_email", String(order.email)]);
+
+  const currency = String(order.currency || "USD").toLowerCase();
+  const totalCents = stripeCents(order.total);
+  let lines = checkoutLines(order, items, addons);
+  const summed = lines.reduce((sum, line) => sum + line.amount * line.quantity, 0);
+  if (!lines.length || summed !== totalCents) {
+    lines = [{
+      name: `Order ${order.ordernumber || order.id}`,
+      amount: totalCents,
+      quantity: 1
+    }];
+  }
+  lines.forEach((line, index) => {
+    fields.push(
+      [`line_items[${index}][price_data][currency]`, currency],
+      [`line_items[${index}][price_data][unit_amount]`, String(line.amount)],
+      [`line_items[${index}][price_data][product_data][name]`, line.name],
+      [`line_items[${index}][quantity]`, String(line.quantity)]
+    );
+  });
+  return new URLSearchParams(fields).toString();
+}
+
+async function createStripeSession(secretKey, form) {
+  const response = await fetch(STRIPE_SESSIONS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: form
+  });
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  if (!response.ok || !payload || !payload.id || !payload.url) {
+    const detail = payload?.error?.message || `HTTP ${response.status}`;
+    throw new Error(`Stripe rejected the checkout session: ${detail}`);
+  }
+  return payload;
+}
+
 export function createHandler({ orderService, shopStore }) {
   async function orderStatus(request) {
     const url = new URL(request.url);
@@ -288,27 +380,52 @@ export function createHandler({ orderService, shopStore }) {
     }
     const shop = await shopForRequest(shopStore, request, shopId);
     if (!shop) return text(request, "Unauthorized shop", 403);
-
-    try {
-      const order = await orderService.createCheckout({
-        shopId,
-        orderId,
-        ordernumber
-      });
+    if (!shop.stripe_secret_key) {
       return json(request, {
-        url: "#",
-        sessionId: "placeholder",
-        orderId: order.id,
-        orderPublicId: order.public_id,
-        ordernumber: order.ordernumber,
-        status: order.status,
-        fulfillmentStatus: order.fulfillment_status,
-        total: order.total,
-        currency: order.currency
-      });
+        error: "Card payments are not configured for this shop",
+        code: "stripe_not_configured"
+      }, 400);
+    }
+
+    let prepared;
+    try {
+      prepared = await orderService.prepareCheckout({ shopId, orderId, ordernumber });
     } catch (error) {
       return serviceError(request, error) || databaseError(request, error);
     }
+    const { order, items, addons } = prepared;
+
+    let session;
+    try {
+      session = await createStripeSession(
+        shop.stripe_secret_key,
+        stripeCheckoutForm(shop, order, items, addons)
+      );
+    } catch (error) {
+      console.error("Stripe checkout session failed:", error);
+      return json(request, {
+        error: "Could not create the card payment session. The order was not charged.",
+        code: "stripe_unavailable"
+      }, 502);
+    }
+
+    let updated;
+    try {
+      updated = await orderService.beginCheckout(order.id, session.id);
+    } catch (error) {
+      return serviceError(request, error) || databaseError(request, error);
+    }
+    return json(request, {
+      url: session.url,
+      sessionId: session.id,
+      orderId: order.id,
+      orderPublicId: order.public_id,
+      ordernumber: order.ordernumber,
+      status: updated.status,
+      fulfillmentStatus: updated.fulfillment_status,
+      total: order.total,
+      currency: order.currency
+    });
   }
 
 function parseStripeSignature(header) {

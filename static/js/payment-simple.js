@@ -452,10 +452,52 @@
     });
   });
 
+  var stripeCheckoutBusy = false;
+
+  function startStripeCheckout(link) {
+    if (stripeCheckoutBusy) return;
+    var endpoint = (section.getAttribute('data-order-endpoint') || '').replace(/\/+$/, '');
+    if (!order || !/^https?:/i.test(endpoint) || !window.fetch) {
+      setStatus('Card checkout is not available right now. Choose another payment method.', 'error');
+      return;
+    }
+    stripeCheckoutBusy = true;
+    var original = link.textContent;
+    link.classList.add('busy');
+    link.textContent = 'Contacting card processor...';
+    fetch(endpoint + '/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shop_id: section.getAttribute('data-shop-id') || '',
+        ordernumber: order
+      })
+    }).then(function(response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    }).then(function(body) {
+      if (body && body.url && /^https?:/i.test(body.url)) {
+        window.location.href = body.url;
+        return;
+      }
+      throw new Error('invalid session');
+    }).catch(function() {
+      stripeCheckoutBusy = false;
+      link.classList.remove('busy');
+      link.textContent = original;
+      setStatus('Could not start the card payment. Please choose another method or try again later.', 'error');
+    });
+  }
+
   document.querySelectorAll('.pay-link-external').forEach(function(link) {
-    link.addEventListener('click', function() {
+    link.addEventListener('click', function(event) {
       var href = link.getAttribute('href') || '';
       if (href && href !== '#') sendIntent('link');
+      var panel = link.closest ? link.closest('.static-payment-panel') : null;
+      if (panel && panel.getAttribute('data-checkout') === 'stripe') {
+        if (event && event.preventDefault) event.preventDefault();
+        startStripeCheckout(link);
+      }
     });
   });
 

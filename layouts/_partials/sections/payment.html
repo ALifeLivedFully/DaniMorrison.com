@@ -20,7 +20,7 @@
 {{- $traditionalLinks := slice -}}
 {{- range $p.payment_links.links -}}
     {{- if and .enabled (ne .name "crypto") -}}
-        {{- if or .url .template -}}
+        {{- if or .url .template .checkout -}}
             {{- $linkLabel := .label | default (.name | title) -}}
             {{- $traditionalLinks = $traditionalLinks | append (dict "name" .name "label" $linkLabel "link" .) -}}
         {{- end -}}
@@ -142,14 +142,19 @@
                 {{- end }}
                 
                 {{- range $traditionalLinks }}
-                <div id="panel-{{ .name }}" class="static-payment-panel" data-template="{{ .link.template }}" data-url="{{ .link.url }}" data-currency="{{ .link.currency | default $currency.shop | default "USD" }}" data-username="{{ .link.username | default $p.payment_links.default_username }}" data-qr="{{ if isset .link "qr" }}{{ .link.qr }}{{ else }}true{{ end }}">
+                {{- $checkout := .link.checkout | default "" }}
+                <div id="panel-{{ .name }}" class="static-payment-panel" data-template="{{ .link.template }}" data-url="{{ .link.url }}" data-checkout="{{ $checkout }}" data-currency="{{ .link.currency | default $currency.shop | default "USD" }}" data-username="{{ .link.username | default $p.payment_links.default_username }}" data-qr="{{ if isset .link "qr" }}{{ .link.qr }}{{ else }}true{{ end }}">
                     <h3 class="static-payment-panel-title">{{ .label }}</h3>
                     <div class="static-payment-converted" data-converted-amount></div>
+                    {{- if not $checkout }}
                     <div class="static-payment-qr-container">
                         <div class="ext-qr"></div>
                     </div>
+                    {{- end }}
                     <a href="#" class="static-payment-pay-button pay-link-external" target="_blank" rel="noopener">Pay with {{ .label }}</a>
+                    {{- if not $checkout }}
                     <button type="button" class="static-payment-copy-button copy-ext-link">Copy link</button>
+                    {{- end }}
                 </div>
                 {{- end }}
                 
