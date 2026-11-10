@@ -78,15 +78,16 @@ const order = (overrides = {}) => ({
 
 async function seedShop(overrides = {}) {
   await env.orders.prepare(`
-    INSERT INTO shops (id, origin, site_config_url, catalog_url, active, config_cache)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO shops (id, origin, site_config_url, catalog_url, active, config_cache, stripe_webhook_secret)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `).bind(
     overrides.id ?? "danimorrison",
     overrides.origin ?? ORIGIN,
     overrides.site_config_url ?? `${ORIGIN}/payment.json`,
     overrides.catalog_url ?? CATALOG_URL,
     overrides.active ?? 1,
-    overrides.config_cache ?? JSON.stringify(overrides.config ?? config)
+    JSON.stringify(overrides.config ?? config),
+    overrides.stripeWebhookSecret ?? null
   ).run();
 }
 
@@ -121,23 +122,71 @@ function mockSite() {
   }));
 }
 
+const WEBHOOK_SECRET = "whsec_test_secret";
+
+async function stripeSignature(secret, body, timestamp = Date.now()) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const digest = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(`${timestamp}.${body}`)
+  );
+  const hex = [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+  return `t=${timestamp},v1=${hex}`;
+}
+
+async function signedWebhookRequest(event, overrides = {}) {
+  const body = JSON.stringify(event);
+  const signature = await stripeSignature(
+    overrides.secret ?? WEBHOOK_SECRET,
+    body,
+    overrides.timestamp ?? Date.now()
+  );
+  return new Request("http://localhost:8787/webhook", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(overrides.signed === false ? {} : { "Stripe-Signature": signature })
+    },
+    body
+  });
+}
+
 function envWithOrderInsertError(error) {
   const run = async (sql) => {
     if (sql.includes("INSERT INTO orders")) throw error;
     return { meta: { last_row_id: 1 } };
   };
+  const shop = {
+    id: "danimorrison",
+    origin: ORIGIN,
+    site_config_url: `${ORIGIN}/payment.json`,
+    catalog_url: CATALOG_URL,
+    active: 1,
+    config_cache: JSON.stringify(config)
+  };
   return {
     orders: {
       prepare(sql) {
+        const first = async () => String(sql).includes("FROM shops") ? shop : null;
         const bound = {
-          first: async () => null,
+          first,
           all: async () => ({ results: [] }),
           run: () => run(sql),
           __run: () => run(sql)
         };
         return {
           bind: () => bound,
-          first: async () => null,
+          first,
           all: async () => ({ results: [] })
         };
       },
@@ -216,6 +265,15 @@ async function readOrder(ordernumber = "1234567890") {
   ).bind(ordernumber).first();
   await waitOnExecutionContext(ctx);
   return row;
+}
+
+async function countRows(table) {
+  const ctx = createExecutionContext();
+  const row = await env.orders.prepare(
+    `SELECT COUNT(*) AS n FROM ${table}`
+  ).first();
+  await waitOnExecutionContext(ctx);
+  return row.n;
 }
 
 beforeEach(async () => {
@@ -593,7 +651,7 @@ describe("payment gates", () => {
   });
 
   it("marks an order paid from a webhook only after validation", async () => {
-    await seedShop();
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
     mockCatalog();
 
     const valid = await (await postJson(order()).respond()).json();
@@ -606,23 +664,23 @@ describe("payment gates", () => {
           currency: "usd",
           amount_total: 2400,
           client_reference_id: String(valid.orderId),
-          metadata: { order_id: String(valid.orderId) }
+          metadata: { order_id: String(valid.orderId), shop_id: "danimorrison" }
         }
       }
     };
-    const paid = await worker.fetch(new Request("http://localhost:8787/webhook", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(paidEvent)
-    }), env, createExecutionContext());
+    const paid = await worker.fetch(
+      await signedWebhookRequest(paidEvent),
+      env,
+      createExecutionContext()
+    );
     expect(await paid.text()).toBe("ok");
     expect((await readOrder()).status).toBe("paid");
 
-    const replay = await worker.fetch(new Request("http://localhost:8787/webhook", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(paidEvent)
-    }), env, createExecutionContext());
+    const replay = await worker.fetch(
+      await signedWebhookRequest(paidEvent),
+      env,
+      createExecutionContext()
+    );
     expect(await replay.text()).toBe("ok");
     const events = await env.orders.prepare(
       "SELECT * FROM webhook_events WHERE event_id = ?"
@@ -645,15 +703,15 @@ describe("payment gates", () => {
           currency: "usd",
           amount_total: 2400,
           client_reference_id: String(invalid.id),
-          metadata: { order_id: String(invalid.id) }
+          metadata: { order_id: String(invalid.id), shop_id: "danimorrison" }
         }
       }
     };
-    await worker.fetch(new Request("http://localhost:8787/webhook", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(invalidEvent)
-    }), env, createExecutionContext());
+    await worker.fetch(
+      await signedWebhookRequest(invalidEvent),
+      env,
+      createExecutionContext()
+    );
     expect((await readOrder("invalid2")).status).toBe("invalid");
   });
 
@@ -835,5 +893,238 @@ describe("payment intents", () => {
 
     expect(await readIntents()).toHaveLength(0);
     expect((await readOrder()).payment_method).toBeNull();
+  });
+});
+
+describe("shop authorization", () => {
+  it("refuses an order submission for an unknown shop", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const response = await postJson(order({ shop_id: "intruder" })).respond();
+
+    expect(response.status).toBe(403);
+    expect(await response.text()).toBe("Unauthorized shop");
+    expect((await countRows("orders"))).toBe(0);
+  });
+
+  it("refuses an order submission without a shop id", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const response = await postJson(order({ shop_id: "" })).respond();
+
+    expect(response.status).toBe(403);
+    expect((await countRows("orders"))).toBe(0);
+  });
+
+  it("refuses an order submission from a mismatched origin", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const response = await postJson(
+      order(),
+      "https://evil.example"
+    ).respond();
+
+    expect(response.status).toBe(403);
+    expect(await response.text()).toBe("Unauthorized shop");
+    expect((await countRows("orders"))).toBe(0);
+  });
+
+  it("accepts an order submission from a server without an origin header", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const response = await postJson(order(), null).respond();
+
+    expect(response.status).toBe(201);
+    expect((await readOrder()).shop_id).toBe("danimorrison");
+  });
+
+  it("refuses a claim for an unknown shop", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    const body = new URLSearchParams({
+      form_type: "claim",
+      shop_id: "intruder",
+      ordernumber: "1234567890",
+      email: "test@example.com",
+      payment_method: "bank"
+    });
+    const response = await postForm(body).respond();
+
+    expect(response.status).toBe(403);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("claims"))).toBe(0);
+  });
+
+  it("refuses a payment intent for an unknown shop", async () => {
+    await seedShop();
+    mockCatalog();
+    await postJson(order()).respond();
+
+    const response = await postJson({
+      shop_id: "intruder",
+      ordernumber: "1234567890",
+      payment_method: "paypal",
+      source: "link"
+    }, ORIGIN, "/payment-intent").respond();
+
+    expect(response.status).toBe(403);
+    expect((await countRows("payment_intents"))).toBe(0);
+  });
+
+  it("refuses a checkout session for an unknown shop", async () => {
+    await seedShop();
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(new Request(
+      "http://localhost:8787/create-checkout-session",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shop_id: "intruder", order_id: valid.orderId })
+      }
+    ), env, createExecutionContext());
+
+    expect(response.status).toBe(403);
+    expect((await readOrder()).status).toBe("validated");
+  });
+
+  it("does not match orders across shops", async () => {
+    await seedShop();
+    await seedShop({
+      id: "other-shop",
+      origin: "https://other.example"
+    });
+    mockCatalog();
+    const submitted = await (await postJson(
+      order({ shop_id: "other-shop" }),
+      "https://other.example"
+    ).respond()).json();
+    expect(submitted.success).toBe(true);
+
+    const claim = new URLSearchParams({
+      form_type: "claim",
+      shop_id: "danimorrison",
+      ordernumber: "1234567890",
+      email: "test@example.com",
+      payment_method: "bank"
+    });
+    const claimResponse = await postForm(claim).respond();
+    expect(claimResponse.status).toBe(404);
+    expect((await countRows("claims"))).toBe(0);
+
+    const intentResponse = await postJson({
+      shop_id: "danimorrison",
+      ordernumber: "1234567890",
+      payment_method: "paypal"
+    }, ORIGIN, "/payment-intent").respond();
+    expect(intentResponse.status).toBe(404);
+    expect((await countRows("payment_intents"))).toBe(0);
+  });
+});
+
+describe("webhook signatures", () => {
+  const paidEvent = (orderId, shopId = "danimorrison") => ({
+    id: "evt_sig_" + orderId,
+    type: "checkout.session.completed",
+    data: {
+      object: {
+        id: "cs_test_" + orderId,
+        currency: "usd",
+        amount_total: 2400,
+        client_reference_id: String(orderId),
+        metadata: { order_id: String(orderId), shop_id: shopId }
+      }
+    }
+  });
+
+  it("refuses a webhook without a signature header", async () => {
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId), { signed: false }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(400);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
+  });
+
+  it("refuses a webhook signed with the wrong secret", async () => {
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId), { secret: "whsec_wrong" }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(400);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
+  });
+
+  it("refuses a stale webhook", async () => {
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId), {
+        timestamp: Date.now() - 10 * 60 * 1000
+      }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(400);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
+  });
+
+  it("refuses a webhook for a shop without a configured secret", async () => {
+    await seedShop();
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId)),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(400);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
+  });
+
+  it("refuses a webhook for an unknown shop", async () => {
+    await seedShop();
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId, "intruder"), {
+        secret: "whsec_anything"
+      }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(403);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
   });
 });

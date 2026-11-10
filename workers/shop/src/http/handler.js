@@ -106,21 +106,14 @@ async function readBody(request) {
 }
 
 async function shopForRequest(shopStore, request, shopId) {
-  if (shopId) {
-    const shop = await shopStore.findActiveById(shopId);
-    if (shop) return shop;
-  }
-
+  if (!shopId) return null;
+  const shop = await shopStore.findActiveById(shopId);
+  if (!shop) return null;
   const origin = submittingOrigin(request);
-  if (!origin) return null;
-  const base = origin.replace(/\/+$/, "");
-  return {
-    id: shopId || "",
-    active: 1,
-    site_config_url: `${base}/payment.json`,
-    catalog_url: `${base}/shop/index.json`,
-    config_cache: null
-  };
+  if (origin && String(shop.origin || "").replace(/\/+$/, "") !== origin.replace(/\/+$/, "")) {
+    return null;
+  }
+  return shop;
 }
 
 async function shopConfig(shopStore, shop) {
@@ -293,6 +286,8 @@ export function createHandler({ orderService, shopStore }) {
     if (!orderId && !ordernumber) {
       return json(request, { error: "order_id or ordernumber is required" }, 400);
     }
+    const shop = await shopForRequest(shopStore, request, shopId);
+    if (!shop) return text(request, "Unauthorized shop", 403);
 
     try {
       const order = await orderService.createCheckout({
@@ -316,33 +311,90 @@ export function createHandler({ orderService, shopStore }) {
     }
   }
 
-  async function handleWebhook(request) {
-    let event;
-    try {
-      event = await request.json();
-    } catch {
-      return text(request, "Invalid webhook", 400);
-    }
-    if (!event || typeof event !== "object") {
-      return text(request, "Invalid webhook", 400);
-    }
+function parseStripeSignature(header) {
+  const timestamps = [];
+  const signatures = [];
+  String(header || "").split(",").forEach((piece) => {
+    const index = piece.indexOf("=");
+    if (index < 1) return;
+    const key = piece.slice(0, index).trim();
+    const value = piece.slice(index + 1).trim();
+    if (key === "t") timestamps.push(value);
+    if (key === "v1") signatures.push(value);
+  });
+  return { timestamp: timestamps[0] || "", signatures };
+}
 
-    try {
-      await orderService.handleWebhook({
-        provider: String(event.provider || "stripe"),
-        event
-      });
-      return text(request, "ok");
-    } catch (error) {
-      return serviceError(request, error) || databaseError(request, error);
-    }
+async function hmacSha256(secret, value) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const digest = await crypto.subtle.sign("HMAC", key, encoder.encode(value));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let difference = 0;
+  for (let i = 0; i < a.length; i++) {
+    difference |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
+  return difference === 0;
+}
+
+async function handleWebhook(request) {
+  const raw = await request.text();
+  let event;
+  try {
+    event = JSON.parse(raw);
+  } catch {
+    return text(request, "Invalid webhook", 400);
+  }
+  if (!event || typeof event !== "object") {
+    return text(request, "Invalid webhook", 400);
+  }
+
+  const shopId = String(event?.data?.object?.metadata?.shop_id || "").trim();
+  const shop = await shopForRequest(shopStore, request, shopId);
+  if (!shop) return text(request, "Unauthorized shop", 403);
+  if (!shop.stripe_webhook_secret) {
+    return text(request, "Webhooks are not configured for this shop", 400);
+  }
+
+  const { timestamp, signatures } = parseStripeSignature(request.headers.get("Stripe-Signature"));
+  const issued = Number(timestamp);
+  const tolerance = 5 * 60 * 1000;
+  if (!signatures.length || !Number.isFinite(issued) || Math.abs(Date.now() - issued) > tolerance) {
+    return text(request, "Invalid webhook signature", 400);
+  }
+  const expected = await hmacSha256(shop.stripe_webhook_secret, `${timestamp}.${raw}`);
+  if (!signatures.some((signature) => timingSafeEqual(signature, expected))) {
+    return text(request, "Invalid webhook signature", 400);
+  }
+
+  try {
+    await orderService.handleWebhook({
+      provider: String(event.provider || "stripe"),
+      event
+    });
+    return text(request, "ok");
+  } catch (error) {
+    return serviceError(request, error) || databaseError(request, error);
+  }
+}
 
   async function handleClaim(request, body) {
     const data = body || await readBody(request);
     if (!data) return text(request, "Invalid data", 400);
 
     const shopId = String(data.shop_id ?? data.shopId ?? "").trim();
+    const shop = await shopForRequest(shopStore, request, shopId);
+    if (!shop) return text(request, "Unauthorized shop", 403);
     const claim = {
       ordernumber: String(data.ordernumber ?? "").trim(),
       email: String(data.email ?? "").trim(),
@@ -371,6 +423,8 @@ export function createHandler({ orderService, shopStore }) {
     if (!data) return text(request, "Invalid data", 400);
 
     const shopId = String(data.shop_id ?? data.shopId ?? "").trim();
+    const shop = await shopForRequest(shopStore, request, shopId);
+    if (!shop) return text(request, "Unauthorized shop", 403);
 
     async function hash(value) {
       if (!value) return null;

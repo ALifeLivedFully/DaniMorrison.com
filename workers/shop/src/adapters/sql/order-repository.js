@@ -512,9 +512,9 @@ export class SqlOrderRepository {
   async findByOrderNumber(shopId, ordernumber) {
     return this.executor.first(`
       SELECT * FROM orders
-      WHERE ordernumber = ? AND (shop_id = ? OR ? = '')
+      WHERE ordernumber = ? AND shop_id = ?
       ORDER BY id DESC LIMIT 1
-    `, [ordernumber, shopId, shopId]);
+    `, [ordernumber, shopId]);
   }
 
   async findStatus(shopId, ordernumber) {
@@ -529,9 +529,9 @@ export class SqlOrderRepository {
                ORDER BY h.id LIMIT 1
              ) AS validated_at
       FROM orders o
-      WHERE o.ordernumber = ? AND (o.shop_id = ? OR ? = '')
+      WHERE o.ordernumber = ? AND o.shop_id = ?
       ORDER BY o.id DESC LIMIT 1
-    `, [ordernumber, shopId, shopId]);
+    `, [ordernumber, shopId]);
   }
 
   async findClaimByOrderId(orderId) {
