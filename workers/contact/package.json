@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "start": "wrangler dev",
+    "dev": "npm run migrate:local && wrangler dev",
+    "start": "npm run migrate:local && wrangler dev",
+    "migrate:local": "wrangler d1 migrations apply contact --local",
+    "migrate:remote": "wrangler d1 migrations apply contact --remote",
     "test": "vitest"
   },
   "devDependencies": {

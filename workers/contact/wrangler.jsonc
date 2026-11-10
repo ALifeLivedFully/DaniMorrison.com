@@ -6,11 +6,20 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "contact",
 	"main": "src/index.js",
+	"account_id": "40a7bf10e839e77dd4005fc675985e93",
 	"compatibility_date": "2026-10-19",
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "contact",
+			"database_name": "contact",
+			"database_id": "cc58b5f4-3cdb-45b5-99ec-1f2399a00da2",
+			"migrations_dir": "migrations"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

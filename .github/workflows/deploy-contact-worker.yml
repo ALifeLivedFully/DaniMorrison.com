@@ -1,0 +1,36 @@
+name: Deploy Contact Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/contact/**"
+      - "secretspec.toml"
+      - ".github/workflows/deploy-contact-worker.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve secrets
+        uses: cachix/secretspec-action@9a02088c2a41efaf75c0e10e574f0275964bbe7f
+        with:
+          profile: production
+          provider: env
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: workers/contact
+          command: d1 migrations apply contact --remote
+
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: workers/contact
+          command: deploy
