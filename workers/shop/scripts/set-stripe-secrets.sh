@@ -3,27 +3,33 @@
 # secretspec keyring into the shop worker's remote D1 shops row. The values
 # themselves are never printed or committed; only their presence is shown.
 #
-# Usage:
-#   secretspec set STRIPE_SECRET_KEY
-#   secretspec set STRIPE_WEBHOOK_SECRET
+# Usage (secretspec profile selects which Stripe values are written):
+#   secretspec set STRIPE_SECRET_KEY -P production      # sk_live_...
+#   secretspec set STRIPE_WEBHOOK_SECRET -P production   # live-mode whsec_...
 #   ./workers/shop/scripts/set-stripe-secrets.sh
+#
+# Test-mode rollout (staging profile holds sk_test_... values):
+#   secretspec set STRIPE_SECRET_KEY -P staging
+#   secretspec set STRIPE_WEBHOOK_SECRET -P staging
+#   SECRETSPEC_PROFILE=staging ./workers/shop/scripts/set-stripe-secrets.sh
 #
 # Forks: override SHOP_ID (and DB_NAME if needed) to target another row.
 set -euo pipefail
 
+PROFILE="${SECRETSPEC_PROFILE:-production}"
 SHOP_ID="${SHOP_ID:-danimorrison}"
 DB_NAME="${DB_NAME:-orders}"
 
 if [ -z "${STRIPE_SECRET_KEY:-}" ] && [ -z "${STRIPE_WEBHOOK_SECRET:-}" ]; then
   if [ "${STRIPE_SECRETS_REENTRY:-}" = "1" ]; then
     echo "Neither STRIPE_SECRET_KEY nor STRIPE_WEBHOOK_SECRET is set in the" >&2
-    echo "secretspec production profile. Set them first:" >&2
-    echo "  secretspec set STRIPE_SECRET_KEY" >&2
-    echo "  secretspec set STRIPE_WEBHOOK_SECRET" >&2
+    echo "secretspec '$PROFILE' profile. Set them first:" >&2
+    echo "  secretspec set STRIPE_SECRET_KEY -P $PROFILE" >&2
+    echo "  secretspec set STRIPE_WEBHOOK_SECRET -P $PROFILE" >&2
     exit 1
   fi
   export STRIPE_SECRETS_REENTRY=1
-  exec secretspec run --profile production \
+  exec secretspec run --profile "$PROFILE" \
     --reason "apply the Stripe configuration to the shop worker's D1 shops row" \
     -- "$0" "$@"
 fi
@@ -70,11 +76,12 @@ wrangler d1 execute "$DB_NAME" --remote --file "$sql_file"
 
 echo
 echo "Shop '$SHOP_ID' is now configured with:"
+echo "  secretspec profile: $PROFILE"
 echo "  Stripe API key mode: $key_mode"
 if [ "$key_mode" = "test" ]; then
   echo "  NOTE: a test key cannot charge real cards. Before accepting real"
-  echo "  payments, set the live key (secretspec set STRIPE_SECRET_KEY) and"
-  echo "  re-run this script."
+  echo "  payments, set the live key (secretspec set STRIPE_SECRET_KEY -P"
+  echo "  production) and re-run this script without SECRETSPEC_PROFILE."
 fi
 wrangler d1 execute "$DB_NAME" --remote \
   --command "SELECT id, active, stripe_secret_key IS NOT NULL AS stripe_key_set, stripe_webhook_secret IS NOT NULL AS webhook_secret_set FROM shops WHERE id = '$(escape_sql "$SHOP_ID")'"
