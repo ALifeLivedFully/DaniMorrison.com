@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "workers/shop/**"
+      - "secretspec.toml"
       - ".github/workflows/deploy-shop-worker.yml"
   workflow_dispatch:
 
@@ -14,17 +15,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Resolve secrets
+        uses: cachix/secretspec-action@9a02088c2a41efaf75c0e10e574f0275964bbe7f
+        with:
+          profile: production
+          provider: env
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - uses: cloudflare/wrangler-action@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: workers/shop
           command: d1 migrations apply orders --remote
 
       - uses: cloudflare/wrangler-action@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: workers/shop
           command: deploy
-

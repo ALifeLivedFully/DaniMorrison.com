@@ -6,6 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "shop",
 	"main": "src/index.js",
+	"account_id": "40a7bf10e839e77dd4005fc675985e93",
 	"compatibility_date": "2026-05-28",
 	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
