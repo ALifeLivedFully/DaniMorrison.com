@@ -1,4 +1,5 @@
-action: /form.php
+action: https://contact.dani-40a.workers.dev/
+next: /thankyou
 placeholders: false
 fields: 
 - name: title

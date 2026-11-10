@@ -29,6 +29,7 @@
     {{- if and (eq .input_type "html") (not $legend) -}}{{ $legend = trim (plainify .label) " \t\r\n" }}{{- end -}}
 {{- end -}}
 <form id="{{ $id }}" class="form" method="post" action="{{ $f.action }}">
+    {{ with $f.next }}<input type="hidden" name="_next" value="{{ . }}">{{ end }}
     <fieldset>
         {{ with $legend }}<legend>{{ . }}</legend>{{ end }}
 
