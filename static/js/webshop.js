@@ -432,6 +432,15 @@
                 showError("We could not reach the order service. Please try again.");
             });
         });
+
+        /* Returning from the payment page with the browser's back button
+           restores this form from the back/forward cache exactly as it was
+           left — its submit button disabled by the attempt that moved the
+           buyer on. pageshow runs on that restore, so the form is usable
+           again and the buyer can correct the details and re-submit. */
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted && submitButton) submitButton.disabled = false;
+        });
     }
 
     /* -- the payment page ------------------------------------------------- */

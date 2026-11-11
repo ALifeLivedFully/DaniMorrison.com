@@ -174,10 +174,14 @@ function createPage(options = {}) {
     clearTimeout,
     console
   };
+  const pageListeners = {};
+  page.addEventListener = (type, handler) => {
+    (pageListeners[type] = pageListeners[type] || []).push(handler);
+  };
   page.window = page;
   vm.createContext(page);
   sources.forEach((source) => vm.runInContext(source, page));
-  return { page, select, bankPanel, payLink, claimSection, claimAction, claimForm, claimOrder, claimEmail, claimMethod, claimMessage, store };
+  return { page, select, bankPanel, payLink, claimSection, claimAction, claimForm, claimOrder, claimEmail, claimMethod, claimMessage, store, pageListeners };
 }
 
 test("selecting a payment method activates its panel in the browser", async () => {
@@ -391,6 +395,65 @@ test("a card checkout without an order or endpoint is refused gracefully", async
   assert.match(
     page.document.getElementById("payment-status").textContent,
     /card checkout is not available/i
+  );
+});
+
+test("a page restored from the back/forward cache un-sticks the card checkout link", async () => {
+  const posted = [];
+  const { page, payLink, pageListeners } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    checkout: "stripe",
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return new Promise(() => {});
+    }
+  });
+  payLink.textContent = "Pay with Credit / Debit Card (Stripe)";
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  assert.equal(payLink.classList.contains("busy"), true);
+  assert.equal(payLink.textContent, "Contacting card processor...");
+
+  pageListeners.pageshow.forEach((handler) => handler({ persisted: false }));
+  assert.equal(payLink.classList.contains("busy"), true);
+
+  pageListeners.pageshow.forEach((handler) => handler({ persisted: true }));
+  assert.equal(payLink.classList.contains("busy"), false);
+  assert.equal(payLink.textContent, "Pay with Credit / Debit Card (Stripe)");
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(posted.length, 2);
+  assert.equal(page.location.href, undefined);
+});
+
+test("a card checkout for an order that was already paid says so", async () => {
+  const { page, payLink } = createPage({
+    claimMode: "mailto",
+    orderEndpoint: "https://worker.example/",
+    store: { ordernumber: "12345" },
+    checkout: "stripe",
+    fetch: async () => ({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: "not payable", code: "order_not_payable", orderStatus: "paid" })
+    })
+  });
+  payLink.textContent = "Pay with Credit / Debit Card (Stripe)";
+
+  payLink.listeners.click.forEach((handler) =>
+    handler.call(payLink, { preventDefault: () => {} }));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(payLink.classList.contains("busy"), false);
+  assert.equal(payLink.textContent, "Pay with Credit / Debit Card (Stripe)");
+  assert.match(
+    page.document.getElementById("payment-status").textContent,
+    /already paid/i
   );
 });
 

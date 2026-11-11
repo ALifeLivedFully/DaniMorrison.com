@@ -454,6 +454,13 @@
 
   var stripeCheckoutBusy = false;
 
+  function resetStripeLink(link) {
+    stripeCheckoutBusy = false;
+    link.classList.remove('busy');
+    var label = link.getAttribute('data-original-label');
+    if (label) link.textContent = label;
+  }
+
   function startStripeCheckout(link) {
     if (stripeCheckoutBusy) return;
     var endpoint = (section.getAttribute('data-order-endpoint') || '').replace(/\/+$/, '');
@@ -462,7 +469,7 @@
       return;
     }
     stripeCheckoutBusy = true;
-    var original = link.textContent;
+    link.setAttribute('data-original-label', link.textContent);
     link.classList.add('busy');
     link.textContent = 'Contacting card processor...';
     fetch(endpoint + '/create-checkout-session', {
@@ -473,18 +480,24 @@
         ordernumber: order
       })
     }).then(function(response) {
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      return response.json();
-    }).then(function(body) {
-      if (body && body.url && /^https?:/i.test(body.url)) {
-        window.location.href = body.url;
+      return response.json().catch(function() { return null; }).then(function(body) {
+        return { ok: response.ok, status: response.status, body: body };
+      });
+    }).then(function(outcome) {
+      if (outcome.ok && outcome.body && outcome.body.url && /^https?:/i.test(outcome.body.url)) {
+        window.location.href = outcome.body.url;
+        return;
+      }
+      if (outcome.status === 409 && outcome.body && outcome.body.code === 'order_not_payable') {
+        resetStripeLink(link);
+        setStatus(outcome.body.orderStatus === 'paid'
+          ? 'This order was already paid. Check your email for the receipt.'
+          : 'This order can no longer be paid online. Please contact us.', 'error');
         return;
       }
       throw new Error('invalid session');
     }).catch(function() {
-      stripeCheckoutBusy = false;
-      link.classList.remove('busy');
-      link.textContent = original;
+      resetStripeLink(link);
       setStatus('Could not start the card payment. Please choose another method or try again later.', 'error');
     });
   }
@@ -497,6 +510,23 @@
       if (panel && panel.getAttribute('data-checkout') === 'stripe') {
         if (event && event.preventDefault) event.preventDefault();
         startStripeCheckout(link);
+      }
+    });
+  });
+
+  /* Returning with the browser's back button restores this page from the
+     back/forward cache exactly as it was left: the card link mid-flight,
+     marked busy with the processor message. pageshow runs on that restore,
+     so the link comes back and a second attempt is possible. */
+  window.addEventListener('pageshow', function(event) {
+    if (!event.persisted) return;
+    stripeCheckoutBusy = false;
+    document.querySelectorAll('.pay-link-external').forEach(function(link) {
+      var panel = link.closest ? link.closest('.static-payment-panel') : null;
+      if (panel && panel.getAttribute('data-checkout') === 'stripe') {
+        link.classList.remove('busy');
+        var label = link.getAttribute('data-original-label');
+        if (label) link.textContent = label;
       }
     });
   });
