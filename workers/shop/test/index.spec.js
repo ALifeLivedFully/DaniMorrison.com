@@ -1118,6 +1118,26 @@ describe("shop authorization", () => {
     expect((await readOrder()).shop_id).toBe("danimorrison");
   });
 
+  it("accepts an order submission from the same host over a different scheme", async () => {
+    await seedShop();
+    mockCatalog();
+
+    const response = await postJson(order(), "https://localhost:1313").respond();
+
+    expect(response.status).toBe(201);
+    expect((await readOrder()).shop_id).toBe("danimorrison");
+  });
+
+  it("accepts an order submission from the www variant of the shop host", async () => {
+    await seedShop({ origin: "https://danimorrison.com" });
+    mockCatalog();
+
+    const response = await postJson(order(), "https://www.danimorrison.com").respond();
+
+    expect(response.status).toBe(201);
+    expect((await readOrder()).shop_id).toBe("danimorrison");
+  });
+
   it("refuses a claim for an unknown shop", async () => {
     await seedShop();
     mockCatalog();

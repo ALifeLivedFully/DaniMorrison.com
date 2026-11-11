@@ -14,6 +14,15 @@ function submittingOrigin(request) {
   }
 }
 
+function originHost(origin) {
+  if (!origin) return "";
+  try {
+    return new URL(origin).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
 function corsHeaders(request) {
   const origin = request.headers.get("Origin");
   return {
@@ -110,8 +119,9 @@ async function shopForRequest(shopStore, request, shopId) {
   const shop = await shopStore.findActiveById(shopId);
   if (!shop) return null;
   const origin = submittingOrigin(request);
-  if (origin && String(shop.origin || "").replace(/\/+$/, "") !== origin.replace(/\/+$/, "")) {
-    return null;
+  if (origin) {
+    const expectedHost = originHost(shop.origin);
+    if (!expectedHost || originHost(origin) !== expectedHost) return null;
   }
   return shop;
 }
