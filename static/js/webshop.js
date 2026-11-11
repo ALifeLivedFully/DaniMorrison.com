@@ -441,4 +441,16 @@
         paymentTotal.textContent = formatMoney(currency(paymentSection), cartTotal() + addonTotal());
     }
 
+    /* -- the thank you page -------------------------------------------------
+       Stripe's success redirect appends the checkout session to the URL, so
+       arriving here with one means an order was placed and paid for; the
+       stored cart has done its job. Cleared here rather than on the payment
+       page, so a cancelled checkout keeps its cart for a retry. */
+    if (new URLSearchParams(window.location.search).get("stripe_session")) {
+        ["cart", "addons", "ordernumber"].forEach(function (key) {
+            try { localStorage.removeItem(key); } catch (error) { /* storage is optional */ }
+        });
+        updateCount();
+    }
+
 })();

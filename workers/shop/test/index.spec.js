@@ -164,7 +164,7 @@ function mockSiteWithStripe({ sessions = [], status = 200, error = "Stripe error
 
 const WEBHOOK_SECRET = "whsec_test_secret";
 
-async function stripeSignature(secret, body, timestamp = Date.now()) {
+async function stripeSignature(secret, body, timestamp = Math.floor(Date.now() / 1000)) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -189,7 +189,7 @@ async function signedWebhookRequest(event, overrides = {}) {
   const signature = await stripeSignature(
     overrides.secret ?? WEBHOOK_SECRET,
     body,
-    overrides.timestamp ?? Date.now()
+    overrides.timestamp ?? Math.floor(Date.now() / 1000)
   );
   return new Request("http://localhost:8787/webhook", {
     method: "POST",
@@ -670,7 +670,7 @@ describe("payment gates", () => {
     expect(form.get("mode")).toBe("payment");
     expect(form.get("client_reference_id")).toBe(String(valid.orderId));
     expect(form.get("customer_email")).toBe("test@example.com");
-    expect(form.get("success_url")).toBe(`${ORIGIN}/thankyou/`);
+    expect(form.get("success_url")).toBe(`${ORIGIN}/thankyou/?stripe_session={CHECKOUT_SESSION_ID}`);
     expect(form.get("cancel_url")).toBe(`${ORIGIN}/payment/`);
     expect(form.get("metadata[order_id]")).toBe(String(valid.orderId));
     expect(form.get("metadata[ordernumber]")).toBe("1234567890");
@@ -1259,7 +1259,43 @@ describe("webhook signatures", () => {
 
     const response = await worker.fetch(
       await signedWebhookRequest(paidEvent(valid.orderId), {
-        timestamp: Date.now() - 10 * 60 * 1000
+        timestamp: Math.floor(Date.now() / 1000) - 10 * 60
+      }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(400);
+    expect((await readOrder()).status).toBe("validated");
+    expect((await countRows("webhook_events"))).toBe(0);
+  });
+
+  it("accepts a webhook timestamped the way Stripe signs it, in seconds", async () => {
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId), {
+        timestamp: Math.floor(Date.now() / 1000) - 60
+      }),
+      env,
+      createExecutionContext()
+    );
+
+    expect(response.status).toBe(200);
+    expect((await readOrder()).status).toBe("paid");
+    expect((await countRows("webhook_events"))).toBe(1);
+  });
+
+  it("refuses a webhook timestamped in milliseconds", async () => {
+    await seedShop({ stripeWebhookSecret: WEBHOOK_SECRET });
+    mockCatalog();
+    const valid = await (await postJson(order()).respond()).json();
+
+    const response = await worker.fetch(
+      await signedWebhookRequest(paidEvent(valid.orderId), {
+        timestamp: Date.now()
       }),
       env,
       createExecutionContext()

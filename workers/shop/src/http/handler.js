@@ -195,7 +195,7 @@ function stripeCheckoutForm(shop, order, items, addons) {
   const base = String(shop.origin || "").replace(/\/+$/, "");
   const fields = [
     ["mode", "payment"],
-    ["success_url", `${base}/thankyou/`],
+    ["success_url", `${base}/thankyou/?stripe_session={CHECKOUT_SESSION_ID}`],
     ["cancel_url", `${base}/payment/`],
     ["client_reference_id", String(order.id)],
     ["metadata[order_id]", String(order.id)],
@@ -484,9 +484,9 @@ async function handleWebhook(request) {
   }
 
   const { timestamp, signatures } = parseStripeSignature(request.headers.get("Stripe-Signature"));
-  const issued = Number(timestamp);
+  const issuedMs = Number(timestamp) * 1000; /* Stripe writes t in seconds */
   const tolerance = 5 * 60 * 1000;
-  if (!signatures.length || !Number.isFinite(issued) || Math.abs(Date.now() - issued) > tolerance) {
+  if (!signatures.length || !Number.isFinite(issuedMs) || Math.abs(Date.now() - issuedMs) > tolerance) {
     return text(request, "Invalid webhook signature", 400);
   }
   const expected = await hmacSha256(shop.stripe_webhook_secret, `${timestamp}.${raw}`);
