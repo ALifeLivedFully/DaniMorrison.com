@@ -3,15 +3,12 @@ title: Homemade Granola
 image: /uploads/products/granola/granola-1.jpg
 variant_type: size
 variants:
-- name: Small
+- name: Small jar (4 OZ)
   price: 4.95
   sku: granola-s
-- name: Medium
-  price: 9.95
-  sku: granola-m
-- name: Large
-  price: 15.95
-  sku: granola-l
+- name: Bulk pricing (1 Gallon)
+  price: 97.42
+  sku: granola-bulk
 weight: 1
 tags:
 - Food
