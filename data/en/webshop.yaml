@@ -13,14 +13,11 @@ currency_space: false
 shipping:
   active: true
   options:
-    - title: Shipping NL
-      label: The Netherlands
+    - title: Pickup MN
+      label: Local Pickup (Minnesota)
       price: 0
-    - title: Shipping EU
-      label: European Union
-      price: 7.5
-    - title: Shipping World
-      label: Rest of the world
+    - title: Shipping US
+      label: United States
       price: 15
 custom_values:
   - title: Gift wrapping
@@ -31,11 +28,11 @@ custom_values:
       - title: Gift wrapped
         value: yes
         price: 2
-  - title: Custom engraving
-    options:
-      - title: No engraving
-        value: no
-        price: 0
-      - title: Custom engraved
-        value: yes
-        price: 20
+  # - title: Custom engraving
+  #   options:
+  #     - title: No engraving
+  #       value: no
+  #       price: 0
+  #     - title: Custom engraved
+  #       value: yes
+  #       price: 20

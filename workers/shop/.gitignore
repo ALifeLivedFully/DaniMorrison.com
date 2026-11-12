@@ -170,3 +170,6 @@ dist
 shop.sqlite
 shop.sqlite-shm
 shop.sqlite-wal
+
+# Local D1 SQL exports (contain secrets — never commit)
+exports/
