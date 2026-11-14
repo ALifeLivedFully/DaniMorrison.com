@@ -6,19 +6,14 @@ title: Resume
 
 # Resume
 
-{{< my-summary >}}<br>
+<!-- {{< my-summary >}}<br> -->
+
+My resume covers a broad range of [Professional Experience](#experience), [Education](#education), [Projects](#projects), [Certifications](#certifications), and [Technical Skills](#skills) developed across multiple industries and disciplines. With experience spanning technology, operations, administration, and hands-on work, there's quite a bit to explore. Browse the sections below directly on this page or download the PDF for an offline copy. 
 
 [Download Resume.pdf](/Resume.pdf){:.button}
 
-<!-- The resume was one jobs listing here. It is the tabs below now, kept
-     for reference:
-
-{{</* jobs dates="true" style="tiles" */>}}
--->
-
 ---
 
-{{< tabs center="true" >}}
 
 ## Experience
 
@@ -48,4 +43,3 @@ title: Resume
 
 {{< listing folder="skills" style="tiles" filter="true" show-tags="false" limit="3" >}}
 
-{{< /tabs >}}
