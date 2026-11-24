@@ -78,7 +78,7 @@ applyMigrations(db);
 const executor = createSqliteExecutor(db);
 const orderService = new OrderService(new SqlOrderRepository(executor));
 const shopStore = new SqlShopRepository(executor);
-const handler = createHandler({ orderService, shopStore });
+const handler = createHandler({ orderService, shopStore, capSecret: process.env.CAP_SECRET });
 
 const server = http.createServer(async (request, response) => {
   try {

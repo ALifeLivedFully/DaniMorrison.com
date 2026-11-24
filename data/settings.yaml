@@ -24,3 +24,6 @@ preheader:
 enable_search: true
 enable_darkmode: true
 enable_webshop: true
+cap:
+  site_key: c67674170e
+  api_endpoint: https://cap-workers.dani-40a.workers.dev/c67674170e/

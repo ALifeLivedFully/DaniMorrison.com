@@ -1,0 +1,27 @@
+{
+  "widget": {
+    "version": "0.1.64",
+    "file": "cap-widget-0.1.64.min.js",
+    "source": "https://registry.npmjs.org/cap-widget/-/cap-widget-0.1.64.tgz",
+    "sha256": "747e18eca3e220dd19f77c60f3bb084e6c70ecf08dc3a773fff19f4bd2e8c1af"
+  },
+  "wasm": {
+    "version": "0.0.8",
+    "files": {
+      "cap_wasm_bg-0.0.8.wasm": {
+        "source": "https://registry.npmjs.org/@cap.js/wasm/-/wasm-0.0.8.tgz",
+        "sha256": "e4f3c00246a775193661f9277ca1288cd310a6514de166ecc2176ccd26fb06a9"
+      },
+      "hashwx-0.0.8.wasm": {
+        "source": "https://registry.npmjs.org/@cap.js/wasm/-/wasm-0.0.8.tgz",
+        "sha256": "b1a0dbb3ef444d3c7069e0a5e0a0273ffa4cf8fef62cbbe43761c02f7cd6aff5"
+      }
+    }
+  },
+  "pako": {
+    "version": "2.1.0",
+    "file": "pako_inflate-2.1.0.min.js",
+    "source": "https://registry.npmjs.org/pako/-/pako-2.1.0.tgz",
+    "sha256": "fa226c8e1e3556993260e6a5c1fe94e225da59b3418a06811fdc51d308f8bb43"
+  }
+}

@@ -9,7 +9,7 @@ export default {
     const executor = createD1Executor(env.orders);
     const orderService = new OrderService(new SqlOrderRepository(executor));
     const shopStore = new SqlShopRepository(executor);
-    const handler = createHandler({ orderService, shopStore });
+    const handler = createHandler({ orderService, shopStore, capSecret: env.CAP_SECRET });
     return handler(request);
   }
 };

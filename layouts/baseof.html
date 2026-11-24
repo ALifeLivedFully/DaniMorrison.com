@@ -39,6 +39,13 @@
 
     {{ partial "site/footer.html" . }}
 
+    <script>
+        window.CAP_CUSTOM_WASM_URL = "/vendor/cap/cap_wasm_bg-0.0.8.wasm";
+        window.CAP_CUSTOM_HASHWX_URL = "/vendor/cap/hashwx-0.0.8.wasm";
+        window.CAP_PAKO_URL = "/vendor/cap/pako_inflate-2.1.0.min.js";
+    </script>
+    <script src="/vendor/cap/cap-widget-0.1.64.min.js" defer></script>
+    <script src="/js/cap-invisible.js" defer></script>
     <script src="/js/site.js" defer></script>
     <script src="/js/lightbox.js" defer></script>
     {{ if $s.enable_search }}<script src="/js/search.js" defer></script>{{ end }}

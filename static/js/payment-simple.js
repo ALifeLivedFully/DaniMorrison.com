@@ -4,6 +4,7 @@
   var section = document.querySelector('section.payment');
   if (!section) return;
   if (section.getAttribute('data-payment-mode') !== 'simple') return;
+  var capEndpoint = section.getAttribute('data-cap-endpoint') || '';
 
   var statusEl = document.getElementById('payment-status');
   var totalEl = document.getElementById('paymenttotal');
@@ -614,23 +615,39 @@
         claimAction.textContent = original;
       };
 
-      fetch(claimForm.action, {
-        method: 'POST',
-        body: new FormData(claimForm),
-        mode: 'no-cors',
-        keepalive: true
+      var solveClaim = function() {
+        if (!window.Cap || !capEndpoint) {
+          return Promise.reject(new Error('Cap unavailable'));
+        }
+        var cap = new window.Cap({ apiEndpoint: capEndpoint });
+        return cap.solve().then(function(result) {
+          if (!result || !result.token) throw new Error('Cap solve failed');
+          return result.token;
+        });
+      };
+
+      solveClaim().then(function(token) {
+        var body = new FormData(claimForm);
+        body.append('cap-token', token);
+        return fetch(claimForm.action, {
+          method: 'POST',
+          body: body,
+          mode: 'no-cors',
+          keepalive: true
+        });
       }).then(function() {
         try {
           localStorage.removeItem('cart');
           localStorage.removeItem('addons');
           localStorage.removeItem('ordernumber');
-        } catch (error) { /* storage is optional */ }
+        } catch (error) {}
         if (nextUrl) window.location.href = nextUrl;
         else restore();
       }).catch(function() {
         restore();
         setStatus('Could not send the payment confirmation. Please use the email link and try again.', 'error');
       });
+
     });
   }
 

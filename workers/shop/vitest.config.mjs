@@ -12,7 +12,7 @@ export default defineConfig(async () => {
 				miniflare: {
 					/* A test-only binding for the schema, applied once per run by the
 					   setup file — the per-test storage stays isolated otherwise. */
-					bindings: { TEST_MIGRATIONS: migrations },
+					bindings: { TEST_MIGRATIONS: migrations, CAP_SECRET: "test-cap-secret" },
 				},
 			}),
 		],

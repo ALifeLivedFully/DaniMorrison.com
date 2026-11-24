@@ -331,6 +331,13 @@
         };
 
         checkout.addEventListener("submit", function (event) {
+            var capToken = fieldValue("cap-token");
+            if (!capToken) {
+                event.preventDefault();
+                showError("Please complete the verification and try again.");
+                return;
+            }
+
             var ordernumber = Math.round(Date.now() / 100) % 6307200000;
             checkout.querySelector("input[name='ordernumber']").value = ordernumber;
             write("ordernumber", ordernumber);
@@ -384,7 +391,8 @@
                 addons: addons,
                 message: fieldValue("message"),
                 currency: checkout.getAttribute("data-currency-code") || "",
-                _next: fieldValue("_next") || "/payment/"
+                _next: fieldValue("_next") || "/payment/",
+                "cap-token": capToken
             };
 
             checkout.querySelector("input[name='order']").value = JSON.stringify(items);

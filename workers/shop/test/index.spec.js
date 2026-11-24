@@ -4,6 +4,14 @@ import worker from "../src";
 
 const ORIGIN = "http://localhost:1313";
 const CATALOG_URL = `${ORIGIN}/shop/index.json`;
+const CAP_VERIFY_URL = "https://cap-workers.dani-40a.workers.dev/c67674170e/siteverify";
+
+function capVerifyResponse({ success = true, error = "" } = {}) {
+  return new Response(JSON.stringify(success ? { success: true } : { success: false, error }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}
 
 const config = {
   shop_id: "danimorrison",
@@ -73,6 +81,7 @@ const order = (overrides = {}) => ({
   message: "",
   currency: "USD",
   _next: "/payment/",
+  "cap-token": "cap-test-token",
   ...overrides
 });
 
@@ -94,8 +103,23 @@ async function seedShop(overrides = {}) {
 
 function mockCatalog(value = catalog) {
   vi.stubGlobal("fetch", vi.fn(async (input) => {
+    if (String(input) === CAP_VERIFY_URL) return capVerifyResponse();
     if (String(input) === CATALOG_URL) {
       return new Response(JSON.stringify(value), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+    return new Response("not found", { status: 404 });
+  }));
+}
+
+function mockCatalogWithCap(capResponse = () => capVerifyResponse()) {
+  vi.stubGlobal("fetch", vi.fn(async (input) => {
+    const url = String(input);
+    if (url === CAP_VERIFY_URL) return capResponse();
+    if (url === CATALOG_URL) {
+      return new Response(JSON.stringify(catalog), {
         status: 200,
         headers: { "Content-Type": "application/json" }
       });
@@ -107,6 +131,7 @@ function mockCatalog(value = catalog) {
 function mockSite() {
   vi.stubGlobal("fetch", vi.fn(async (input) => {
     const url = String(input);
+    if (url === CAP_VERIFY_URL) return capVerifyResponse();
     if (url === `${ORIGIN}/payment.json`) {
       return new Response(JSON.stringify(config), {
         status: 200,
@@ -129,6 +154,7 @@ function mockSiteWithStripe({ sessions = [], status = 200, error = "Stripe error
   const calls = [];
   vi.stubGlobal("fetch", vi.fn(async (input, init) => {
     const url = String(input);
+    if (url === CAP_VERIFY_URL) return capVerifyResponse();
     if (url === STRIPE_SESSIONS_URL) {
       calls.push({ url, init });
       if (status !== 200) {
@@ -215,6 +241,7 @@ function envWithOrderInsertError(error) {
     config_cache: JSON.stringify(config)
   };
   return {
+    CAP_SECRET: "test-cap-secret",
     orders: {
       prepare(sql) {
         const first = async () => String(sql).includes("FROM shops") ? shop : null;
@@ -239,6 +266,7 @@ function envWithOrderInsertError(error) {
 
 function envWithSchemaError(error) {
   return {
+    CAP_SECRET: "test-cap-secret",
     orders: {
       prepare() {
         return {
@@ -504,7 +532,11 @@ describe("the order worker", () => {
 
   it("does not validate when the catalog is unavailable", async () => {
     await seedShop();
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 503 })));
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse()
+        : new Response("down", { status: 503 })
+    ));
 
     const { respond } = postJson(order());
     const response = await respond();
@@ -512,6 +544,88 @@ describe("the order worker", () => {
     expect(response.status).toBe(503);
     expect((await response.json()).status).toBe("unvalidated");
     expect(await readOrder()).toBe(null);
+  });
+
+  it("rejects an order without a cap token", async () => {
+    await seedShop();
+    mockCatalogWithCap();
+
+    const response = await postJson(order({ "cap-token": undefined })).respond();
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("missing_token");
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("rejects an invalid cap token", async () => {
+    await seedShop();
+    mockCatalogWithCap(() => capVerifyResponse({ success: false, error: "invalid-token" }));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("invalid_token");
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("rejects an expired cap token", async () => {
+    await seedShop();
+    mockCatalogWithCap(() => capVerifyResponse({ success: false, error: "expired" }));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("expired_token");
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("fails closed when the Cap server is unreachable", async () => {
+    await seedShop();
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(502);
+    expect((await response.json()).code).toBe("cap_unavailable");
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("refuses to reuse a cap token", async () => {
+    await seedShop();
+    const used = new Set();
+    mockCatalogWithCap(() => {
+      const token = "cap-replay-token";
+      if (used.has(token)) return capVerifyResponse({ success: false, error: "already_redeemed" });
+      used.add(token);
+      return capVerifyResponse();
+    });
+
+    const first = await postJson(order({ "cap-token": "cap-replay-token" })).respond();
+    const second = await postJson(order({ "cap-token": "cap-replay-token" })).respond();
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(400);
+    expect((await second.json()).code).toBe("invalid_token");
+    expect(await countRows("orders")).toBe(1);
+  });
+
+  it("rejects a direct claim without a cap token", async () => {
+    await seedShop();
+    mockCatalogWithCap();
+    await postJson(order()).respond();
+
+    const response = await postJson({
+      form_type: "claim",
+      shop_id: "danimorrison",
+      ordernumber: "1234567890",
+      email: "test@example.com",
+      payment_method: "bank",
+      "cap-token": undefined
+    }, ORIGIN, "/claim").respond();
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("missing_token");
+    expect(await countRows("claims")).toBe(0);
   });
 
   it("still accepts the no-javascript form with structured JSON order lines", async () => {
@@ -529,6 +643,7 @@ describe("the order worker", () => {
       city: "Testville",
       country: "USA",
       shipping: "Shipping World",
+      "cap-token": "cap-test-token",
       "gift-wrapping": "yes",
       "custom-engraving": "no",
       order: JSON.stringify([{ sku: "coffeegrande", quantity: 1 }]),
@@ -639,6 +754,21 @@ describe("submission providers", () => {
     ).all();
     expect(orders.results).toHaveLength(1);
     expect(submissions.results).toHaveLength(1);
+  });
+
+  it("does not require a browser cap token for external submissions", async () => {
+    await seedShop();
+    mockCatalog();
+    const payload = order({
+      provider: "typeform",
+      provider_submission_id: "submission-124",
+      "cap-token": undefined
+    });
+
+    const response = await postJson(payload, ORIGIN, "/submissions").respond();
+
+    expect(response.status).toBe(201);
+    expect((await response.json()).success).toBe(true);
   });
 });
 
@@ -905,7 +1035,8 @@ describe("payment gates", () => {
       ordernumber: "invalid3",
       email: "test@example.com",
       payment_method: "bank",
-      _next: "/thankyou/"
+      _next: "/thankyou/",
+      "cap-token": "cap-claim-token"
     });
     const { respond } = postForm(body);
     const response = await respond();
@@ -925,7 +1056,8 @@ describe("payment gates", () => {
       ordernumber: "1234567890",
       email: "test@example.com",
       payment_method: "bank",
-      _next: "/thankyou/"
+      _next: "/thankyou/",
+      "cap-token": "cap-claim-token"
     });
     const { respond } = postForm(body);
     const response = await respond();
@@ -1148,7 +1280,8 @@ describe("shop authorization", () => {
       shop_id: "intruder",
       ordernumber: "1234567890",
       email: "test@example.com",
-      payment_method: "bank"
+      payment_method: "bank",
+      "cap-token": "cap-claim-token"
     });
     const response = await postForm(body).respond();
 
@@ -1209,7 +1342,8 @@ describe("shop authorization", () => {
       shop_id: "danimorrison",
       ordernumber: "1234567890",
       email: "test@example.com",
-      payment_method: "bank"
+      payment_method: "bank",
+      "cap-token": "cap-claim-token"
     });
     const claimResponse = await postForm(claim).respond();
     expect(claimResponse.status).toBe(404);

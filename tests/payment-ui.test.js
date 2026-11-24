@@ -86,6 +86,7 @@ function createPage(options = {}) {
   if (options.orderEndpoint) {
     section.setAttribute("data-order-endpoint", options.orderEndpoint);
   }
+  section.setAttribute("data-cap-endpoint", options.capEndpoint || "https://cap.example/site/");
   const select = new Element();
   const bankPanel = new Element();
   bankPanel.classList.add("static-payment-panel");
@@ -168,6 +169,9 @@ function createPage(options = {}) {
     fetch: options.fetch || (async () => { throw new Error("offline"); }),
     prompt: options.prompt,
     FormData: options.FormData,
+    Cap: options.Cap || function() {
+      this.solve = async () => ({ token: "cap-claim-token" });
+    },
     URLSearchParams,
     Intl,
     setTimeout,
@@ -226,7 +230,8 @@ test("the paid button is pre-addressed as a mailto fallback with order details",
 test("the paid button submits the hidden claim form when a worker is connected", async () => {
   const posted = [];
   class FakeFormData {
-    constructor(form) { this.form = form; }
+    constructor(form) { this.form = form; this.entries = []; }
+    append(name, value) { this.entries.push([name, value]); }
   }
   const { page, select, claimForm, claimOrder, claimEmail, claimMethod, claimMessage } = createPage({
     claimMode: "worker",
@@ -257,7 +262,39 @@ test("the paid button submits the hidden claim form when a worker is connected",
   assert.equal(posted[0].options.mode, "no-cors");
   assert.equal(posted[0].options.keepalive, true);
   assert.ok(posted[0].options.body instanceof FakeFormData);
+  assert.deepEqual(posted[0].options.body.entries, [["cap-token", "cap-claim-token"]]);
   assert.equal(page.location.href, "https://example.com/thankyou/");
+});
+
+test("a failed Cap solve leaves the claim unsent", async () => {
+  const posted = [];
+  class FakeFormData {
+    constructor(form) { this.form = form; }
+    append() {}
+  }
+  const { page, select, claimForm, claimAction } = createPage({
+    claimMode: "worker",
+    store: { ordernumber: "12345", email: "buyer@example.com" },
+    FormData: FakeFormData,
+    Cap: function() {
+      this.solve = async () => { throw new Error("instr_blocked"); };
+    },
+    fetch: async (url, options) => {
+      posted.push({ url, options });
+      return {};
+    }
+  });
+  select.options = [{ textContent: "Bank Transfer (SEPA/EPC)", value: "bank" }];
+  select.selectedIndex = 0;
+  select.value = "bank";
+  select.listeners.change.forEach((handler) => handler.call(select));
+
+  claimForm.listeners.submit[0]({ preventDefault() {} });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(posted.length, 0);
+  assert.equal(claimAction.disabled, false);
+  assert.match(page.document.getElementById("payment-status").textContent, /Could not send the payment confirmation/);
 });
 
 test("clicking a pay link reports the payment intent", async () => {
@@ -505,6 +542,7 @@ test("skips the intent when no order endpoint is configured", async () => {
 test("a successful claim clears the cart but keeps the email", async () => {
   class FakeFormData {
     constructor(form) { this.form = form; }
+    append() {}
   }
   const { page, select, claimForm } = createPage({
     claimMode: "worker",
@@ -536,6 +574,7 @@ test("a successful claim clears the cart but keeps the email", async () => {
 test("a failed claim keeps the cart for a retry", async () => {
   class FakeFormData {
     constructor(form) { this.form = form; }
+    append() {}
   }
   const { select, claimForm, store } = createPage({
     claimMode: "worker",

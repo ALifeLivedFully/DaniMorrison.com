@@ -3,6 +3,7 @@ import {
   OrderNotFoundError,
   OrderValidationError
 } from "../services/order-service.js";
+import { verifyCapToken } from "../services/cap.js";
 
 function submittingOrigin(request) {
   const header = request.headers.get("Origin");
@@ -258,7 +259,11 @@ async function createStripeSession(secretKey, form) {
   return payload;
 }
 
-export function createHandler({ orderService, shopStore }) {
+export function createHandler({ orderService, shopStore, capSecret }) {
+  function capFailure(request, cap) {
+    return json(request, { error: cap.error, code: cap.code }, cap.status);
+  }
+
   async function orderStatus(request) {
     const url = new URL(request.url);
     const shopId = String(url.searchParams.get("shop_id") || "").trim();
@@ -291,8 +296,12 @@ export function createHandler({ orderService, shopStore }) {
     if (!data) return text(request, "Invalid data", 400);
 
     if (data._gotcha) return text(request, "Submission received");
+    if (!external) {
+      const cap = await verifyCapToken(capSecret, data["cap-token"]);
+      if (!cap.ok) return capFailure(request, cap);
+    }
     if (String(data.form_type || "") === "claim") {
-      return handleClaim(request, data);
+      return handleClaim(request, data, { verified: true });
     }
 
     const shopId = String(data.shop_id ?? data.shopId ?? "").trim();
@@ -515,9 +524,14 @@ async function handleWebhook(request) {
   }
 }
 
-  async function handleClaim(request, body) {
+  async function handleClaim(request, body, { verified = false } = {}) {
     const data = body || await readBody(request);
     if (!data) return text(request, "Invalid data", 400);
+
+    if (!verified) {
+      const cap = await verifyCapToken(capSecret, data["cap-token"]);
+      if (!cap.ok) return capFailure(request, cap);
+    }
 
     const shopId = String(data.shop_id ?? data.shopId ?? "").trim();
     const shop = await shopForRequest(shopStore, request, shopId);

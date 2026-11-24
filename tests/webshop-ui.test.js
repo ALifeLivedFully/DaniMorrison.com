@@ -56,8 +56,9 @@ function loadPage(options = {}) {
   errorBox.hidden = true;
   const fields = {};
   ["email", "order", "checkout", "ordernumber", "country",
-    "firstname", "lastname", "address", "zipcode", "city", "_next"]
+    "firstname", "lastname", "address", "zipcode", "city", "_next", "cap-token"]
     .forEach((name) => { fields[name] = new Element(); });
+  fields["cap-token"].value = "cap-test-token";
   const shippingOption = new Element({ "data-price": "15", "data-always": "" });
   shippingOption.value = "Shipping World";
   const shippingSelect = new Element();
@@ -167,6 +168,43 @@ test("submitting the checkout moves the buyer on to the payment page", async () 
   assert.equal(submitButton.disabled, true);
   assert.equal(page.location.href, "https://example.com/payment/");
   assert.ok(store.ordernumber);
+});
+
+test("the checkout sends the Cap token with the order", async () => {
+  let payload = null;
+  const { checkout } = loadPage({
+    checkoutForm: true,
+    store: { cart },
+    fetch: async (url, options) => {
+      payload = JSON.parse(options.body);
+      return { ok: true, text: async () => JSON.stringify({ success: true }) };
+    }
+  });
+
+  checkout.listeners.submit[0]({ preventDefault() {} });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  assert.equal(payload["cap-token"], "cap-test-token");
+});
+
+test("a missing Cap token blocks the checkout submission", () => {
+  let submitted = false;
+  const { checkout } = loadPage({
+    checkoutForm: true,
+    store: { cart },
+    fetch: async () => {
+      submitted = true;
+      return { ok: true, text: async () => JSON.stringify({ success: true }) };
+    }
+  });
+  checkout.querySelector("input[name='cap-token']").value = "";
+  let prevented = false;
+
+  checkout.listeners.submit[0]({ preventDefault: () => { prevented = true; } });
+
+  assert.equal(prevented, true);
+  assert.equal(submitted, false);
+  assert.match(checkout.querySelector(".checkout-error").textContent, /verification/);
 });
 
 test("a checkout page restored from the back/forward cache re-enables its submit button", async () => {

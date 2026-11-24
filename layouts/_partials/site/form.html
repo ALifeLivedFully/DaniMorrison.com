@@ -28,7 +28,7 @@
 {{- range $f.fields -}}
     {{- if and (eq .input_type "html") (not $legend) -}}{{ $legend = trim (plainify .label) " \t\r\n" }}{{- end -}}
 {{- end -}}
-<form id="{{ $id }}" class="form" method="post" action="{{ $f.action }}">
+<form id="{{ $id }}" class="form" method="post" action="{{ $f.action }}" data-cap-endpoint="{{ hugo.Data.settings.cap.api_endpoint }}">
     {{ with $f.next }}<input type="hidden" name="_next" value="{{ . }}">{{ end }}
     <fieldset>
         {{ with $legend }}<legend>{{ . }}</legend>{{ end }}
@@ -63,5 +63,6 @@
             <label for="{{ $id }}-website">{{ i18n "Leave this field empty" }}</label>
             <input type="text" id="{{ $id }}-website" name="website" tabindex="-1" autocomplete="off">
         </div>
+        {{ partial "site/cap-widget.html" . }}
     </fieldset>
 </form>

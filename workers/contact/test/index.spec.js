@@ -4,10 +4,18 @@ import {
 	waitOnExecutionContext,
 	SELF,
 } from "cloudflare:test";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import worker from "../src";
 
 const ORIGIN = "https://danimorrison.com";
+const CAP_VERIFY_URL = "https://cap-workers.dani-40a.workers.dev/c67674170e/siteverify";
+
+function capVerifyResponse({ success = true, error = "" } = {}) {
+  return new Response(JSON.stringify(success ? { success: true } : { success: false, error }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}
 
 function submission(overrides = {}) {
   return {
@@ -16,6 +24,7 @@ function submission(overrides = {}) {
     message: "Hello there",
     terms: "I accept the terms and conditions",
     _next: "/thankyou/",
+    "cap-token": "cap-test-token",
     ...overrides,
   };
 }
@@ -38,6 +47,15 @@ async function rows() {
 describe("contact worker", () => {
   beforeEach(async () => {
     await env.contact.prepare("DELETE FROM contact_submissions").run();
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse()
+        : new Response("not found", { status: 404 })
+    ));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("reports health", async () => {
@@ -125,6 +143,95 @@ describe("contact worker", () => {
 
     expect(response.status).toBe(200);
     expect(await rows()).toHaveLength(0);
+  });
+
+  it("rejects a submission without a cap token", async () => {
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission({ "cap-token": undefined })),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "missing_token" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("rejects an invalid cap token", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "invalid-token" })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "invalid_token" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("rejects an expired cap token", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "expired" })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "expired_token" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("fails closed when the Cap server is unreachable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toMatchObject({ code: "cap_unavailable" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("refuses to reuse a cap token", async () => {
+    const used = new Set();
+    vi.stubGlobal("fetch", vi.fn(async (input, init) => {
+      if (String(input) !== CAP_VERIFY_URL) return new Response("not found", { status: 404 });
+      const token = JSON.parse(init.body).response;
+      if (used.has(token)) return capVerifyResponse({ success: false, error: "already_redeemed" });
+      used.add(token);
+      return capVerifyResponse();
+    }));
+
+    const first = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(submission({ _next: undefined })),
+    });
+    const second = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(submission({ _next: undefined })),
+    });
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(400);
+    expect((await second.json()).code).toBe("invalid_token");
+    expect(await rows()).toHaveLength(1);
   });
 
   it("requires a name", async () => {

@@ -1,3 +1,5 @@
+import { verifyCapToken } from "./cap.js";
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function corsHeaders(request) {
@@ -119,6 +121,11 @@ export default {
 
     if (data.website || data._gotcha) {
       return text(request, "Submission received");
+    }
+
+    const cap = await verifyCapToken(env.CAP_SECRET, data["cap-token"]);
+    if (!cap.ok) {
+      return json(request, { error: cap.error, code: cap.code }, cap.status);
     }
 
     const name = String(data.name || "").trim();
