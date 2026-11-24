@@ -124,7 +124,7 @@ function loadPage(options = {}) {
 const cart = JSON.stringify([{ sku: "granola-m", quantity: 2, price: 9.95 }]);
 const addons = JSON.stringify([{ group: "Gift wrapping", price: 2 }]);
 
-test("the thank you page clears the cart after a Stripe checkout success", () => {
+test("the payment completion page clears the cart after a Stripe checkout success", () => {
   const { store } = loadPage({
     search: "?stripe_session=cs_test_123",
     store: { cart, addons, ordernumber: "5329182394" }
@@ -135,7 +135,7 @@ test("the thank you page clears the cart after a Stripe checkout success", () =>
   assert.equal(store.ordernumber, undefined);
 });
 
-test("a thank you page without a Stripe session keeps the cart", () => {
+test("a payment completion page without a Stripe session keeps the cart", () => {
   const { store } = loadPage({
     search: "",
     store: { cart, addons, ordernumber: "5329182394" }

@@ -17,6 +17,7 @@ const config = {
   shop_id: "danimorrison",
   currency: { shop: "USD", code: "USD", symbol: "$", position: "prefix" },
   catalog_url: CATALOG_URL,
+  form: { thank_you_path: "/payment-complete" },
   shipping: {
     active: true,
     options: [
@@ -860,7 +861,7 @@ describe("payment gates", () => {
     expect(form.get("mode")).toBe("payment");
     expect(form.get("client_reference_id")).toBe(String(valid.orderId));
     expect(form.get("customer_email")).toBe("test@example.com");
-    expect(form.get("success_url")).toBe(`${ORIGIN}/thankyou/?stripe_session={CHECKOUT_SESSION_ID}`);
+    expect(form.get("success_url")).toBe(`${ORIGIN}/payment-complete/?stripe_session={CHECKOUT_SESSION_ID}`);
     expect(form.get("cancel_url")).toBe(`${ORIGIN}/payment/`);
     expect(form.get("metadata[order_id]")).toBe(String(valid.orderId));
     expect(form.get("metadata[ordernumber]")).toBe("1234567890");
@@ -1095,7 +1096,7 @@ describe("payment gates", () => {
       ordernumber: "invalid3",
       email: "test@example.com",
       payment_method: "bank",
-      _next: "/thankyou/",
+      _next: "/payment-complete/",
       "cap-token": "cap-claim-token"
     });
     const { respond } = postForm(body);
@@ -1105,7 +1106,7 @@ describe("payment gates", () => {
     expect((await readOrder("invalid3")).status).toBe("invalid");
   });
 
-  it("claims a validated order and walks to the thank-you page", async () => {
+  it("claims a validated order and walks to the payment completion page", async () => {
     await seedShop();
     mockCatalog();
     await postJson(order()).respond();
@@ -1116,14 +1117,14 @@ describe("payment gates", () => {
       ordernumber: "1234567890",
       email: "test@example.com",
       payment_method: "bank",
-      _next: "/thankyou/",
+      _next: "/payment-complete/",
       "cap-token": "cap-claim-token"
     });
     const { respond } = postForm(body);
     const response = await respond();
 
     expect(response.status).toBe(303);
-    expect(response.headers.get("Location")).toBe(`${ORIGIN}/thankyou/`);
+    expect(response.headers.get("Location")).toBe(`${ORIGIN}/payment-complete/`);
     expect((await readOrder()).status).toBe("claimed");
 
     const ctx = createExecutionContext();

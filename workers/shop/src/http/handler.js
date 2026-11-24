@@ -202,11 +202,12 @@ function checkoutLines(order, items, addons) {
   return lines;
 }
 
-function stripeCheckoutForm(shop, order, items, addons) {
+function stripeCheckoutForm(shop, order, items, addons, thankYouPath = "/payment-complete") {
   const base = String(shop.origin || "").replace(/\/+$/, "");
+  const successPath = `/${String(thankYouPath || "/payment-complete").trim().replace(/^\/+|\/+$/g, "")}/`;
   const fields = [
     ["mode", "payment"],
-    ["success_url", `${base}/thankyou/?stripe_session={CHECKOUT_SESSION_ID}`],
+    ["success_url", `${base}${successPath}?stripe_session={CHECKOUT_SESSION_ID}`],
     ["cancel_url", `${base}/payment/`],
     ["client_reference_id", String(order.id)],
     ["metadata[order_id]", String(order.id)],
@@ -414,11 +415,14 @@ export function createHandler({ orderService, shopStore, capSecret }) {
     }
     const { order, items, addons } = prepared;
 
+    const config = await shopConfig(shopStore, shop);
+    const thankYouPath = config?.form?.thank_you_path;
+
     let session;
     try {
       session = await createStripeSession(
         shop.stripe_secret_key,
-        stripeCheckoutForm(shop, order, items, addons)
+        stripeCheckoutForm(shop, order, items, addons, thankYouPath)
       );
     } catch (error) {
       console.error("Stripe checkout session failed:", error);
@@ -552,7 +556,8 @@ async function handleWebhook(request) {
     const browserOrigin = submittingOrigin(request);
     if (browserOrigin) {
       const next = new URL(String(data._next ?? "/"), browserOrigin);
-      if (next.pathname.includes("thank")) {
+      const path = next.pathname.toLowerCase();
+      if (path.includes("thank") || path.includes("complete")) {
         return Response.redirect(next.href, 303);
       }
     }

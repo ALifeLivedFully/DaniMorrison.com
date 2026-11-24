@@ -1,5 +1,5 @@
 action: https://contact.dani-40a.workers.dev/
-next: /thankyou
+next: /enquiry-complete
 placeholders: false
 fields: 
 - name: title

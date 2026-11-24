@@ -106,7 +106,7 @@ function createPage(options = {}) {
   const claimMethod = new Element();
   const claimMessage = new Element();
   const claimNext = new Element();
-  claimNext.value = "https://example.com/thankyou/";
+  claimNext.value = "https://example.com/payment-complete/";
   claimForm.action = "https://worker.example/claim";
   claimForm.querySelector = (selector) => {
     const match = /input\[name="([^"]+)"\]/.exec(selector);
@@ -263,7 +263,7 @@ test("the paid button submits the hidden claim form when a worker is connected",
   assert.equal(posted[0].options.keepalive, true);
   assert.ok(posted[0].options.body instanceof FakeFormData);
   assert.deepEqual(posted[0].options.body.entries, [["cap-token", "cap-claim-token"]]);
-  assert.equal(page.location.href, "https://example.com/thankyou/");
+  assert.equal(page.location.href, "https://example.com/payment-complete/");
 });
 
 test("a failed Cap solve leaves the claim unsent", async () => {
@@ -564,7 +564,7 @@ test("a successful claim clears the cart but keeps the email", async () => {
   claimForm.listeners.submit[0]({ preventDefault: () => {} });
   await new Promise((resolve) => setTimeout(resolve, 20));
 
-  assert.equal(page.location.href, "https://example.com/thankyou/");
+  assert.equal(page.location.href, "https://example.com/payment-complete/");
   assert.equal(page.localStorage.getItem("cart"), null);
   assert.equal(page.localStorage.getItem("addons"), null);
   assert.equal(page.localStorage.getItem("ordernumber"), null);

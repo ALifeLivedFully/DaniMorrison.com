@@ -103,7 +103,7 @@ form:
   order_endpoint: "https://shop.dani-40a.workers.dev/"
   claim_endpoint: ""
   use_mailto_fallback: true
-  thank_you_path: /thankyou
+  thank_you_path: /payment-complete
 
 payment_links:
   default_username: "ALifeLivedFully"

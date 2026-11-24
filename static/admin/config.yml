@@ -139,6 +139,7 @@ collections:
         file: data/en/contactform.yaml
         fields:
           - { label: Action, name: action, widget: string }
+          - { label: Completion page, name: next, widget: string, required: false }
           - { label: Placeholders, name: placeholders, widget: boolean }
           - label: Fields
             name: fields
@@ -157,6 +158,7 @@ collections:
         file: data/en/ctaform.yaml
         fields:
           - { label: Action, name: action, widget: string }
+          - { label: Completion page, name: next, widget: string, required: false }
           - { label: Placeholders, name: placeholders, widget: boolean }
           - label: Fields
             name: fields
@@ -175,6 +177,7 @@ collections:
         file: data/en/newsletterform.yaml
         fields:
           - { label: Action, name: action, widget: string }
+          - { label: Completion page, name: next, widget: string, required: false }
           - { label: Placeholders, name: placeholders, widget: boolean }
           - label: Fields
             name: fields
@@ -270,7 +273,7 @@ collections:
           - { label: Cart link, name: cart_link, widget: string, required: false }
           - { label: Checkout link, name: checkout_link, widget: string, required: false }
           - { label: Payment link, name: payment_link, widget: string, required: false }
-          - { label: Thank-you link, name: thankyou_link, widget: string, required: false }
+          - { label: Payment completion page, name: thankyou_link, widget: string, required: false }
           - { label: Products link, name: products_link, widget: string, required: false }
           - { label: Show cart icon, name: show_cart_icon, widget: boolean }
           - { label: Send order to mail, name: send_order_to_mail, widget: string, required: false }

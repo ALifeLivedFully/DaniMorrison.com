@@ -23,7 +23,7 @@ function submission(overrides = {}) {
     email: "test@example.com",
     message: "Hello there",
     terms: "I accept the terms and conditions",
-    _next: "/thankyou/",
+    _next: "/contact-complete/",
     "cap-token": "cap-test-token",
     ...overrides,
   };
@@ -91,7 +91,7 @@ describe("contact worker", () => {
     await waitOnExecutionContext(ctx);
 
     expect(response.status).toBe(303);
-    expect(response.headers.get("Location")).toBe(`${ORIGIN}/thankyou/`);
+    expect(response.headers.get("Location")).toBe(`${ORIGIN}/contact-complete/`);
 
     const stored = await rows();
     expect(stored).toHaveLength(1);
@@ -117,7 +117,7 @@ describe("contact worker", () => {
     await waitOnExecutionContext(ctx);
 
     expect(response.status).toBe(303);
-    expect(response.headers.get("Location")).toBe(`${ORIGIN}/thankyou/`);
+    expect(response.headers.get("Location")).toBe(`${ORIGIN}/contact-complete/`);
     const stored = await rows();
     expect(stored).toHaveLength(1);
     expect(stored[0].message).toBe("Form post");
