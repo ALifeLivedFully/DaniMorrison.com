@@ -8,6 +8,7 @@
 	"main": "src/index.js",
 	"account_id": "40a7bf10e839e77dd4005fc675985e93",
 	"compatibility_date": "2026-10-19",
+	"compatibility_flags": ["global_fetch_strictly_public"],
 	"observability": {
 		"enabled": true
 	},

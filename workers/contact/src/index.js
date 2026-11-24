@@ -125,7 +125,7 @@ export default {
 
     const cap = await verifyCapToken(env.CAP_SECRET, data["cap-token"]);
     if (!cap.ok) {
-      return json(request, { error: cap.error, code: cap.code }, cap.status);
+      return json(request, { error: cap.error, code: cap.code, detail: cap.detail }, cap.status);
     }
 
     const name = String(data.name || "").trim();

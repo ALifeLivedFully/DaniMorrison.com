@@ -10,9 +10,9 @@ import worker from "../src";
 const ORIGIN = "https://danimorrison.com";
 const CAP_VERIFY_URL = "https://cap-workers.dani-40a.workers.dev/c67674170e/siteverify";
 
-function capVerifyResponse({ success = true, error = "" } = {}) {
+function capVerifyResponse({ success = true, error = "", status = 200 } = {}) {
   return new Response(JSON.stringify(success ? { success: true } : { success: false, error }), {
-    status: 200,
+    status,
     headers: { "Content-Type": "application/json" }
   });
 }
@@ -195,6 +195,78 @@ describe("contact worker", () => {
 
   it("fails closed when the Cap server is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toMatchObject({ code: "cap_unavailable" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("maps a Cap 403 expired response to expired_token", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Token expired", status: 403 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "expired_token", detail: "Token expired" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("maps a Cap 404 token-not-found response to invalid_token", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Token not found", status: 404 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "invalid_token", detail: "Token not found" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("maps a Cap secret error to cap_unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Invalid site key or secret", status: 403 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await SELF.fetch("https://example.com/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: ORIGIN },
+      body: JSON.stringify(submission()),
+    });
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "cap_unavailable", detail: "Invalid site key or secret" });
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("fails closed on a non-JSON Cap error response", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? new Response("<html>server error</html>", { status: 500 })
+        : new Response("not found", { status: 404 })
+    ));
 
     const response = await SELF.fetch("https://example.com/", {
       method: "POST",

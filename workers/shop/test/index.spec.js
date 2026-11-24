@@ -6,9 +6,9 @@ const ORIGIN = "http://localhost:1313";
 const CATALOG_URL = `${ORIGIN}/shop/index.json`;
 const CAP_VERIFY_URL = "https://cap-workers.dani-40a.workers.dev/c67674170e/siteverify";
 
-function capVerifyResponse({ success = true, error = "" } = {}) {
+function capVerifyResponse({ success = true, error = "", status = 200 } = {}) {
   return new Response(JSON.stringify(success ? { success: true } : { success: false, error }), {
-    status: 200,
+    status,
     headers: { "Content-Type": "application/json" }
   });
 }
@@ -582,6 +582,66 @@ describe("the order worker", () => {
   it("fails closed when the Cap server is unreachable", async () => {
     await seedShop();
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(502);
+    expect((await response.json()).code).toBe("cap_unavailable");
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("maps a Cap 403 expired response to expired_token", async () => {
+    await seedShop();
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Token expired", status: 403 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "expired_token", detail: "Token expired" });
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("maps a Cap 404 token-not-found response to invalid_token", async () => {
+    await seedShop();
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Token not found", status: 404 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "invalid_token", detail: "Token not found" });
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("maps a Cap secret error to cap_unavailable", async () => {
+    await seedShop();
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? capVerifyResponse({ success: false, error: "Invalid site key or secret", status: 403 })
+        : new Response("not found", { status: 404 })
+    ));
+
+    const response = await postJson(order()).respond();
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ code: "cap_unavailable", detail: "Invalid site key or secret" });
+    expect(await readOrder()).toBe(null);
+  });
+
+  it("fails closed on a non-JSON Cap error response", async () => {
+    await seedShop();
+    vi.stubGlobal("fetch", vi.fn(async (input) =>
+      String(input) === CAP_VERIFY_URL
+        ? new Response("<html>server error</html>", { status: 500 })
+        : new Response("not found", { status: 404 })
+    ));
 
     const response = await postJson(order()).respond();
 

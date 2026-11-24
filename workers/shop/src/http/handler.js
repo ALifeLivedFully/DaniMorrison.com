@@ -261,7 +261,7 @@ async function createStripeSession(secretKey, form) {
 
 export function createHandler({ orderService, shopStore, capSecret }) {
   function capFailure(request, cap) {
-    return json(request, { error: cap.error, code: cap.code }, cap.status);
+    return json(request, { error: cap.error, code: cap.code, detail: cap.detail }, cap.status);
   }
 
   async function orderStatus(request) {
